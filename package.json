@@ -38,6 +38,7 @@
         "core-js": "^3.28.0",
         "dapjs": "^2.2.0",
         "file-saver": "^2.0.2",
+        "html-to-image": "^1.11.11",
         "html2canvas": "^1.4.1",
         "jquery": "^3.6.3",
         "lodash": "^4.17.20",
