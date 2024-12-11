@@ -1,7 +1,8 @@
 <!-- this acts as a wrapper around the bootstrap modals, to have centralised control and customisation -->
 <template>
     <b-modal no-close-on-backdrop hide-header-close :id="dlgId" :title="dlgTitle" :ok-only="okOnly" 
-        :ok-title="okTitle" :cancel-title="cancelTitle" :size="size" :auto-focus-button="autoFocusButton">
+        :ok-title="okTitle" :cancel-title="cancelTitle" :size="size" :auto-focus-button="autoFocusButton"
+        :ok-disabled="isOKButtonDisabled">
             <slot/>
             <!-- the footer part is entirely optional if other buttons than the default OK/Cancel or Yes/No are required -->
             <template #modal-footer="{ok, cancel, hide}">
@@ -24,6 +25,8 @@ export default Vue.extend({
         dlgTitle: String,
         okOnly: Boolean,
         okCustomTitle: String,
+        isOKButtonDisabled: Boolean,
+        tempOKButtonTitle: String, // If defined and not empty, this property sets the "OK" button's value for a temporary state (for example when action is required beforehand)
         cancelCustomTitle: String,
         size:  {
             type: String as PropType<BootstrapDlgSize>,
@@ -49,7 +52,7 @@ export default Vue.extend({
         ...mapStores(useStore),
 
         okTitle(): string {
-            return this.okCustomTitle ?? (this.$i18n.t((this.useYesNo) ? "buttonLabel.yes" : "buttonLabel.ok") as string);
+            return (this.tempOKButtonTitle && this.tempOKButtonTitle.trim().length > 0) ? this.tempOKButtonTitle : (this.okCustomTitle ?? (this.$i18n.t((this.useYesNo) ? "buttonLabel.yes" : "buttonLabel.ok") as string));
         },
         
         cancelTitle(): string {
@@ -75,7 +78,7 @@ export default Vue.extend({
         validateOnEnterKeyDown(event: KeyboardEvent){
             // Hitting "enter" on the dialog triggers its validation (the trigger property of the BvModalEvent sent by Bootstrap will be "event" in that case)
             // Only if there is not focus on a button already (then it show leave the action on that button to be performed)
-            if((document.activeElement?.tagName.toLocaleLowerCase()??"") != "button" && event.code.toLowerCase() == "enter" && this.appStore.isModalDlgShown && this.dlgId == this.appStore.currentModalDlgId){
+            if(!this.isOKButtonDisabled && (document.activeElement?.tagName.toLocaleLowerCase()??"") != "button" && event.code.toLowerCase() == "enter" && this.appStore.isModalDlgShown && this.dlgId == this.appStore.currentModalDlgId){
                 this.$root.$emit("bv::hide::modal", this.dlgId);
             }
         },

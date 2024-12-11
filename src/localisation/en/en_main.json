@@ -51,7 +51,8 @@
     "saveProjectCopy": "Choose new name",
     "spaceBar": "space",
     "yesSign" : "Yes, sign me in",
-    "noContinueWithout":"No, continue without"
+    "noContinueWithout":"No, continue without",
+    "saving":"Saving..."
   },
   "errorMessage": {
     "wrongDataFormat": "the data format cannot be read",

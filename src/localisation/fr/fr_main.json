@@ -50,7 +50,8 @@
     "saveProjectCopy": "Choisir un autre nom",
     "spaceBar": "espace",
     "yesSign" : "Oui, se connecter",
-    "noContinueWithout":"Non, continuer sans connexion"
+    "noContinueWithout":"Non, continuer sans connexion",
+    "saving":"Sauvegarde en cours..."
   },
   "errorMessage": {
     "wrongDataFormat": "le format de données ne peut pas être lu",

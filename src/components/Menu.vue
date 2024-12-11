@@ -21,7 +21,7 @@
             <!-- load/save section -->
             <a :id="loadProjectLinkId" v-show="showMenu" class="strype-menu-link strype-menu-item" v-b-modal.load-strype-project-modal-dlg 
                 @click="openLoadProjectModal">{{$t('appMenu.loadProject')}}<span class="strype-menu-kb-shortcut">{{loadProjectKBShortcut}}</span></a>
-            <ModalDlg :dlgId="loadProjectModalDlgId" :autoFocusButton="'ok'">
+            <ModalDlg :dlgId="loadProjectModalDlgId" :autoFocusButton="'ok'" :isOKButtonDisabled="isSavingBeforeLoadingProject" :tempOKButtonTitle="tempOpenDlgButtonValue">
                 <div v-if="changesNotSavedOnLoad">
                     <span  v-t="'appMessage.editorConfirmChangeCode'" class="load-project-lost-span"/>
                     <br/>
@@ -179,6 +179,12 @@ export default Vue.extend({
             // the right button group value when the dialog is opened, and cleared when the dialog is explicitly closed by the user
             // or when the actions that follow the validation of the dialog (if any) are done.
             currentModalButtonGroupIDInAction: "",
+            // This flag is used to notify the Open dialog of a saving triggered when the dialog is opened (and therefore set the dialog
+            // in a temporary disabled state). We need to use this temporary invalid state (and therefore saving at the opening of the dlg
+            // rather at after getting the file) because of Safari restrictions on what can triggers a file system explorer opening:
+            // when a project has been loaded from Google Drive and then we try to open a file on the FS, because we were saving the file at 
+            // that moment in previous version, the action of opening was not triggered by the popup (i.e. user) action and Safari blocked it.
+            isSavingBeforeLoadingProject: false,
         };
     },
 
@@ -202,7 +208,7 @@ export default Vue.extend({
         this.$root.$on("bv::modal::hide", this.onStrypeMenuHideModalDlg);      
         
         // Event listener for saving project action completion
-        this.$root.$on(CustomEventTypes.saveStrypeProjectDoneForLoad, this.loadProject);
+        this.$root.$on(CustomEventTypes.saveStrypeProjectDoneForLoad, this.notifedProjectSavedForLoad);
 
         // Composition API allows watching an array of "sources" (cf https://vuejs.org/guide/essentials/watchers.html)
         // We need to update the current error Index when: the error count changes, navigation occurs (i.e. editing toggles, caret pos or focus pos changes)
@@ -222,7 +228,7 @@ export default Vue.extend({
         this.$root.$off("bv::modal::hide", this.onStrypeMenuHideModalDlg);
 
         // And for the saving project action completion too
-        this.$root.$off(CustomEventTypes.saveStrypeProjectDoneForLoad, this.loadProject);
+        this.$root.$off(CustomEventTypes.saveStrypeProjectDoneForLoad, this.notifedProjectSavedForLoad);
     },
 
     computed: {
@@ -312,6 +318,10 @@ export default Vue.extend({
         changesNotSavedOnLoad(): boolean {
             // For Google Drive, we will attempt saving anyway when loading so we don't need to care.
             return this.appStore.syncTarget != StrypeSyncTarget.gd && (this.appStore.isProjectUnsaved ?? true);
+        },
+
+        tempOpenDlgButtonValue(): string  {
+            return (this.isSavingBeforeLoadingProject) ? this.$t("buttonLabel.saving") as string : ""; 
         },
 
         isUndoDisabled(): boolean {
@@ -479,6 +489,14 @@ export default Vue.extend({
                     saveFileNameInputElement.click();
                 }, 500);           
             }
+            else if(dlgId == this.loadProjectModalDlgId){
+                // When we open the Open project dialog, we trigger an autosave to save the current code version.
+                // See why we do that at this stage rather than when actually opening the file (what we did before) 
+                // in the definition of isSavingBeforeLoadingProject
+                this.isSavingBeforeLoadingProject = true;
+                // We force saving the current project anyway just in case
+                this.$root.$emit(CustomEventTypes.requestEditorAutoSaveNow, SaveRequestReason.loadProject);
+            }
         },
 
         onStrypeMenuHideModalDlg(event: BvModalEvent, dlgId: string, forcedProjectName?: string) {
@@ -499,9 +517,7 @@ export default Vue.extend({
                 // Case of "load file"
                 if(dlgId == this.loadProjectModalDlgId){
                     this.currentModalButtonGroupIDInAction = this.loadProjectTargetButtonGpId;
-                    // We force saving the current project anyway just in case
-                    this.$root.$emit(CustomEventTypes.requestEditorAutoSaveNow, SaveRequestReason.loadProject);
-                    // The remaining parts of the loading process will be only done once saving is complete (cf loadProject())                    
+                    this.loadProject();                  
                 }
                 // Case of "save file"
                 else if(dlgId == this.saveProjectModalDlgId){
@@ -578,7 +594,6 @@ export default Vue.extend({
             }
             else{               
                 // And let the user choose a file
-                console.log("HERE FOR OPENING ("+canBrowserOpenFilePicker+")");
                 if(canBrowserOpenFilePicker){
                     openFile([...this.strypeProjMIMEDescArray, ...this.pythonImportMIMEDescArray], this.appStore.strypeProjectLocation, (fileHandles: FileSystemFileHandle[]) => {
                         // We select 1 file so we can get the first element of the returned array
@@ -609,12 +624,14 @@ export default Vue.extend({
                     });                        
                 }
                 else{
-                    console.log("testing if the input file element is still valid ==>");
-                    console.log(this.$refs.importFileInput);
                     (this.$refs.importFileInput as HTMLInputElement).click();
                 }
             }        
             this.currentModalButtonGroupIDInAction = "";
+        },
+
+        notifedProjectSavedForLoad() {
+            this.isSavingBeforeLoadingProject = false;
         },
         
         selectedFile() {

@@ -50,7 +50,8 @@
     "saveDiffLocation": "Guardar en otro lugar",
     "overwriteProject": "Reemplazar",
     "saveProjectCopy": "Elige un nuewvo nombre",
-    "spaceBar": "espacio"
+    "spaceBar": "espacio",
+    "saving":"Guardando..."
   },
   "errorMessage": {
     "wrongDataFormat": "el formato de datos no puedo ser interpretado por Strype",
