@@ -578,6 +578,7 @@ export default Vue.extend({
             }
             else{               
                 // And let the user choose a file
+                console.log("HERE FOR OPENING ("+canBrowserOpenFilePicker+")");
                 if(canBrowserOpenFilePicker){
                     openFile([...this.strypeProjMIMEDescArray, ...this.pythonImportMIMEDescArray], this.appStore.strypeProjectLocation, (fileHandles: FileSystemFileHandle[]) => {
                         // We select 1 file so we can get the first element of the returned array
@@ -608,6 +609,8 @@ export default Vue.extend({
                     });                        
                 }
                 else{
+                    console.log("testing if the input file element is still valid ==>");
+                    console.log(this.$refs.importFileInput);
                     (this.$refs.importFileInput as HTMLInputElement).click();
                 }
             }        
