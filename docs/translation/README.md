@@ -11,7 +11,7 @@ This guide details these basic steps to follow to make the translations:
 -   [How to do the translations.](#how-to-do-the-translations) 
 -   [How to submit the translations.](#how-to-submit-the-translations)
 
-The same actions, plus changes visualisation, can be achieved following these [advanced steps (using GitHub)](#advanced-steps).
+The same actions, plus testing your changes, can be achieved following this [alternative method (advanced): edit directly on GitHub)](#alternative-method-advanced-edit-directly-on-github)
 
 >[!NOTE]
 >Currently, all translations are taking effect in Strype when a new version of the application is released by the Strype team. So even if a translation has been received by the Strype team and included into the source code repository, it will be visible in the online tool only when the Strype team releases a new version.
@@ -25,8 +25,6 @@ The translation files for all supported locales are contained in **one subfolder
 A locale subfolder contains several translation JSON files, their names start with the 2-letter code of the locale (for example, `en_main.json`). We split the translations in several files to ease the translation task and gather some specific translations separately (for example for Strype micro:bit).
 
 The files you want to translate can be downloaded directly from the website (click on the subfolder, and click on the file you wish to download, you should see a download button near the top-right area of the page).
-
-If the locale you wish to provide translations for does *not* exist, you will need to create a new subfolder (named after the 2-letter code of the locale) and add your translation files following the same naming logic as mentioned above.
 
 ## How to understand the translations files
 
@@ -45,11 +43,16 @@ Here is an example of a *key:value* pair for English, where the *key* (i.e.refer
 
 ## How to do the translations
 
-The language reference for all translations is the English locale. Therefore, the reference files are the files located in the `/en/` subfolder (see sections [1](#how-to-retrieve-or-create-the-translations-files) and [2](#how-to-understand-the-translations-files) for details about finding the files and understanding their formats).
+To add translations *for a new locale* in Strype:
+- download the English file (see section [1](#how-to-retrieve-or-create-the-translations-files)),
+- rename your file copy to your locale (see section [1](#how-to-retrieve-or-create-the-translations-files)),
+- translate the values (see section [2](#how-to-understand-the-translations-files)).
 
-**Each** *key:value* pair of a translation locale file **need to match those of the equivalent English locale file**, and as explained above, **only** the *value* texts need to be translated.
+Similarly, to add or edit translations *for an existing locale* in Strype:
+- download the locale file,
+- add the missing *key:value* pairs based on the English locale file, or edit the exisiting translations.
 
-The expected file encoding is **UTF-8** (which would be default encoding in most modern text editors).
+(The expected file encoding is **UTF-8**, which would be default encoding in most modern text editors.)
 
 Here are a few rules to follow when doing the translations of the text *values*.
 
@@ -73,9 +76,9 @@ You can send the locale file(s) to us directly ([team@strype.org](mailto:team@st
 >[!NOTE]
 >Since English is the reference language used by Strype, *any missing translations in a locale will be rendered in Strype in English*. This means that if you prefer sending us your translations in several steps (for example, a file at a time), Strype will still be able to run with some missing translations.
 
-## Advanced steps
+## Alternative method (advanced): edit directly on GitHub
 
-You may prefer contributing to the translations of Strype using Git. Strype is hosted in GitHub at <a href="https://github.com/k-pet-group/Strype" target="_blank">https://github.com/k-pet-group/Strype</a>.
+Alternatively, you may prefer contributing to the translations of Strype using Git. Strype is hosted in GitHub at <a href="https://github.com/k-pet-group/Strype" target="_blank">https://github.com/k-pet-group/Strype</a>.
 
 >[!NOTE]
 >It is advised, if you want to retrieve a copy of the Strype source code, to <ins>first create a fork of the project into your own GitHub account</ins>, and use your forked project as a remote Git repository.
@@ -88,7 +91,7 @@ First read the basic steps sections to familiarise yourself with the localisatio
 >[!NOTE]
 >This guide focuses on translations *directly* handled by the Strype website. Translators may otherwise contribute to the localisation of <a href="https://github.com/Tobias-Kohn/TigerPython-Parser" target="_blank">TigerPython</a>, which is used by Strype to display Python parsing error messages.
 
-### Changes visualisation
+### Testing your changes
 
 The only way to see how your translations are rendered in Strype is to clone the project source code (with Git) and run it.
   
