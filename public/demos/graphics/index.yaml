@@ -7,3 +7,9 @@
   description: A knock-knock joke
   image: graphics-knock-knock.png
   file: graphics-knock-knock.spy
+
+- name: Simple bird
+  description: Starting example (workshop)
+  image: simple-bird.png
+  file: simple-bird.spy
+
