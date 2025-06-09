@@ -8,8 +8,8 @@
   image: graphics-knock-knock.png
   file: graphics-knock-knock.spy
 
-- name: Simple bird
+- name: Simple sea life
   description: Starting example (workshop)
-  image: simple-bird.png
-  file: simple-bird.spy
+  image: simple-sea-life.png
+  file: simple-sea-life.spy
 
