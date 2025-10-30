@@ -41,13 +41,19 @@ import Vue, { PropType } from "vue";
 import VueContext, { VueContextConstructor } from "vue-context";
 import { useStore } from "@/store/store";
 import Caret from"@/components/Caret.vue";
-import {AllFrameTypesIdentifier, CaretPosition, Position, MessageDefinitions, PythonExecRunningState, FrameContextMenuActionName, CurrentFrame} from "@/types/types";
+import { AllFrameTypesIdentifier, CaretPosition, Position, MessageDefinitions, PythonExecRunningState, FrameContextMenuActionName, CurrentFrame} from "@/types/types";
 import { getCaretUID, adjustContextMenuPosition, setContextMenuEventClientXY, getAddFrameCmdElementUID, CustomEventTypes, getCaretContainerUID } from "@/helpers/editor";
 import { mapStores } from "pinia";
 import { cloneDeep } from "lodash";
 import { getAboveFrameCaretPosition, getFrameSectionIdFromFrameId } from "@/helpers/storeMethods";
 import { pasteMixedPython } from "@/helpers/pythonToFrames";
 import scssVars  from "@/assets/style/_export.module.scss";
+/* IFTRUE_isPython */
+import { getFrameDefType, SlotType, SlotCursorInfos, MediaDataAndDim} from "@/types/types";
+import { setDocumentSelection, getFrameLabelSlotsStructureUID, getLabelSlotUID } from "@/helpers/editor";
+import { preparePasteMediaData } from "@/helpers/media";
+import LabelSlotsStructureComponent from "@/components/LabelSlotsStructure.vue";
+/* FITRUE_isPython */
 
 //////////////////////
 //     Component    //
@@ -170,9 +176,50 @@ export default Vue.extend({
         pasteIfFocused(event: Event) {
             // A paste via shortcut cannot get the verification that would be done via a click
             // so we check that 1) we are on the caret position that is currently selected and 2) that paste is allowed here.
-            // We should know the action is about pasting frames or text if some text is present in the clipboard (we clear it when copying frames)
             if (!this.isPythonExecuting && !this.isEditing && this.caretVisibility !== CaretPosition.none && (this.caretVisibility === this.caretAssignedPosition)) {
-                const pythonCode = (event as ClipboardEvent).clipboardData?.getData("text");
+                /*IFTRUE_isPython */
+                if(Object.values((event as ClipboardEvent).clipboardData?.items??[]).some((dataTransferItem: DataTransferItem) => dataTransferItem.kind == "file" && /^(image)|(audio)\//.test(dataTransferItem.type))){
+                    // For the special case of image media, we want to simulate the addition of a method call with that media.
+                    // Therefore, we will need to "wrap" around the media literal value with our usual wrappers.
+                    preparePasteMediaData(event as ClipboardEvent, (code: string, dataAndDim: MediaDataAndDim) => {
+                        // We create a new function call frame with the media-adapated code content
+                        const stateBeforeChanges = cloneDeep(this.appStore.$state);
+                        this.appStore.addFrameWithCommand(getFrameDefType(AllFrameTypesIdentifier.funccall)).then(() => {
+                            // We need to delete the extra brackets added as the function call frame template.
+                            // We must then wait a bit before doing anything to make sure the deletion has been effective 
+                            // and won't interfer with the slot's content manipulation.
+                            document.activeElement?.dispatchEvent(new KeyboardEvent("keydown", {key: "Delete"}));
+                            setTimeout(() => {
+                                const slotCursorInfos: SlotCursorInfos = {slotInfos: {frameId: this.appStore.currentFrame.id, labelSlotsIndex: 0, slotId: "0", slotType: SlotType.media}, cursorPos: 1};
+                                this.appStore.setFrameEditableSlotContent(
+                                    {
+                                        ...slotCursorInfos.slotInfos,
+                                        code: code,
+                                        mediaType: dataAndDim.itemType,
+                                        initCode: "",
+                                        isFirstChange: true,
+                                    }
+                                )
+                                    .then(()=>{
+                                        // Move the cursor after the insertion (if no arguments)
+                                        setDocumentSelection(slotCursorInfos, slotCursorInfos);
+                                        // Update the store too
+                                        this.appStore.setSlotTextCursors(slotCursorInfos, slotCursorInfos);                                       
+
+                                        //Refactor the slots, we call the refactorisation on the LabelSlotsStructure                                        
+                                        (this.$root.$refs[getFrameLabelSlotsStructureUID(slotCursorInfos.slotInfos.frameId, slotCursorInfos.slotInfos.labelSlotsIndex)] as InstanceType<typeof LabelSlotsStructureComponent>)
+                                            .checkSlotRefactoring(getLabelSlotUID(slotCursorInfos.slotInfos), stateBeforeChanges, {doAfterCursorSet: () =>  this.appStore.leftRightKey({key: "ArrowRight"})});                                        
+                                    });
+                            }, 100);
+                        });                        
+                    });
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    event.stopPropagation();
+                    return;
+                }
+                /*FITRUE_isPython */
+                let pythonCode = (event as ClipboardEvent).clipboardData?.getData("text");
                 if (this.pasteAvailable && (pythonCode == undefined || pythonCode.trim().length == 0)) {
                     // We check if pasting frames is possible here, if not, show a message.
                     //we need to update the context menu as if it had been shown
