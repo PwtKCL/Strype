@@ -53,6 +53,8 @@ import { getFrameDefType, SlotType, SlotCursorInfos, MediaDataAndDim} from "@/ty
 import { setDocumentSelection, getFrameLabelSlotsStructureUID, getLabelSlotUID } from "@/helpers/editor";
 import { preparePasteMediaData } from "@/helpers/media";
 import LabelSlotsStructureComponent from "@/components/LabelSlotsStructure.vue";
+import {ContainerTypesIdentifiers, FuncDefIdentifiers } from "@/types/types";
+import { getParentOrJointParent } from "@/helpers/storeMethods";
 /* FITRUE_isPython */
 
 //////////////////////
@@ -178,9 +180,13 @@ export default Vue.extend({
             // so we check that 1) we are on the caret position that is currently selected and 2) that paste is allowed here.
             if (!this.isPythonExecuting && !this.isEditing && this.caretVisibility !== CaretPosition.none && (this.caretVisibility === this.caretAssignedPosition)) {
                 /*IFTRUE_isPython */
-                if(Object.values((event as ClipboardEvent).clipboardData?.items??[]).some((dataTransferItem: DataTransferItem) => dataTransferItem.kind == "file" && /^(image)|(audio)\//.test(dataTransferItem.type))){
+                const inFrameType = this.appStore.frameObjects[(this.appStore.currentFrame.caretPosition == CaretPosition.body) ? this.frameId : getParentOrJointParent(this.frameId)].frameType.type;
+                if(![ContainerTypesIdentifiers.importsContainer, ContainerTypesIdentifiers.funcDefsContainer, ...Object.values(FuncDefIdentifiers)].includes(inFrameType) && Object.values((event as ClipboardEvent).clipboardData?.items??[]).some((dataTransferItem: DataTransferItem) => dataTransferItem.kind == "file" && /^(image)|(audio)\//.test(dataTransferItem.type))){
                     // For the special case of image media, we want to simulate the addition of a method call with that media.
                     // Therefore, we will need to "wrap" around the media literal value with our usual wrappers.
+                    // We don't rely on the frame authorised children rules for that, because we don't have a copied frame in the state.
+                    // We know a media frame cannot be inside an import section, nor directly inside a definition section, nor directly inside a class or function frame
+                    // (this test is done first in the condition above).
                     preparePasteMediaData(event as ClipboardEvent, (code: string, dataAndDim: MediaDataAndDim) => {
                         // We create a new function call frame with the media-adapated code content
                         const stateBeforeChanges = cloneDeep(this.appStore.$state);

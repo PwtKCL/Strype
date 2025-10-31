@@ -352,7 +352,7 @@ const ImportFrameTypesIdentifiers = {
     library: "library",
 };
 
-const FuncDefIdentifiers = {
+export const FuncDefIdentifiers = {
     funcdef: "funcdef",
 };
 
