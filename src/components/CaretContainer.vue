@@ -190,6 +190,7 @@ export default Vue.extend({
                     preparePasteMediaData(event as ClipboardEvent, (code: string, dataAndDim: MediaDataAndDim) => {
                         // We create a new function call frame with the media-adapated code content
                         const stateBeforeChanges = cloneDeep(this.appStore.$state);
+                        this.appStore.ignoreStateSavingActionsForUndoRedo = true;
                         this.appStore.addFrameWithCommand(getFrameDefType(AllFrameTypesIdentifier.funccall)).then(() => {
                             // We need to delete the extra brackets added as the function call frame template.
                             // We must then wait a bit before doing anything to make sure the deletion has been effective 
@@ -212,7 +213,9 @@ export default Vue.extend({
                                         // Update the store too
                                         this.appStore.setSlotTextCursors(slotCursorInfos, slotCursorInfos);                                       
 
-                                        //Refactor the slots, we call the refactorisation on the LabelSlotsStructure                                        
+                                        // Refactor the slots, we call the refactorisation on the LabelSlotsStructure   
+                                        // Since that's our last action, we can revert the flag to allow the registration of the state for undo/redo
+                                        this.appStore.ignoreStateSavingActionsForUndoRedo = false;                                   
                                         (this.$root.$refs[getFrameLabelSlotsStructureUID(slotCursorInfos.slotInfos.frameId, slotCursorInfos.slotInfos.labelSlotsIndex)] as InstanceType<typeof LabelSlotsStructureComponent>)
                                             .checkSlotRefactoring(getLabelSlotUID(slotCursorInfos.slotInfos), stateBeforeChanges, {doAfterCursorSet: () =>  this.appStore.leftRightKey({key: "ArrowRight"})});                                        
                                     });
