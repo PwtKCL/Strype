@@ -251,7 +251,7 @@ describe("Stride TestExpressionSlot.testPushBracket()", () => {
         ],
         [
             PushBracketArrow.MODIF_LEFT, PushBracketArrow.MODIF_LEFT, PushBracketArrow.MODIF_LEFT,
-            PushBracketArrow.HOME, PushBracketArrow.RIGHT, PushBracketArrow.RIGHT, PushBracketArrow.RIGHT, PushBracketArrow.MODIF_RIGHT, PushBracketArrow.MODIF_RIGHT,
+            PushBracketArrow.HOME, PushBracketArrow.RIGHT, PushBracketArrow.RIGHT, PushBracketArrow.RIGHT, PushBracketArrow.RIGHT, PushBracketArrow.MODIF_RIGHT, PushBracketArrow.MODIF_RIGHT,
             PushBracketArrow.HOME, PushBracketArrow.RIGHT, PushBracketArrow.RIGHT, PushBracketArrow.RIGHT,
             PushBracketArrow.MODIF_RIGHT, PushBracketArrow.MODIF_RIGHT, PushBracketArrow.MODIF_RIGHT,
             PushBracketArrow.MODIF_RIGHT, PushBracketArrow.MODIF_RIGHT,
