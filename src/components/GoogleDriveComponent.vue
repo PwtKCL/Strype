@@ -90,7 +90,7 @@ export default Vue.extend({
 
 
         loginErrorModalDlgId(): string {
-            return "gdLoginErrorModalDlg";
+            return "cloudLoginErrorModalDlg";
         },
     },
 
@@ -595,8 +595,17 @@ export default Vue.extend({
                     // We check the permission is given to the scope required by Strype. If not given, show message.
                     if(!google.accounts.oauth2.hasGrantedAllScopes(response, this.googleDriveScope)) {
                         this.oauthToken = null;
-                        this.appStore.simpleModalDlgMsg = this.$i18n.t("errorMessage.gdrivePermissionsNotMet") as string;
-                        this.$root.$emit("bv::show::modal", this.loginErrorModalDlgId);
+                        if(response.error == "unauthorized_client"){
+                            // When users use a school/work account with Google, and had not already been granted access,
+                            // they should end up in the condition above.
+                            // In this case we give them some information message in Strype on how to address their IT admin.
+                            this.appStore.simpleModalDlgMsg = this.$i18n.t("errorMessage.gdriveSchoolAccountNoAccessGranted") as string;
+
+                        }
+                        else {
+                            this.appStore.simpleModalDlgMsg = this.$i18n.t("errorMessage.gdrivePermissionsNotMet") as string;
+                        }
+                        this.$root.$emit("bv::show::modal", this.loginErrorModalDlgId);                        
                     }                   
                              
                     if (response && response.error == undefined) {

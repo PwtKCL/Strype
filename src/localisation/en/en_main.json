@@ -85,6 +85,7 @@
     "gdriveConnectionSaveToLoadProjFailed": "Could not connect to Google Drive when trying to save the current project. Try to sign-in again to open another project.",
     "gdriveConnectionSaveToUnloadPageFailed": "Could not connect to Google Drive when trying to save the current project. Try to sign-in again to save the current project before leaving Strype.",
     "gdrivePermissionsNotMet": "Strype requires at least one access permission to use Google Drive.",
+    "gdriveSchoolAccountNoAccessGranted": "It looks like your Google account is a school account.<br>Strype needs to be allowed by your school for you to be able to use Google Drive.<br><a href=\"https://strype.org/doc/cloudaccess/\" target=\"_blank\">This page</a> contains information for your IT administrators to do so.",
     "driveFileReadOnly": "This {drivename} project is read-only.",
     "gdriveWrongFile": "Please select a file supported by Strype (extension \".spy\" or \".py\").",
     "driveNoFile": "The project does not exist in {drivename}.",

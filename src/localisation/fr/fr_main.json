@@ -87,6 +87,7 @@
     "gdriveConnectionSaveToLoadProjFailed": "Connexion à Google Drive impossible lors de la tentative de sauvegarde du projet actuel.\nEssayez de vous connecter de nouveau pour ouvrir un autre projet.",
     "gdriveConnectionSaveToUnloadPageFailed": "Connexion à Google Drive impossible lors de la tentative de sauvegarde du projet actuel.\nEssayez de vous connecter de nouveau pour sauvegarder le projet actuel avant de quitter Strype.",
     "gdrivePermissionsNotMet": "Strype nécessite au moins une permission d'accès pour utiliser Google Drive.",
+    "gdriveSchoolAccountNoAccessGranted": "Il semble que votre compte Google soit un compte scolaire.<br>Strype doit être autorisé par votre établissement pour pouvoir utiliser Google Drive.<br><a href=\"https://strype.org/doc/cloudaccess/\" target=\"_blank\">Cette page</a> contient les informations destinées à votre administrateur informatique afin d'autoriser Strype.",
     "driveFileReadOnly": "Ce projet de {drivename} est en lecture seule.",
     "gdriveWrongFile": "Veullez sélectionner un ficher supporté par Strype (extension \".spy\" ou \".py\").",
     "unexpectedCharsPython": "caractère(s) inattendu(s)",
