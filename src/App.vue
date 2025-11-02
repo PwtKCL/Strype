@@ -51,7 +51,7 @@
                                 >
                                     <FrameHeader
                                         :labels="projectDocLabels"
-                                        :frameId="-10"
+                                        :frameId="projectDocFrameId"
                                         :frameType="projectDocFrameType"
                                         :isDisabled="false"
                                         :frameAllowChildren="false"
@@ -217,6 +217,10 @@ export default Vue.extend({
 
         strypeCommandsRefId(): string {
             return getStrypeCommandComponentRefId();
+        },
+
+        projectDocFrameId(): number {
+            return this.appStore.projectDocumentationFrameId;
         },
         
         projectDocLabels() {
