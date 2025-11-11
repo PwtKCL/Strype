@@ -37,19 +37,20 @@
 </template>
 
 <script lang="ts">
-import {AllFrameTypesIdentifier, AllowedSlotContent, areSlotCoreInfosEqual, BaseSlot, CaretPosition, FieldSlot, FlatSlotBase, getFrameDefType, isSlotBracketType, isSlotQuoteType, LabelSlotsContent, OptionalSlotType, PythonExecRunningState, SlotCoreInfos, SlotCursorInfos, SlotsStructure, SlotType} from "@/types/types";
+import { AllFrameTypesIdentifier, AllowedSlotContent, areSlotCoreInfosEqual, BaseSlot, CaretPosition, FieldSlot, FlatSlotBase, getFrameDefType, isSlotBracketType, isSlotQuoteType, LabelSlotsContent, MediaDataAndDim, OptionalSlotType, PythonExecRunningState, SlotCoreInfos, SlotCursorInfos, SlotsStructure, SlotType } from "@/types/types";
 import Vue from "vue";
 import { useStore } from "@/store/store";
 import { mapStores } from "pinia";
 import LabelSlot from "@/components/LabelSlot.vue";
-import {CustomEventTypes, getEditableSelectionText, getFrameLabelSlotLiteralCodeAndFocus, getFrameLabelSlotsStructureUID, getFunctionCallDefaultText, getLabelSlotUID, getMatchingBracket, getSelectionCursorsComparisonValue, getUIQuote, isElementEditableLabelSlotInput, isLabelSlotEditable, openBracketCharacters, parseCodeLiteral, parseLabelSlotUID, setDocumentSelection, STRING_DOUBLEQUOTE_PLACERHOLDER, STRING_SINGLEQUOTE_PLACERHOLDER, stringQuoteCharacters, UIDoubleQuotesCharacters, UISingleQuotesCharacters} from "@/helpers/editor";
-import {checkCodeErrors, evaluateSlotType, generateFlatSlotBases, getFlatNeighbourFieldSlotInfos, getFrameParentSlotsLength, getSlotDefFromInfos, getSlotIdFromParentIdAndIndexSplit, getSlotParentIdAndIndexSplit, retrieveSlotByPredicate, retrieveSlotFromSlotInfos} from "@/helpers/storeMethods";
+import { CustomEventTypes, getEditableSelectionText, getFrameLabelSlotLiteralCodeAndFocus, getFrameLabelSlotsStructureUID, getFunctionCallDefaultText, getLabelSlotUID, getMatchingBracket, getSelectionCursorsComparisonValue, getUIQuote, isElementEditableLabelSlotInput, isLabelSlotEditable, openBracketCharacters, parseCodeLiteral, parseLabelSlotUID, setDocumentSelection, STRING_DOUBLEQUOTE_PLACERHOLDER, STRING_SINGLEQUOTE_PLACERHOLDER, stringQuoteCharacters, UIDoubleQuotesCharacters, UISingleQuotesCharacters } from "@/helpers/editor";
+import { checkCodeErrors, evaluateSlotType, generateFlatSlotBases, getFlatNeighbourFieldSlotInfos, getFrameParentSlotsLength, getSlotDefFromInfos, getSlotIdFromParentIdAndIndexSplit, getSlotParentIdAndIndexSplit, retrieveSlotByPredicate, retrieveSlotFromSlotInfos } from "@/helpers/storeMethods";
 import { cloneDeep } from "lodash";
-import {calculateParamPrompt} from "@/autocompletion/acManager";
+import { calculateParamPrompt } from "@/autocompletion/acManager";
 import scssVars from "@/assets/style/_export.module.scss";
-import {isMacOSPlatform, readFileAsyncAsData, readImageSizeFromDataURI, splitByRegexMatches} from "@/helpers/common";
-import {detectBrowser} from "@/helpers/browser";
-import {handleVerticalCaretMove} from "@/helpers/spans";
+import { isMacOSPlatform, splitByRegexMatches } from "@/helpers/common";
+import { detectBrowser } from "@/helpers/browser";
+import { handleVerticalCaretMove } from "@/helpers/spans";
+import { preparePasteMediaData } from "@/helpers/media";
 
 export default Vue.extend({
     name: "LabelSlotsStructure",
@@ -459,14 +460,41 @@ export default Vue.extend({
         forwardKeyEvent(event: KeyboardEvent) {
             // The container div of this LabelSlotsStructure is editable. Editable divs capture the key events. 
             // We need to forward the event to the currently "focused" (editable) slot.
-            // ** LEFT/RIGHT AND UP/DOWN ARROWS ARE TREATED SEPARATELY BY THIS COMPONENT, we don't forward related events **
-            if(event.key == "ArrowLeft" || event.key == "ArrowRight"
-                || event.key == "ArrowUp" || event.key == "ArrowDown"){
+            // ** LEFT/RIGHT AND UP/DOWN ARROWS (without the meta key pressed for macOS) ARE TREATED SEPARATELY
+            // BY THIS COMPONENT, we don't forward related events **
+            if(!(isMacOSPlatform() && event.metaKey) && (event.key == "ArrowLeft" || event.key == "ArrowRight"
+                || event.key == "ArrowUp" || event.key == "ArrowDown")){
                 return;
             }
 
             // Ignore context menu (we need to let it pass through to be handled by App)
             if(event.key.toLowerCase() == "contextmenu"){
+                return;
+            }
+
+            if(this.appStore.focusSlotCursorInfos && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() == "a") {
+                // On Firefox Ctrl-A doesn't work correctly when processed natively in slots.
+                // So we have to manually implement it.  It selects the entire slot, no matter how deep we were in what kind of slot
+                let slotFields = this.appStore.frameObjects[this.frameId].labelSlotsDict[this.labelIndex].slotStructures.fields;
+                const newFocusSlotId = ("" + (slotFields.length - 1));
+                // We only look for the new type and slot core infos for non-string current location to save unnecessary function calls
+                const newFocusSlotType = evaluateSlotType(getSlotDefFromInfos({frameId: this.frameId, labelSlotsIndex: this.labelIndex}), slotFields.at(-1) as FieldSlot);
+                const newFocusSlotCoreInfo = {frameId: this.frameId, labelSlotsIndex: this.labelIndex, slotId: newFocusSlotId, slotType: newFocusSlotType};
+                const newFocusCursorPos = (retrieveSlotFromSlotInfos(newFocusSlotCoreInfo) as BaseSlot).code.length;
+                // Then anchor: it will either keep the same if we are doing a selection, or change to the same as focus if we are not.
+                const newAnchorSlotId = "0";
+                const newAnchorSlotCoreInfo = {...newFocusSlotCoreInfo, slotId: newAnchorSlotId, slotType: evaluateSlotType(getSlotDefFromInfos({frameId: this.frameId, labelSlotsIndex: this.labelIndex}), slotFields[0])};
+                const newAnchorSlotCursorInfo: SlotCursorInfos = {slotInfos: newAnchorSlotCoreInfo, cursorPos: 0};
+                // Set the new bounds
+                this.$nextTick(() => {
+                    document.getElementById(getLabelSlotUID(this.appStore.focusSlotCursorInfos?.slotInfos as SlotCoreInfos))?.dispatchEvent(new Event(CustomEventTypes.editableSlotLostCaret));
+                    document.getElementById(getLabelSlotUID(newFocusSlotCoreInfo))?.dispatchEvent(new Event(CustomEventTypes.editableSlotGotCaret));
+                    setDocumentSelection(newAnchorSlotCursorInfo, {slotInfos: newFocusSlotCoreInfo, cursorPos: newFocusCursorPos});
+                    this.appStore.setSlotTextCursors(newAnchorSlotCursorInfo, {slotInfos: newFocusSlotCoreInfo, cursorPos: newFocusCursorPos});
+                });                
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
                 return;
             }
 
@@ -522,11 +550,13 @@ export default Vue.extend({
                     }));
                 
                 // We want to prevent some events to be handled wrongly twice or at all by the browser and our code.
-                // However, for comments, we need to let some navigation event go through otherwise they're blocked as we rely on the browser for them.
+                // However, for comments (e.g. frame or documentation slot) and string literals, we need to let some navigation event go through otherwise they're blocked as we rely on the browser for them.
+                // For macOS we have a specific behaviour to consider: see LabelSlot.vue handleFastUDNavKeys for explanations
+                const textHomeEndBehaviourKeys = (isMacOSPlatform() && event.metaKey) ? ["ArrowLeft", "ArrowRight"] : ((!isMacOSPlatform()) ? ["Home", "End"] : []);
                 if(this.appStore.allowsKeyEventThroughInLabelSlotStructure || 
-                    (["PageUp", "PageDown", "Home", "End"].includes(event.key) && this.appStore.frameObjects[this.frameId].frameType.type == AllFrameTypesIdentifier.comment)){
+                    (textHomeEndBehaviourKeys.includes(event.key) && (this.appStore.frameObjects[this.frameId].frameType.type == AllFrameTypesIdentifier.comment || this.focusSlotCursorInfos?.slotInfos.slotType == SlotType.comment || this.focusSlotCursorInfos?.slotInfos.slotType == SlotType.string))){
                     // A few events need to be handled by the brower solely.
-                    // That is, for comments: "PageUp", "PageDown", "Home", "End" 
+                    // That is, for comments: "PageUp", "PageDown", "Home", "End" (these last 2 for Windows only)
                     // and anytime we set allowsKeyUpThroughInLabelSlotStructure (which we need to reset):
                     this.appStore.allowsKeyEventThroughInLabelSlotStructure = false;
                     return;
@@ -538,7 +568,10 @@ export default Vue.extend({
                     || event.key == "ArrowDown"
                     || event.key == "Home"
                     || event.key == "End"
+                    || event.key == "PageUp"
+                    || event.key == "PageDown"
                     || event.key == "Tab"
+                    || (isMacOSPlatform() && event.metaKey && textHomeEndBehaviourKeys.includes(event.key))
                     || (event.key == " " && (event.ctrlKey || event.metaKey))) {
                     event.preventDefault();
                     event.stopPropagation();
@@ -555,26 +588,12 @@ export default Vue.extend({
             if (event.clipboardData && focusSlotCursorInfos) {
                 // First we need to check if it's a media item on the clipboard, because that needs
                 // to become a media literal rather than plain text:
-                const items = event.clipboardData.items;
                 /* IFTRUE_isPython */
-                for (let item of items) {
-                    let file = item.getAsFile();
-                    // Note: it is incredibly important that we store item.type in a variable here.  Due to browser clipboard
-                    // permissions, if we access item.type inside the .then() below, it will appear blank.  So we must
-                    // fetch it now and store it:
-                    const itemType = item.type;
-                    let isImage = itemType.startsWith("image");
-                    let isAudio = itemType.startsWith("audio");
-                    if (file && (isImage || isAudio)) {
-                        readFileAsyncAsData(file).then(isImage ? readImageSizeFromDataURI : (s) => Promise.resolve({dataURI: s, width: -1, height: -1})).then((dataAndDim) => {
-                            // The code is the code to load the literal from its base64 string representation:
-                            const code = (isImage ? "load_image" : "load_sound") + "(\"" + dataAndDim.dataURI + "\")";
-                            document.getElementById(getLabelSlotUID(focusSlotCursorInfos.slotInfos))
-                                ?.dispatchEvent(new CustomEvent(CustomEventTypes.editorContentPastedInSlot, {detail: {type: itemType, content: code, width: dataAndDim.width, height: dataAndDim.height}}));
-                        });
-                        return;
-                    }
-                }
+                preparePasteMediaData(event, (code: string, dataAndDim : MediaDataAndDim) => {
+                    // The code is the code to load the literal from its base64 string representation:                    
+                    document.getElementById(getLabelSlotUID(focusSlotCursorInfos.slotInfos))
+                        ?.dispatchEvent(new CustomEvent(CustomEventTypes.editorContentPastedInSlot, {detail: {type: dataAndDim.itemType, content: code, width: dataAndDim.width, height: dataAndDim.height}}));
+                });
                 /* FITRUE_isPython */
 
                 interface PastedItem {
@@ -627,6 +646,11 @@ export default Vue.extend({
         },        
 
         onLRKeyDown(event: KeyboardEvent) {
+            // We ignore calls from macOS when the meta key is also pressed (we treat this equivalent to home, see LabelSlot.vue handleFastUDNavKeys())
+            if(isMacOSPlatform() && event.metaKey){
+                return;
+            }
+
             // Because the event handling, it is easier to deal with the left/right arrow at this component level.
             if(this.appStore.focusSlotCursorInfos){
                 const {slotInfos, cursorPos} = this.appStore.focusSlotCursorInfos;
@@ -913,6 +937,12 @@ export default Vue.extend({
         },
 
         blurEditableSlot(force?: boolean){
+            // If a request to ignore the loss of focus has been made, we return right away but reset the flag
+            if(this.appStore.ignoreBlurEditableSlot) {
+                this.appStore.ignoreBlurEditableSlot = false;
+                return;
+            }
+            
             this.isFocused = false;
             // If a flag to ignore editable slot focus is set, we just revert it and do nothing else
             if(this.appStore.bypassEditableSlotBlurErrorCheck){
@@ -922,7 +952,7 @@ export default Vue.extend({
                    
             // When the div containing the slots loses focus, we need to also notify the currently focused slot inside *this* container
             // that the caret has been "lost" (since a contenteditable div won't let its children having/loosing focus)
-            if(!force && document.activeElement?.id === this.labelSlotsStructDivId){
+            if(force !== true && document.activeElement?.id === this.labelSlotsStructDivId){
                 // We don't lose focus that's from an outside event (like when the browser itself loses focus)
                 // cf https://stackoverflow.com/questions/24638129/javascript-dom-how-to-prevent-blur-event-if-focus-is-lost-to-another-window
                 this.appStore.ignoreFocusRequest = true;

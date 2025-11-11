@@ -2,10 +2,10 @@ import Compiler from "@/compiler/compiler";
 import {hasEditorCodeErrors, trimmedKeywordOperators} from "@/helpers/editor";
 import {generateFlatSlotBases, retrieveSlotByPredicate} from "@/helpers/storeMethods";
 import i18n from "@/i18n";
-import {useStore} from "@/store/store";
+import { useStore } from "@/store/store";
 import {AllFrameTypesIdentifier, AllowedSlotContent, BaseSlot, ContainerTypesIdentifiers, FieldSlot, FlatSlotBase, FrameContainersDefinitions, FrameObject, getLoopFramesTypeIdentifiers, isFieldBaseSlot, isFieldBracketedSlot, isSlotBracketType, isSlotQuoteType, isSlotStringLiteralType, LabelSlotPositionsAndCode, LabelSlotsPositions, LineAndSlotPositions, MediaSlot, OptionalSlotType, ParserElements, SlotsStructure, SlotType, StringSlot} from "@/types/types";
-import {ErrorInfo, TPyParser} from "tigerpython-parser";
-import {AppSPYPrefix} from "@/main";
+import { ErrorInfo, TPyParser } from "tigerpython-parser";
+import {AppSPYFullPrefix} from "@/main";
 /*IFTRUE_isPython */
 import { actOnTurtleImport } from "@/helpers/editor";
 /*FITRUE_isPython */
@@ -314,21 +314,32 @@ export default class Parser {
                     this.libraries.push(commentContent);
                 }
                 if (this.saveAsSPY) {
-                    return indentation + "#" + AppSPYPrefix + " " + (statement.isDisabled ? "LibraryDisabled" : "Library") + ":" + commentContent + "\n";
+                    return indentation + AppSPYFullPrefix + " " + (statement.isDisabled ? "LibraryDisabled" : "Library") + ":" + commentContent + "\n";
                 }
                 else {
                     return passLine; // Make sure we don't mess up the line numbers
                 }
             }
-            
-            return (this.excludeLoopsAndCommentsAndCloseTry)
-                ? passLine // This will just be an empty code placeholder, so it shouldn't be a problem for the code
-                : ((commentContent.includes("\n") || statement.frameType.type === AllFrameTypesIdentifier.projectDocumentation) ? (indentation+"'''" + commentContent.replaceAll("\n", ("\n"+indentation)).replaceAll("'''","\\'\\'\\'") + "'''\n") : (indentation + "#" + commentContent + "\n"));
+
+            if (this.excludeLoopsAndCommentsAndCloseTry) {
+                return passLine;
+            }
+            else {
+                if (commentContent.includes("\n") || statement.frameType.type === AllFrameTypesIdentifier.projectDocumentation) {
+                    // We escape all single quotes because for example if they are at the end of the string it can get confused
+                    // (if user ends with a single quote, there will be four single quotes in a row at the end, and Python will parse it
+                    // as the first three ending the string, and the fourth as left-over outside the string).
+                    // We also need to escape backslashes by doubling them.
+                    return indentation + "'''" + commentContent.replaceAll("\n", ("\n" + indentation)).replaceAll("\\", "\\\\").replaceAll("'", "\\'") + "'''\n";
+                }
+                else {
+                    return indentation + "#" + commentContent + "\n";
+                }
+            }
         }
             
         statement.frameType.labels.forEach((label, labelSlotsIndex) => {
             let hasDocContent = false;
-            // For varassign frames, the symbolic assignment on the UI should be replaced by the Python "=" symbol
             if(label.showLabel??true){
                 if (label.allowedSlotContent == AllowedSlotContent.FREE_TEXT_DOCUMENTATION) {
                     if (useStore().frameObjects[statement.id].labelSlotsDict[labelSlotsIndex].slotStructures.fields.length > 1 || (useStore().frameObjects[statement.id].labelSlotsDict[labelSlotsIndex].slotStructures.fields[0] as BaseSlot).code.trim().length > 0) {
@@ -342,6 +353,7 @@ export default class Parser {
                     }
                 }
                 else {
+                    // For varassign frames, the symbolic assignment on the UI should be replaced by the Python "=" symbol
                     output += ((label.label.length > 0 && statement.frameType.type === AllFrameTypesIdentifier.varassign) ? " = " : label.label);
                 }
             }
@@ -358,13 +370,17 @@ export default class Parser {
                     slotTypes: slotStartsLengthsAndCode.slotTypes,
                 };
                 // add their code to the output
-                output += slotStartsLengthsAndCode.code.trimStart() + " ";
+                
 
                 if (hasDocContent) {
-                    output = output.trimEnd() + "'''";
+                    // We escape all single quotes because for example if they are at the end of the string it can get confused
+                    // (if user ends with a single quote, there will be four single quotes in a row at the end, and Python will parse it
+                    // as the first three ending the string, and the fourth as left-over outside the string).
+                    // We also need to escape backslashes by doubling them.
+                    output += slotStartsLengthsAndCode.code.trimStart().replaceAll("\n", ("\n" + indentation + "    ")).replaceAll("\\", "\\\\").replaceAll("'", "\\'") + "'''";
                 }
-                else if (label.allowedSlotContent == AllowedSlotContent.FREE_TEXT_DOCUMENTATION) {
-                    output = output.trimEnd();
+                else if (label.allowedSlotContent != AllowedSlotContent.FREE_TEXT_DOCUMENTATION) {
+                    output += slotStartsLengthsAndCode.code.trimStart() + " ";
                 }
             }            
         });
@@ -397,15 +413,15 @@ export default class Parser {
             }
             
             if (this.saveAsSPY && frame.frameType.type === ContainerTypesIdentifiers.framesMainContainer) {
-                output += "#" + AppSPYPrefix + " Section:Main\n";
+                output += AppSPYFullPrefix + " Section:Main\n";
                 this.line += 1;
             }
             else if (this.saveAsSPY && frame.frameType.type === ContainerTypesIdentifiers.funcDefsContainer) {
-                output += "#" + AppSPYPrefix + " Section:Definitions\n";
+                output += AppSPYFullPrefix + " Section:Definitions\n";
                 this.line += 1;
             }
             else if (this.saveAsSPY && frame.frameType.type === ContainerTypesIdentifiers.importsContainer) {
-                output += "#" + AppSPYPrefix + " Section:Imports\n";
+                output += AppSPYFullPrefix + " Section:Imports\n";
                 this.line += 1;
             }
             
@@ -429,7 +445,7 @@ export default class Parser {
                 disabledFrameBlockFlag = "";
                 // Don't add the disabled prefix twice:
                 if (!indentation.match(/^ *#/)) {
-                    thisIndentation = indentation + "#" + AppSPYPrefix + " Disabled:";
+                    thisIndentation = indentation + AppSPYFullPrefix + " Disabled:";
                 }
             }
 
@@ -453,7 +469,7 @@ export default class Parser {
             }
 
             if (this.saveAsSPY && frame.frameType.type === ContainerTypesIdentifiers.framesMainContainer) {
-                output += "#" + AppSPYPrefix + " Section:End\n";
+                output += AppSPYFullPrefix + " Section:End\n";
             }            
         }
 

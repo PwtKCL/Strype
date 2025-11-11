@@ -8,10 +8,10 @@
                     <div :class="scssVars.strypeProjectNameContainerClassName">
                         <span class="project-name">{{projectName}}</span>
                         <div @mouseover="getLastProjectSavedDateTooltip" :title="lastProjectSavedDateTooltip">
-                            <img v-if="isProjectFromGoogleDrive" :src="require('@/assets/images/logoGDrive.png')" alt="Google Drive" class="project-target-logo"/> 
-                            <img v-else-if="isProjectFromFS" :src="require('@/assets/images/FSicon.png')" :alt="$t('appMessage.targetFS')" class="project-target-logo"/> 
-                            <span class="gdrive-sync-label" v-if="!isProjectNotSourced && !isEditorContentModifiedFlag" v-t="'appMessage.savedGDrive'" />
-                            <span class="gdrive-sync-label" v-else-if="isEditorContentModifiedFlag" v-t="'appMessage.modifGDrive'" :class="{'modifed-label-span': isProjectNotSourced}" />                     
+                            <img v-if="isProjectFromCloudDrive" :src="syncedTargetLogo" :alt="syncedTargetName" class="project-target-logo"/> 
+                            <img v-else-if="isProjectFromFS" :src="syncedTargetLogo" :alt="syncedTargetName" class="project-target-logo"/> 
+                            <span class="gdrive-sync-label" v-if="!isProjectNotSourced && !isEditorContentModifiedFlag" v-t="'appMessage.savedCloudFile'" />
+                            <span class="gdrive-sync-label" v-else-if="isEditorContentModifiedFlag" v-t="'appMessage.modifCloudFile'" :class="{'modifed-label-span': isProjectNotSourced}" />                     
                         </div>
                     </div>     
                     <div @mousedown.prevent.stop @mouseup.prevent.stop>
@@ -92,17 +92,21 @@
 
 <script lang="ts">
 import AddFrameCommand from "@/components/AddFrameCommand.vue";
-import { computeAddFrameCommandContainerSize, CustomEventTypes, getActiveContextMenu, getAddFrameCmdElementUID, getCommandsContainerUID, getCommandsRightPaneContainerId, getCurrentFrameSelectionScope, getEditorMiddleUID, getFrameUID, getMenuLeftPaneUID, handleContextMenuKBInteraction, hiddenShorthandFrames, notifyDragEnded } from "@/helpers/editor";
+import { computeAddFrameCommandContainerSize, CustomEventTypes, getActiveContextMenu, getAddFrameCmdElementUID, getCaretContainerUID, getCloudDriveHandlerComponentRefId, getCommandsContainerUID, getCommandsRightPaneContainerId, getCurrentFrameSelectionScope, getEditorMiddleUID, getFrameUID, getMenuLeftPaneUID, handleContextMenuKBInteraction, hiddenShorthandFrames, notifyDragEnded } from "@/helpers/editor";
 import { useStore } from "@/store/store";
 import { AddFrameCommandDef, AllFrameTypesIdentifier, CaretPosition, defaultEmptyStrypeLayoutDividerSettings, FrameObject, PythonExecRunningState, SelectAllFramesFuncDefScope, StrypePEALayoutMode, StrypeSyncTarget } from "@/types/types";
 import $ from "jquery";
 import Vue from "vue";
 import browserDetect from "vue-browser-detect-plugin";
 import { mapStores } from "pinia";
-import { getFrameSectionIdFromFrameId } from "@/helpers/storeMethods";
+import { getAvailableNavigationPositions, getFrameSectionIdFromFrameId } from "@/helpers/storeMethods";
 import scssVars  from "@/assets/style/_export.module.scss";
 import { isMacOSPlatform } from "@/helpers/common";
+import fsIcon from "@/assets/images/FSicon.png";
+import gdIcon from "@/assets/images/logoGDrive.png";
+import odIcon from "@/assets/images/logoOneDrive.svg";
 import { findCurrentStrypeLocation, STRYPE_LOCATION } from "@/helpers/pythonToFrames";
+import { clamp } from "lodash";
 /* IFTRUE_isPython */
 import {Splitpanes, Pane, PaneData} from "splitpanes";
 import PythonExecutionArea from "@/components/PythonExecutionArea.vue";
@@ -111,6 +115,7 @@ import {getPEAConsoleId, getPEAGraphicsDivId, getPEATabContentContainerDivId, ge
 /* IFTRUE_isMicrobit */
 import APIDiscovery from "@/components/APIDiscovery.vue";
 import { flash } from "@/helpers/webUSB";
+import CloudDriveHandlerComponent from "./CloudDriveHandler.vue";
 import { downloadHex, getPythonContent } from "@/helpers/download";
 import SimpleMsgModalDlg from "@/components/SimpleMsgModalDlg.vue";
 /* FITRUE_isMicrobit */
@@ -173,8 +178,8 @@ export default Vue.extend({
             return (this.appStore.isEditorContentModified);
         },
 
-        isProjectFromGoogleDrive(): boolean {
-            return this.appStore.syncTarget == StrypeSyncTarget.gd;
+        isProjectFromCloudDrive(): boolean {
+            return this.appStore.syncTarget != StrypeSyncTarget.fs && this.appStore.syncTarget != StrypeSyncTarget.none;
         },
 
         isProjectFromFS(): boolean {
@@ -183,6 +188,33 @@ export default Vue.extend({
         
         isProjectNotSourced(): boolean {
             return this.appStore.syncTarget == StrypeSyncTarget.none;
+        },
+
+        syncedTargetLogo(): string {
+            switch(this.appStore.syncTarget){
+            case StrypeSyncTarget.fs:
+                return fsIcon;                
+            case StrypeSyncTarget.gd:
+                return gdIcon;
+            case StrypeSyncTarget.od:
+                return odIcon;
+            default:
+                return "";
+            }
+        },
+
+        syncedTargetName(): string {
+            const cloudDriveHandlerComponent =  ((this.$root.$children[0].$refs[getMenuLeftPaneUID()] as Vue).$refs[getCloudDriveHandlerComponentRefId()] as InstanceType<typeof CloudDriveHandlerComponent>);
+            switch(this.appStore.syncTarget){
+            case StrypeSyncTarget.fs:
+                return this.$t("appMessage.targetFS") as string;
+            case StrypeSyncTarget.gd:
+                return cloudDriveHandlerComponent.getDriveName();
+            case StrypeSyncTarget.od:
+                return cloudDriveHandlerComponent.getDriveName();
+            default:
+                return "";
+            }
         },
         
         /* IFTRUE_isPython */
@@ -430,7 +462,7 @@ export default Vue.extend({
 
                 // Prevent default scrolling and navigation in the editor, except if Turtle is currently running and listening for key events
                 // (then we just leave the PEA handling it, see at the end of these conditions for related code)
-                if (!isDraggingFrames && !isEditing && /*IFTRUE_isPython*/ !(isPythonExecuting && ((this.$refs[getPEAComponentRefId()] as InstanceType<typeof PythonExecutionArea>).$data.isTurtleListeningKeyEvents || (this.$refs[getPEAComponentRefId()] as InstanceType<typeof PythonExecutionArea>).$data.isRunningStrypeGraphics)) && /*FITRUE_isPython*/ ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Tab", "Home", "End"].includes(event.key)) {
+                if (!isDraggingFrames && !isEditing && /*IFTRUE_isPython*/ !(isPythonExecuting && ((this.$refs[getPEAComponentRefId()] as InstanceType<typeof PythonExecutionArea>).$data.isTurtleListeningKeyEvents || (this.$refs[getPEAComponentRefId()] as InstanceType<typeof PythonExecutionArea>).$data.isRunningStrypeGraphics)) && /*FITRUE_isPython*/ ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Tab", "Home", "End", "PageUp", "PageDown"].includes(event.key)) {
                     event.stopImmediatePropagation();
                     event.stopPropagation();
                     event.preventDefault();
@@ -451,17 +483,47 @@ export default Vue.extend({
                     }
                     else if(event.key == "Home" || event.key == "End"){
                         // For the "home" and "end" key, we move the blue caret to the first or last position of the current main section the caret is in.
+                        // If the ctrl key is used together with home/end, we go to the very start/end of the editor (i.e. import section*/below last frame in main)
+                        // (*) the very top of the editor is actually the project documentation slot, but it is not a frame proper and the frame cursor can't go above
                         // This is overriding the natural browser behaviour that scrolls to the top or bottom of the page (at least with Chrome)
-                       
-                        // Look for the section we're in
-                        const sectionId = getFrameSectionIdFromFrameId(this.appStore.currentFrame.id);
-                        // Update the caret to the first/last position within this section
-                        const isMovingHome = (event.key == "Home");
+                        const sectionId = (event.ctrlKey) ? this.appStore.getMainCodeFrameContainerId :  getFrameSectionIdFromFrameId(this.appStore.currentFrame.id);
                         const isSectionEmpty = (this.appStore.frameObjects[sectionId].childrenIds.length == 0);
-                        const newCaretId = (isMovingHome || isSectionEmpty) ? sectionId : this.appStore.frameObjects[sectionId].childrenIds.at(-1) as number;
+                        const isMovingHome = (event.key == "Home");
+                        const firstVisibleSectionId = [this.appStore.importContainerId, this.appStore.functionDefContainerId, this.appStore.getMainCodeFrameContainerId]
+                            .find((frameContainerId) => !this.appStore.frameObjects[frameContainerId].isCollapsed) as number;
+                        const newCaretId = (isMovingHome || isSectionEmpty) 
+                            ? ((isMovingHome && event.ctrlKey) ? firstVisibleSectionId : sectionId) 
+                            : this.appStore.frameObjects[sectionId].childrenIds.at(-1) as number;
                         const newCaretPosition = (isMovingHome || isSectionEmpty) ? CaretPosition.body : CaretPosition.below;
                         this.appStore.toggleCaret({id: newCaretId, caretPosition: newCaretPosition});
-                    }    
+                    }
+                    else if(event.key == "PageUp" || event.key == "PageDown"){
+                        // For the "PageUp" and "PageDown", we "scroll" up/down the frame cursor.
+                        const viewportTop = window.scrollY;
+                        const viewportBottom = viewportTop + window.innerHeight;
+                        const allNotCollapsedFrameCursorPos = getAvailableNavigationPositions(true).filter((navigationPos) => navigationPos.caretPosition);
+                        let ourCurrentPositionIndex = allNotCollapsedFrameCursorPos.findIndex((navigationPos) => navigationPos.caretPosition == this.appStore.currentFrame.caretPosition && navigationPos.frameId == this.appStore.currentFrame.id);
+                        if(ourCurrentPositionIndex > -1){
+                            // We approximate some scroll page number of carets to offset by counting how many carets positions are in the viewport.
+                            const lookCaretBefore = (event.key == "PageUp");
+                            const numberOfCaretPosInViewPort = allNotCollapsedFrameCursorPos
+                                .filter((navigationPos) => {
+                                    const caretHTMLEl = document.getElementById(getCaretContainerUID(navigationPos.caretPosition as CaretPosition, navigationPos.frameId));
+                                    const caretHTMLElBoundingBox = caretHTMLEl?.getBoundingClientRect()??null;
+                                    if(caretHTMLElBoundingBox){
+                                        return caretHTMLElBoundingBox.top >= 0 && (caretHTMLElBoundingBox.top + caretHTMLElBoundingBox.height) <= viewportBottom;                                        
+                                    }
+                                    return false;
+
+                                })
+                                .length;
+
+                            // We clamp the value to the boundary index of allNotCollapsedFrameCursorPos
+                            const caretPosToScrollToIIndex = clamp(ourCurrentPositionIndex + numberOfCaretPosInViewPort * (lookCaretBefore ? -1 : 1), 0, allNotCollapsedFrameCursorPos.length - 1);
+                            const caretPosToScrollTo = allNotCollapsedFrameCursorPos[caretPosToScrollToIIndex];
+                            this.appStore.toggleCaret({id: caretPosToScrollTo.frameId, caretPosition: caretPosToScrollTo.caretPosition as CaretPosition});
+                        }
+                    }
                     else{
                         // At this stage, tab and left/right arrows are handled only if not editing: editing cases are directly handled by LabelSlotsStructure.
                         // We start by getting from the DOM all the available caret and editable slot positions

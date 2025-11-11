@@ -3,7 +3,7 @@ import { FrameObject, CurrentFrame, CaretPosition, MessageDefinitions, ObjectPro
 import { getObjectPropertiesDifferences, getSHA1HashForObject } from "@/helpers/common";
 import i18n from "@/i18n";
 import {checkCodeErrors, checkStateDataIntegrity, cloneFrameAndChildren, evaluateSlotType, generateFlatSlotBases, getAllChildrenAndJointFramesIds, getAvailableNavigationPositions, getFlatNeighbourFieldSlotInfos, getFrameSectionIdFromFrameId, getParentOrJointParent, getSlotDefFromInfos, getSlotIdFromParentIdAndIndexSplit, getSlotParentIdAndIndexSplit, isContainedInFrame, isFramePartOfJointStructure, removeFrameInFrameList, restoreSavedStateFrameTypes, retrieveSlotByPredicate, retrieveSlotFromSlotInfos} from "@/helpers/storeMethods";
-import { AppPlatform, AppVersion, vm } from "@/main";
+import { AppPlatform, AppVersion, projectDocumentationFrameId, vm } from "@/main";
 import initialStates from "@/store/initial-states";
 import { defineStore } from "pinia";
 import { CustomEventTypes, generateAllFrameCommandsDefs, getAddCommandsDefs, getFocusedEditableSlotTextSelectionStartEnd, getLabelSlotUID, isLabelSlotEditable, setDocumentSelection, parseCodeLiteral, undoMaxSteps, getSelectionCursorsComparisonValue, getEditorMiddleUID, getFrameHeaderUID, getImportDiffVersionModalDlgId, checkEditorCodeErrors, countEditorCodeErrors, getCaretUID, getStrypeCommandComponentRefId, getCaretContainerUID, isCaretContainerElement, AutoSaveKeyNames } from "@/helpers/editor";
@@ -16,11 +16,11 @@ import { BvModalEvent } from "bootstrap-vue";
 import { nextTick } from "@vue/composition-api";
 import { TPyParser } from "tigerpython-parser";
 import AppComponent from "@/App.vue";
+import emptyState from "@/store/initial-states/empty-state";
 /* IFTRUE_isPython */
 import PEAComponent from "@/components/PythonExecutionArea.vue";
 import CommandsComponent from "@/components/Commands.vue";
 import { actOnTurtleImport, getPEAComponentRefId } from "@/helpers/editor";
-import emptyState from "@/store/initial-states/empty-state";
 /* FITRUE_isPython */
 
 function getState(): StateAppObject {
@@ -75,6 +75,7 @@ export const useStore = defineStore("app", {
             importContainerId: -1,
 
             functionDefContainerId: -2,
+
             /** END of flags that need checking when a build is done **/
 
             currentFrame: { id: -3, caretPosition: CaretPosition.body } as CurrentFrame,
@@ -131,6 +132,14 @@ export const useStore = defineStore("app", {
 
             // This flag is to avoid a loss of focus when we are leaving the application
             ignoreFocusRequest: false,
+
+            // This flag is used to ignore the loss of focus on a text slot (rarely required but may happen)
+            ignoreBlurEditableSlot: false,
+
+            // This flag is used to cancel the undo/redo saving mechanisms in some actions.
+            // It must be used with care to avoid breaking the whole undo/redo actions (always make sure it's ultimately reverted to false),
+            // but it is useful when combining several actions that need to activate the saving mechanisms only once...
+            ignoreStateSavingActionsForUndoRedo: false,
 
             // This flag indicates we should not block a key event inside a LabelSlotsStructure
             allowsKeyEventThroughInLabelSlotStructure: false,
@@ -193,11 +202,13 @@ export const useStore = defineStore("app", {
 
             strypeProjectLocation: undefined as ProjectLocation, // the last location where the strype project has been saved OR opened
 
-            strypeProjectLocationAlias: "", // for Drive, the name of the location (strypeProjectLocation saves the ID, not the name)
+            strypeProjectLocationAlias: "", // for cloud drives using a folder ID, this saves the name of the location (strypeProjectLocation saves the ID, not the name)
+
+            strypeProjectLocationPath: "", // for cloud drives using a folder path (for example OneDrive)
 
             isProjectUnsaved: true, // flag indicating if we have notified changes that haven't been saved
 
-            currentGoogleDriveSaveFileId: undefined as undefined|string,
+            currentCloudSaveFileId: undefined as undefined|string,
 
             projectLastSaveDate: -1, // Date ticks
 
@@ -713,12 +724,17 @@ export const useStore = defineStore("app", {
             // For safety, the curent frame (frame cursor) is set to the main code section
             this.toggleCaret({id: -3, caretPosition: CaretPosition.body});
             Object.keys(this.frameObjects).forEach((frameId) => {
-                if(parseInt(frameId) > 0) {
+                const frameIdInt = parseInt(frameId);
+                if(frameIdInt > 0) {
                     Vue.delete(this.frameObjects, frameId);
                 }
-                else if(parseInt(frameId) < 0){
+                else if(frameIdInt < 0){
                     // The frame section containers are not cleared, but their children are!
-                    this.frameObjects[parseInt(frameId)].childrenIds.splice(0);
+                    this.frameObjects[frameIdInt].childrenIds.splice(0);
+                    // The project description is a slot on a negative frame which must also be cleared:
+                    if (this.frameObjects[frameIdInt] && this.frameObjects[frameIdInt].frameType.type == AllFrameTypesIdentifier.projectDocumentation) {
+                        this.frameObjects[frameIdInt].labelSlotsDict = cloneDeep(emptyState[projectDocumentationFrameId].labelSlotsDict);
+                    }
                 }
             });
         },
@@ -1336,7 +1352,7 @@ export const useStore = defineStore("app", {
             this.ignoreKeyEvent = false;
 
             // If the sync target property did not exist in the saved stated, we set it up to the default value
-            this.syncTarget = StrypeSyncTarget.none;
+            this.syncTarget = this.syncTarget??StrypeSyncTarget.none;
             this.isEditorContentModified = false;
             this.projectLastSaveDate = -1;
 
@@ -1353,6 +1369,11 @@ export const useStore = defineStore("app", {
         },
 
         saveStateChanges(previousState: (typeof this.$state)) {
+            // If have an explicit request to igore the undo/redo save state preps, we don't do anything
+            if(this.ignoreStateSavingActionsForUndoRedo){
+                return;
+            }
+            
             this.isEditorContentModified = true;
             // Saves the state changes in diffPreviousState.
             // We do not simply save the differences between the state and the previous state, because when undo/redo will be invoked, we cannot know what will be 
@@ -2027,7 +2048,7 @@ export const useStore = defineStore("app", {
             })
                 .then(
                     () => {
-                    //save state changes
+                        //save state changes
                         this.saveStateChanges(stateBeforeChanges);
                         // To make sure we are showing the newly added frame, we scroll into view if needed                    
                         const targetDiv =
@@ -2445,36 +2466,36 @@ export const useStore = defineStore("app", {
                     // 4) if the project predates having project documentation, we add this frame in.
                     // 5) if the object is valid, we just verify the version is correct (and attempt loading) + for newer versions (> 1) make sure the target Strype "platform" is the same as the source's
                     try {
-                    //Check 1)
+                        //Check 1)
                         newStateObj = JSON.parse(payload.stateJSONStr);
                         if(!newStateObj || typeof(newStateObj) !== "object" || Array.isArray(newStateObj)){
-                        //no need to go further
+                            //no need to go further
                             isStateJSONStrValid=false;
                             errorDetailMessage = i18n.t("errorMessage.dataNotObject") as string;
                         }
                         else{
-                        // Check 2) as 1) is validated
+                            // Check 2) as 1) is validated
                             if(!checkStateDataIntegrity(newStateObj)) {
                                 isStateJSONStrValid = false;
                                 errorDetailMessage = i18n.t("errorMessage.stateDataIntegrity") as string;
                             } 
                             else {
-                            // Check 3) as 2) is validated
+                                // Check 3) as 2) is validated
                                 isVersionCorrect = (newStateObj["version"] == AppVersion);
                                 if(Number.parseInt(newStateObj["version"]) > 1 && newStateObj["platform"] != AppPlatform) {
                                     isStateJSONStrValid = false;
                                     errorDetailMessage = i18n.t("errorMessage.stateWrongPlatform") as string;
                                 }
                                 else{
-                                // Check 4) and 5) as 3) is validated
+                                    // Check 4) and 5) as 3) is validated
                                     // If missing project doc frame, copy it in from the empty state and add it as first root child:
-                                    if (!newStateObj["frameObjects"]["-10"]) {
-                                        newStateObj["frameObjects"]["-10"] = emptyState["-10"];
-                                        newStateObj["frameObjects"]["0"]["childrenIds"].unshift(-10);
+                                    if (!newStateObj["frameObjects"][projectDocumentationFrameId]) {
+                                        newStateObj["frameObjects"][projectDocumentationFrameId] = cloneDeep(emptyState[projectDocumentationFrameId]);
+                                        newStateObj["frameObjects"]["0"]["childrenIds"].unshift(projectDocumentationFrameId);
                                     }
                                     
                                     if(!restoreSavedStateFrameTypes(newStateObj)){
-                                    // There was something wrong with the type name (it should not happen, but better check anyway)
+                                        // There was something wrong with the type name (it should not happen, but better check anyway)
                                         isStateJSONStrValid = false;
                                         errorDetailMessage = i18n.t("errorMessage.stateWrongFrameTypeName") as string;
                                     }
@@ -2485,7 +2506,7 @@ export const useStore = defineStore("app", {
                         }
                     }
                     catch(err){
-                    //we cannot use the string arguemnt to retrieve a valid state --> inform the users
+                        // We cannot use the string arguemnt to retrieve a valid state --> inform the users
                         isStateJSONStrValid = false;
                         errorDetailMessage = i18n.t("errorMessage.wrongDataFormat") as string;
                     }

@@ -28,11 +28,16 @@ export const AppName = "Strype";
 // The prefix to use in comments directly after the "#" to indicate a Strype
 // special directive or metadata:
 export const AppSPYPrefix = "(=>";
+export const AppSPYFullPrefix = "#" + AppSPYPrefix;
 let appPlatform = StrypePlatform.standard;
 /* IFTRUE_isMicrobit */
 appPlatform = StrypePlatform.microbit;
 /* FITRUE_isMicrobit */
 export const AppPlatform = appPlatform;
+
+// The project defintion slot isn't attached to a "real" frame.
+// We declare the fake frame ID we used for it here.
+export const projectDocumentationFrameId = -10;
 
 let localeBuildDate = "";
 export function getLocaleBuildDate(): string {

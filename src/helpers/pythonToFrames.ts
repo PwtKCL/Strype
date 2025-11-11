@@ -1,9 +1,9 @@
-import {AllFrameTypesIdentifier, BaseSlot, CaretPosition, ContainerTypesIdentifiers, EditorFrameObjects, FrameObject, getFrameDefType, isFieldBaseSlot, isFieldBracketedSlot, isFieldStringSlot, LabelSlotsContent, SlotsStructure, StringSlot, MessageDefinitions, FormattedMessage, FormattedMessageArgKeyValuePlaceholders} from "@/types/types";
+import {AllFrameTypesIdentifier, BaseSlot, CaretPosition, ContainerTypesIdentifiers, EditorFrameObjects, FrameObject, getFrameDefType, isFieldBaseSlot, isFieldBracketedSlot, isFieldMediaSlot, isFieldStringSlot, LabelSlotsContent, SlotsStructure, StringSlot, MessageDefinitions, FormattedMessage, FormattedMessageArgKeyValuePlaceholders} from "@/types/types";
 import {useStore} from "@/store/store";
 import {getCaretContainerComponent, getFrameComponent, operators, trimmedKeywordOperators} from "@/helpers/editor";
 import i18n from "@/i18n";
 import {cloneDeep, escapeRegExp} from "lodash";
-import {AppName, AppSPYPrefix} from "@/main";
+import {AppName, AppSPYFullPrefix, projectDocumentationFrameId} from "@/main";
 import {toUnicodeEscapes} from "@/parser/parser";
 import FrameContainer from "@/components/FrameContainer.vue";
 
@@ -283,7 +283,7 @@ function transformCommentsAndBlanks(codeLines: string[], format: "py" | "spy") :
         // Look for # with only space before them, or a # with no quote after (if we are not in the context of a multlines comment):
         const match = /^( *)#(.*)$/.exec(codeLines[i]) ?? /^([^#]*)#([^"]+)$/.exec(codeLines[i]);
         if (match && !isParsingTripleQuotesStr) {
-            const directiveMatch = new RegExp("^ *#" + escapeRegExp(AppSPYPrefix) + "([^:]+):(.*)$").exec(codeLines[i]);
+            const directiveMatch = new RegExp("^ *" + escapeRegExp(AppSPYFullPrefix) + "([^:]+):(.*)$").exec(codeLines[i]);
             if (directiveMatch) {
                 // By default, directives are just added to the map:
                 // Note we trim() keys but not values; space may well be important in values:
@@ -436,9 +436,15 @@ function transformCommentsAndBlanks(codeLines: string[], format: "py" | "spy") :
                                 transformedLine = mostRecentIndent + codeLines[i].trimStart();
                             }
                         }
-                        else{
-                            // we can leave at it is as we don't know the context.
-                            transformedLine = codeLines[i];
+                        else {
+                            // We remove the leading indent if it is there:
+                            if (codeLines[i].startsWith(mostRecentIndent)) {
+                                transformedLine = codeLines[i].substring(mostRecentIndent.length);
+                            }
+                            else {
+                                // Better just leave as is:
+                                transformedLine = codeLines[i];
+                            }
                         }
                     }
                 }
@@ -449,15 +455,31 @@ function transformCommentsAndBlanks(codeLines: string[], format: "py" | "spy") :
             }
 
             // Only trim the end of the line if we are not in a "hanging" situation
-            if(!isParsingTripleQuotesStr){                
-                transformedLine = ((foundOneTripleQuoteStartToken) ? transformedLine : codeLines[i]).trimEnd();
+            if(!isParsingTripleQuotesStr){
+                if (foundOneTripleQuoteStartToken) {
+                    transformedLine = transformedLine.trimEnd();
+                }
+                else {
+                    if (codeLines[i].startsWith(mostRecentIndent)) {
+                        transformedLine = codeLines[i].substring(mostRecentIndent.length).trimEnd();
+                    }
+                    else {
+                        transformedLine = codeLines[i].trimEnd();
+                    }
+                }
             }            
             transformedLines.push(transformedLine);
         }
         else {
             // Any other valid code, except if we are in the context of triple quotes strings: we keep the line as is.
             if(isParsingTripleQuotesStr){
-                transformedLines.push(codeLines[i]);
+                // We remove the leading indent if it is there:
+                if (codeLines[i].startsWith(mostRecentIndent)) {
+                    transformedLines.push(codeLines[i].substring(mostRecentIndent.length));
+                }
+                else {
+                    transformedLines.push(codeLines[i]);
+                }
             }
             else {
                 transformedLines.push(codeLines[i].trimEnd());
@@ -475,6 +497,25 @@ function transformCommentsAndBlanks(codeLines: string[], format: "py" | "spy") :
     checkRearrangeCommentsIdent();
 
     return { disabledLines, transformedLines, strypeDirectives };
+}
+
+// Get rid of escapes in the project doc string:
+function unescapeProjectDoc(doc: string) : string {
+    return doc.replace(/\\\\/g, "\\").replace(/\\'/g, "'");
+}
+
+// Apply a function to all code parts of BaseSlots:
+function applyToText(s : SlotsStructure, f : (t: string) => string) : void {
+    for (const field of s.fields) {
+        if (isFieldBracketedSlot(field)) {
+            // Recurse into nested structures
+            applyToText(field, f);
+        }
+        else if (!isFieldStringSlot(field) && !isFieldMediaSlot(field)) {
+            // Apply transformation if it's a BaseSlot (not string/media)
+            field.code = f(field.code);
+        }
+    }
 }
 
 // The main entry point to this module.  Given a string of Python code that the user
@@ -528,7 +569,9 @@ export function copyFramesFromParsedPython(codeLines: string[], currentStrypeLoc
         // Use the next available ID to avoid clashing with any existing IDs:
         copyFramesFromPython(parsedBySkulpt.parseTree, {nextId: useStore().nextAvailableId, addToNonJoint: useStore().copiedSelectionFrameIds, addToJoint: undefined, loadedFrames: useStore().copiedFrames, disabledLines: transformed.disabledLines, parent: null, jointParent: null, lastLineProcessed: 0, lineNumberToIndentation: indents, isSPY: transformed.strypeDirectives.size > 0, transformTopComment: (c) => {
             if (!dryrun) {
-                const docFrame = useStore().frameObjects[-10] as FrameObject;
+                const docFrame = useStore().frameObjects[projectDocumentationFrameId] as FrameObject;
+                // The escapes in the loaded project doc were inserted by us on saving, so we should remove them:
+                applyToText(c, unescapeProjectDoc);
                 docFrame.labelSlotsDict[0].slotStructures = c;
             }
         }});
@@ -555,7 +598,8 @@ export function copyFramesFromParsedPython(codeLines: string[], currentStrypeLoc
         return null;
     }
     catch (e) {
-        console.log(e); // + "On:\n" + debugToString(parsedBySkulpt, "  "));
+        // eslint-disable-next-line
+        console.warn(e); // + "On:\n" + debugToString(parsedBySkulpt, "  "));
         // Don't leave partial content:
         useStore().copiedFrames = {};
         useStore().copiedSelectionFrameIds = [];
@@ -888,8 +932,6 @@ function makeAndAddFrameWithBody(p: ParsedConcreteTree, frameType: string, keywo
 // Process the given node in the tree at the current point designed by CopyState
 // Returns a copy state, including the frame ID of the next insertion point for any following statements
 function copyFramesFromPython(p: ParsedConcreteTree, s : CopyState) : CopyState {
-    //console.log("Processing type: " + (Sk.ParseTables.number2symbol[p.type] || ("#" + p.type)));
-        
     switch (p.type) {
     case Sk.ParseTables.sym.file_input:
         // The outer wrapper for the whole file, just dig in:
@@ -1120,6 +1162,8 @@ function copyFramesFromPython(p: ParsedConcreteTree, s : CopyState) : CopyState 
     case Sk.ParseTables.sym.funcdef: {
         // First child is keyword, second is the name, third is params, fourth is colon, fifth is body
         const r = makeAndAddFrameWithBody(p, AllFrameTypesIdentifier.funcdef, 0, [1, 2], 4, s, (comment : SlotsStructure, frame : FrameObject) => {
+            // Unescape quotes:
+            applyToText(comment, (s) => unescapeProjectDoc(s));
             frame.labelSlotsDict[3] = {slotStructures: comment};
         });
         s = r.s;
@@ -1237,7 +1281,7 @@ export function splitLinesToSections(allLines : string[]) : {projectDoc: string[
     //  - we're loading a .spy with section headings, or
     //  - we're loading a .py where we must infer it.
     // Easy way to find out: check if the first line is a .spy header:
-    if (allLines[0].match(new RegExp("^#" + escapeRegExp(AppSPYPrefix) + " *" + AppName + " *:"))) {
+    if (allLines[0].match(new RegExp("^" + escapeRegExp(AppSPYFullPrefix) + " *" + AppName + " *:"))) {
         // It's a .spy!  Easy street, let's find the headings:
         let line = 1;
         const r = {
@@ -1251,9 +1295,9 @@ export function splitLinesToSections(allLines : string[]) : {projectDoc: string[
             headers: {} as Record<string, string>,
             format: "spy" as "py" | "spy",
         };
-        while (line < allLines.length && !allLines[line].match(new RegExp("^#" + escapeRegExp(AppSPYPrefix) + " *Section *:Imports"))) {
+        while (line < allLines.length && !allLines[line].match(new RegExp("^" + escapeRegExp(AppSPYFullPrefix) + " *Section *:Imports"))) {
             // Everything here should be metadata, add it to headers:
-            const m = allLines[line].match(new RegExp("^#" + escapeRegExp(AppSPYPrefix) + "([^:]+):(.*)"));
+            const m = allLines[line].match(new RegExp("^" + escapeRegExp(AppSPYFullPrefix) + "([^:]+):(.*)"));
             if (m) {
                 // Note: we only trim left-hand side, right-hand side is as-is:
                 r.headers[m[1].trim()] = m[2];
@@ -1265,21 +1309,21 @@ export function splitLinesToSections(allLines : string[]) : {projectDoc: string[
         }
         line += 1;
         const firstImportLine = line;
-        while (line < allLines.length && !allLines[line].match(new RegExp("^#" + escapeRegExp(AppSPYPrefix) + " *Section *:Definitions"))) {
+        while (line < allLines.length && !allLines[line].match(new RegExp("^" + escapeRegExp(AppSPYFullPrefix) + " *Section *:Definitions"))) {
             r.imports.push(allLines[line]);
             r.importsMapping[line - firstImportLine] = line;
             line += 1;
         }
         line += 1;
         const firstDefsLine = line;
-        while (line < allLines.length && !allLines[line].match(new RegExp("^#" + escapeRegExp(AppSPYPrefix) + " *Section *:Main"))) {
+        while (line < allLines.length && !allLines[line].match(new RegExp("^" + escapeRegExp(AppSPYFullPrefix) + " *Section *:Main"))) {
             r.defs.push(allLines[line]);
             r.defsMapping[line - firstDefsLine] = line;
             line += 1;
         }
         line += 1;
         const firstMainLine = line;
-        while (line < allLines.length && !allLines[line].match(new RegExp("^#" + escapeRegExp(AppSPYPrefix) + " *Section *:Main"))) {
+        while (line < allLines.length && !allLines[line].match(new RegExp("^" + escapeRegExp(AppSPYFullPrefix) + " *Section *:Main"))) {
             r.main.push(allLines[line]);
             r.mainMapping[line - firstMainLine] = line;
             line += 1;
