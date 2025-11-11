@@ -29,7 +29,7 @@ import Vue, { PropType } from "vue";
 import { AccountInfo, Configuration, PublicClientApplication  } from "@azure/msal-browser";
 import { CloudDriveItemPickerFolderPathResolutionMode, CloudDriveItemPickerItem, CloudDriveItemPickerMode, CloudFileSharingStatus, OneDrivePickConfigurationOptions, OneDriveTokenPurpose } from "@/types/cloud-drive-types";
 import { uniqueId } from "lodash";
-import { pythonFileExtension, strypeFileExtension } from "@/helpers/common";
+import { isMacOSPlatform, pythonFileExtension, strypeFileExtension } from "@/helpers/common";
 import { CloudDriveAPIState } from "@/types/cloud-drive-types";
 import { CloudDriveFile } from "@/types/cloud-drive-types";
 import { BaseItem, DriveItem, Permission, UploadSession } from "@microsoft/microsoft-graph-types";
@@ -408,6 +408,16 @@ export default Vue.extend({
                 // create a new window. The Picker's recommended maximum size is 1080x680, but it can scale down to
                 // a minimum size of 250x230 for very small screens or very large zoom.
                 this.pickerPopup = window.open("", "Picker", "width=1080,height=680");
+                console.log(`We have called ${window.open()} and will trigger a conditional check after 2 seconds`);
+                if(isMacOSPlatform()){
+                    setTimeout(() => {
+                        console.log("It's been 2 seconds, we check the popup.");
+                        console.log(this.pickerPopup);
+                        if(!this.pickerPopup){
+                            alert("Try open again please (will make a proper modal dialog if things work)");
+                        }
+                    }, 2000);
+                }
                 this.isPickingFile = false;
             
                 // options: These are the picker configuration, see the schema link for a full explaination of the available options
@@ -849,6 +859,7 @@ export default Vue.extend({
          * Specific to OneDrive
          **/ 
         async getToken(purpose: OneDriveTokenPurpose): Promise<string> {
+            console.log("requesting a token for this action "+ OneDriveTokenPurpose[purpose]);
             this.app = new PublicClientApplication((purpose == OneDriveTokenPurpose.INIT_AUTH) 
                 ? this.msalParamsInit 
                 : ((this.isPersonalAccount) ? this.msalParamsConsumerPicker : this.msalParamsWorkPicker));
@@ -938,6 +949,7 @@ export default Vue.extend({
                     }
                 }
             }
+            console.log("returning the accesstoken (is it undefined? "+(!accessToken)+")");
             return accessToken;
         },
 
