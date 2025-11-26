@@ -202,36 +202,48 @@ function checkCodeEquals(codeLines : CodeMatch[]) : Cypress.Chainable<JQuery<HTM
         cy.contains(i18n.t("appMenu.downloadPython") as string).click({force: true});
             
         cy.readFile(path.join(downloadsFolder, "main.py")).then((p : string) => {
-            expectMatchRegex(p.split("\n").map((l) => l.trimEnd()),
+            // The default projects contains the default project description.
+            // We check that project description is correct, and then discard it for the further code check.
+            const indexOfFirstLineReturn = p.indexOf("\n");
+            expect(p.substring(0, indexOfFirstLineReturn)).equals(defaultProjectDoc[0]);
+            expectMatchRegex(p.substring(indexOfFirstLineReturn + 1).split("\n").map((l) => l.trimEnd()),
                 flatten(codeLines).concat([/\s*/]));
         });
     });
 }
 
 // Set up expected states based on mode:
+let defaultProjectDoc : CodeMatch[];
 let defaultImports : CodeMatch[];
 let defaultMyCode : CodeMatch[];
 
 if (Cypress.env("mode") == "microbit") {
+    defaultProjectDoc = [
+        "'''This is the default Strype starter project for micro:bit'''",
+    ];
+
     defaultImports = [
         /from\s+microbit\s+import\s*\*/,
     ];
 
     defaultMyCode = [
-        /myString\s*[⇐=]\s*[“"]Hello micro:bit![”"]/,
+        /myString\s*[⇐=]\s*[“"]Hello from Strype[”"]/,
         /display\s*.\s*scroll\(myString\)/,
     ];
 }
 else {
+    defaultProjectDoc = [
+        "'''This is the default Strype starter project'''",
+    ];
+
     defaultImports = [
     ];
 
     defaultMyCode  = [
-        /myString\s*[⇐=]\s*[“"]Hello from Python![”"]/,
+        /myString\s*[⇐=]\s*[“"]Hello from Strype[”"]/,
         "print(myString)",
     ];
 }
-
 
 // We need this to prevent test failures.  I don't actually know what the error is for sure
 // (even if you log it, it is not visible), but I suspect it may be a Brython error that I
