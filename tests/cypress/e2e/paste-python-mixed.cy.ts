@@ -15,6 +15,8 @@ import {testRoundTripImportAndDownload,testRoundTripPasteAndDownload} from "../s
 
 const MODE = (Cypress.env("mode") == "microbit") ? "mb" : "std";
 
+const DEFAULT_PROJECT_DOC = (MODE == "mb") ? "'''This is the default Strype starter project for micro:bit'''" : "'''This is the default Strype starter project'''";
+
 const IMPORT0 = "import foo";
 const IMPORT1 = "import strype.graphics";
 const IMPORT2 = "from strype.graphics import *";
@@ -40,6 +42,7 @@ const STARTING_DEF = `def myfunc ():
     return 7`;
 const STARTING_MAIN = "print(\"Hello\")";
 const STARTING_POINT = `
+${DEFAULT_PROJECT_DOC}
 ${STARTING_IMPORT}
 ${STARTING_DEF}
 ${STARTING_MAIN}
@@ -58,6 +61,7 @@ describe("Tests pasting mixed content", () => {
     it("Imports initial content and saves .spy", () => {
         testRoundTripPasteAndDownload(STARTING_POINT, "", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 #(=> Section:Definitions
@@ -74,6 +78,7 @@ ${STARTING_MAIN}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload(IMPORT0 + "\n" + IMPORT1 + "\n" + IMPORT2, "", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 ${IMPORT0}
@@ -91,6 +96,7 @@ ${STARTING_MAIN}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload(DEF0 + "\n" + DEF1, "", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 #(=> Section:Definitions
@@ -107,6 +113,7 @@ ${STARTING_MAIN}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload(MAIN0 + "\n" + MAIN1, "{home}", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 #(=> Section:Definitions
@@ -123,6 +130,7 @@ ${STARTING_MAIN}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload(IMPORT0 + "\n" + IMPORT1 + "\n" + IMPORT2, "{home}{uparrow}{home}{uparrow}{home}", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${IMPORT0}
 ${IMPORT1}
@@ -140,6 +148,7 @@ ${STARTING_MAIN}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload(DEF0 + "\n" + DEF1, "{home}{uparrow}{home}", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 #(=> Section:Definitions
@@ -156,6 +165,7 @@ ${STARTING_MAIN}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload([IMPORT0, IMPORT1, IMPORT2, DEF0, DEF1, MAIN0, MAIN1, MAIN2].join("\n"), "{home}{uparrow}{home}{uparrow}{home}", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${IMPORT0}
 ${IMPORT1}
@@ -178,6 +188,7 @@ ${STARTING_MAIN}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload([IMPORT0, IMPORT1, IMPORT2, DEF0, DEF1, MAIN0, MAIN1, MAIN2].join("\n"), "{home}{uparrow}{home}", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 ${IMPORT0}
@@ -200,6 +211,7 @@ ${STARTING_MAIN}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload([IMPORT0, IMPORT1, IMPORT2, DEF0, DEF1, MAIN0, MAIN1, MAIN2].join("\n"), "", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 ${IMPORT0}
@@ -222,6 +234,7 @@ ${MAIN2}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload([IMPORT0, MAIN0, DEF0, IMPORT1, DEF1, MAIN1, MAIN2, IMPORT2].join("\n"), "", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 ${IMPORT0}
@@ -244,6 +257,7 @@ ${MAIN2}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload([IMPORT0, IMPORT1, IMPORT2, DEF0, DEF1, MAIN0, MAIN1, MAIN2].join("\n"), "{home}{uparrow}{uparrow}", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 ${IMPORT0}
@@ -266,6 +280,7 @@ ${STARTING_MAIN}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload([IMPORT0, IMPORT1, IMPORT2, DEF0, DEF1, MAIN0, MAIN1, MAIN2].join("\n"), "{home}{uparrow}{uparrow}", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 ${IMPORT0}
@@ -291,6 +306,7 @@ ${STARTING_MAIN}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload(IMPORT0 + "\n" + IMPORT1 + "\n" + IMPORT2, "", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 ${IMPORT0}
@@ -311,6 +327,7 @@ afterwards()
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload([IMPORT0, IMPORT1, IMPORT2, DEF0, DEF1, MAIN0, MAIN1, MAIN2].join("\n"), "{home}{uparrow}{home}{uparrow}{home}", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${IMPORT0}
 ${IMPORT1}
@@ -336,6 +353,7 @@ ${STARTING_MAIN}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload([IMPORT0, IMPORT1, IMPORT2, DEF0, DEF1, MAIN0, MAIN1, MAIN2].join("\n"), "{shift}{uparrow}", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 ${IMPORT0}
@@ -357,6 +375,7 @@ ${MAIN2}
         testRoundTripPasteAndDownload(STARTING_POINT);
         testRoundTripPasteAndDownload(IMPORT0 + "\n" + IMPORT1 + "\n" + IMPORT2, "{shift}{uparrow}", `
 #(=> Strype:1:${MODE}
+${DEFAULT_PROJECT_DOC}
 #(=> Section:Imports
 ${STARTING_IMPORT}
 ${IMPORT0}

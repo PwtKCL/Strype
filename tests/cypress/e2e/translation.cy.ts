@@ -126,13 +126,13 @@ describe("Translation tests", () => {
     });
 });
 
-describe.only("Locale persistence", () => {
+describe("Locale persistence", () => {
     // These tests are a sort of a combination of the two tests of the previous describe() BUT without a local storage clearance.
     // We want to verify that the locale selected by a user is kept in the local storage and used properly with another Strype/project load.
     // 3 cases are tested: resetting to a new project, reloading the current page (like refreshing the browser) and loading a project
     // in an existing Strype session.
 
-    it.only("Keeps locale after resetting to new project", () => {
+    it("Keeps locale after resetting to new project", () => {
         // Preparation: download the Python conversion of the intial Strype code for comparison later.
         // It seems headless Cypress overwrites downloaded files with same name, so we rename the file for backup.
         const initialPyFileName = "main-init.py";
