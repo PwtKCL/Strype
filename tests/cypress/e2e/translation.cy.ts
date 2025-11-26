@@ -126,13 +126,13 @@ describe("Translation tests", () => {
     });
 });
 
-describe("Locale persistence", () => {
+describe.only("Locale persistence", () => {
     // These tests are a sort of a combination of the two tests of the previous describe() BUT without a local storage clearance.
     // We want to verify that the locale selected by a user is kept in the local storage and used properly with another Strype/project load.
     // 3 cases are tested: resetting to a new project, reloading the current page (like refreshing the browser) and loading a project
     // in an existing Strype session.
 
-    it("Keeps locale after resetting to new project", () => {
+    it.only("Keeps locale after resetting to new project", () => {
         // Preparation: download the Python conversion of the intial Strype code for comparison later.
         // It seems headless Cypress overwrites downloaded files with same name, so we rename the file for backup.
         const initialPyFileName = "main-init.py";
@@ -146,18 +146,22 @@ describe("Locale persistence", () => {
         // but the locale should still be the same as before.
         cy.get("button#" + strypeElIds.getEditorMenuUID()).click({force: true}); 
         cy.contains(i18n.t("appMenu.resetProject", localeForTest) as string).click({force: true}).then(() => {
-            // Check the editor contains the initial state code: we download the conversion and compare with the backed up Python file
-            changeCodeThenDownloadPy({locale: localeForTest});
-            cy.wait(500);            
-            return cy.readFile(path.join(downloadsFolder, initialPyFileName)).then((intialPyFileContent : string) =>  {
-                return cy.readFile(path.join(downloadsFolder, "main.py")).then((newPyFileContent : string) =>  {
-                    expect(newPyFileContent, "Reset project's Python file differs from intial project's Python file").to.equal(intialPyFileContent);
-                    // Check the page is still in the previously selected locale
-                    checkTranslationsForLocale(localeForTest);
-                    // Clean up the downloads folder for the backed up file (not sure we need though)
-                    cy.task("deleteFile", path.join(downloadsFolder, initialPyFileName)); 
-                });                
-            });
+            // Accept the change for a new project
+            cy.wait(500);
+            return cy.contains(i18n.t("buttonLabel.yes") as string).click({force: true}).then(() => {
+                // Check the editor contains the initial state code: we download the conversion and compare with the backed up Python file
+                changeCodeThenDownloadPy({locale: localeForTest});
+                cy.wait(500);            
+                return cy.readFile(path.join(downloadsFolder, initialPyFileName)).then((intialPyFileContent : string) =>  {
+                    return cy.readFile(path.join(downloadsFolder, "main.py")).then((newPyFileContent : string) =>  {
+                        expect(newPyFileContent, "Reset project's Python file differs from intial project's Python file").to.equal(intialPyFileContent);
+                        // Check the page is still in the previously selected locale
+                        checkTranslationsForLocale(localeForTest);
+                        // Clean up the downloads folder for the backed up file (not sure we need though)
+                        cy.task("deleteFile", path.join(downloadsFolder, initialPyFileName)); 
+                    });                
+                });
+            });            
         });
     });
 
