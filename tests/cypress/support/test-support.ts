@@ -3,8 +3,8 @@ export function cleanFromHTML(html: string) : string {
     return html.replace("\u200B", "");
 }
 
-export function getDefaultStrypeProjectDocumentation(mode: string): string {
+export function getDefaultStrypeProjectDocumentationFullLine(mode: string): string {
     return (mode == "microbit") 
-        ? "'''This is the default Strype starter project for micro:bit'''"
-        : "'''This is the default Strype starter project'''";
+        ? "'''This is the default Strype starter project for micro:bit'''\n"
+        : "'''This is the default Strype starter project'''\n";
 }

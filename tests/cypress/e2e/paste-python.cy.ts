@@ -8,9 +8,9 @@ import path from "path";
 import * as os from "os";
 import "../support/paste-test-support";
 import { focusEditorAndClear, checkDownloadedCodeEquals, testRoundTripPasteAndDownload, testRoundTripImportAndDownload, scssVars } from "../support/paste-test-support";
-import { getDefaultStrypeProjectDocumentation } from "../support/test-support";
+import { getDefaultStrypeProjectDocumentationFullLine } from "../support/test-support";
 
-const defaultProjectDocFullLine = getDefaultStrypeProjectDocumentation(Cypress.env("mode")) + "\n";
+const defaultProjectDocFullLine = getDefaultStrypeProjectDocumentationFullLine(Cypress.env("mode"));
 
 describe("Python round-trip", () => {
     // Some of these are semantically invalid but as long as they're syntactically valid,

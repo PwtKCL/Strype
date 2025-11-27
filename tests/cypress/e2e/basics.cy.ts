@@ -2,7 +2,7 @@ import * as path from "path";
 import {expect} from "chai";
 import i18n from "@/i18n";
 import failOnConsoleError from "cypress-fail-on-console-error";
-import {cleanFromHTML, getDefaultStrypeProjectDocumentation} from "../support/test-support";
+import {cleanFromHTML, getDefaultStrypeProjectDocumentationFullLine} from "../support/test-support";
 failOnConsoleError();
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("cypress-terminal-report/src/installLogsCollector")();
@@ -205,7 +205,7 @@ function checkCodeEquals(codeLines : CodeMatch[]) : Cypress.Chainable<JQuery<HTM
             // The default projects contains the default project description.
             // We check that project description is correct, and then discard it for the further code check.
             const indexOfFirstLineReturn = p.indexOf("\n");
-            expect(p.substring(0, indexOfFirstLineReturn)).equals(getDefaultStrypeProjectDocumentation(Cypress.env("mode")));
+            expect(p.substring(0, indexOfFirstLineReturn + 1)).equals(getDefaultStrypeProjectDocumentationFullLine(Cypress.env("mode")));
             expectMatchRegex(p.substring(indexOfFirstLineReturn + 1).split("\n").map((l) => l.trimEnd()),
                 flatten(codeLines).concat([/\s*/]));
         });
