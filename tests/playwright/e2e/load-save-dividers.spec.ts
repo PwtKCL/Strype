@@ -69,7 +69,7 @@ async function saveAndCheck(page: Page, dividerStates: RegExp[]) {
     }
     // Since the default code contains a project doc, we need to include it to the code
     expect(savedLines.slice(1 + dividerStates.length)).toEqual(`
-${getDefaultStrypeProjectDocumentationFullLine}#(=> Section:Imports
+${getDefaultStrypeProjectDocumentationFullLine()}#(=> Section:Imports
 #(=> Section:Definitions
 #(=> Section:Main
 myString  = "Hello from Strype" 
