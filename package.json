@@ -17,7 +17,7 @@
         "preprocess:build-docs": "cd docs-sphinx && make clean && make html",
         "preprocess:update-test-library-ac": "concurrently \"cross-env LIBRARY='http://localhost:8089/test-library/' npm run library:make-ac-json\" \"npm run test:cypress:serve-assets\"",
         "serve:https": "HTTPS=true vue-cli-service serve",
-        "playwright:run": "npx playwright test load-save-dividers.spec.ts",
+        "playwright:run": "npx playwright test",
         "test:playwright": "cross-env BASE_URL=http://127.0.0.1:8081/editor/ start-server-and-test serve:python:dist:playwright http-get://127.0.0.1:8081/editor/ playwright:run"
     },
     "dependencies": {
