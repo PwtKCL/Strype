@@ -2,7 +2,7 @@ import * as path from "path";
 import {expect} from "chai";
 import i18n from "@/i18n";
 import failOnConsoleError from "cypress-fail-on-console-error";
-import {cleanFromHTML} from "../support/test-support";
+import {cleanFromHTML, getDefaultStrypeProjectDocumentation} from "../support/test-support";
 failOnConsoleError();
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("cypress-terminal-report/src/installLogsCollector")();
@@ -205,7 +205,7 @@ function checkCodeEquals(codeLines : CodeMatch[]) : Cypress.Chainable<JQuery<HTM
             // The default projects contains the default project description.
             // We check that project description is correct, and then discard it for the further code check.
             const indexOfFirstLineReturn = p.indexOf("\n");
-            expect(p.substring(0, indexOfFirstLineReturn)).equals(defaultProjectDoc[0]);
+            expect(p.substring(0, indexOfFirstLineReturn)).equals(getDefaultStrypeProjectDocumentation(Cypress.env("mode")));
             expectMatchRegex(p.substring(indexOfFirstLineReturn + 1).split("\n").map((l) => l.trimEnd()),
                 flatten(codeLines).concat([/\s*/]));
         });
@@ -213,15 +213,10 @@ function checkCodeEquals(codeLines : CodeMatch[]) : Cypress.Chainable<JQuery<HTM
 }
 
 // Set up expected states based on mode:
-let defaultProjectDoc : CodeMatch[];
 let defaultImports : CodeMatch[];
 let defaultMyCode : CodeMatch[];
 
 if (Cypress.env("mode") == "microbit") {
-    defaultProjectDoc = [
-        "'''This is the default Strype starter project for micro:bit'''",
-    ];
-
     defaultImports = [
         /from\s+microbit\s+import\s*\*/,
     ];
@@ -232,10 +227,6 @@ if (Cypress.env("mode") == "microbit") {
     ];
 }
 else {
-    defaultProjectDoc = [
-        "'''This is the default Strype starter project'''",
-    ];
-
     defaultImports = [
     ];
 
