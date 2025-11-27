@@ -28,7 +28,7 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       shell: bash
       run: |
-        jq ".scripts[\"playwright:run\"] = \"npx playwright test load-save-dividers.spec.ts --shard=${{ matrix.playwright_shard }}/3\"" package.json > temp.json && mv temp.json package.json
+        jq ".scripts[\"playwright:run\"] = \"npx playwright test structured-expressions-navigation.spec.ts --shard=${{ matrix.playwright_shard }}/3\"" package.json > temp.json && mv temp.json package.json
         timeout 5400s npm run test:playwright || { echo "Test command exited or timed out"; exit 1; }
     - name: Run Playwright tests (MacOS)
       if: ${{ matrix.os == 'macos-latest' }}
@@ -36,7 +36,7 @@ jobs:
       run: |
         brew install coreutils
         brew install jq
-        jq ".scripts[\"playwright:run\"] = \"npx playwright test load-save-dividers.spec.ts --shard=${{ matrix.playwright_shard }}/3\"" package.json > temp.json && mv temp.json package.json
+        jq ".scripts[\"playwright:run\"] = \"npx playwright test structured-expressions-navigation.spec.ts --shard=${{ matrix.playwright_shard }}/3\"" package.json > temp.json && mv temp.json package.json
         gtimeout 5400s npm run test:playwright || { echo "Test command exited or timed out"; exit 1; }
     - name: Upload Playwright report
       if: always()
