@@ -231,11 +231,11 @@ describe("Tests invalid characters", () => {
     });
 });
 
-describe.only("Tests saving layout metadata", () => {
+describe("Tests saving layout metadata", () => {
     if (Cypress.env("mode") === "microbit") {
         return;
     }
-    it.only("Saves changed layout to tabsExpanded", () => {
+    it("Saves changed layout to tabsExpanded", () => {
         focusEditorPasteAndClear();
         cy.get("#" + strypeElIds.getPEATabContentContainerDivId()).trigger("mouseenter");
         cy.get("div[title='" + i18n.t("PEA.PEA-layout-tabs-expanded") + "']").click();
@@ -243,7 +243,7 @@ describe.only("Tests saving layout metadata", () => {
         // Since the default code contains a project doc, we need to include it to the code
         cy.readFile("tests/cypress/fixtures/project-layout-tabs-expanded.spy").then((f) => checkDownloadedFileEquals(f.replace("#(=> Section:Imports", defaultProjectDocFullLine + "#(=> Section:Imports"), "My project.spy", true));
     });
-    it.only("Saves changed layout to tabsExpanded and back", () => {
+    it("Saves changed layout to tabsExpanded and back", () => {
         focusEditorPasteAndClear();
         cy.get("#" + strypeElIds.getPEATabContentContainerDivId()).trigger("mouseenter");
         cy.get("div[title='" + i18n.t("PEA.PEA-layout-tabs-expanded") + "']").click();
