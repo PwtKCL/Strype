@@ -1,6 +1,6 @@
 import { createApp, h} from "vue";
 import App from "@/App.vue";
-//import {createPinia/*, PiniaVuePlugin*/} from "pinia";
+import  {createPinia } from "pinia";
 import i18n from "@/i18n";
 //import { BootstrapVue } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
@@ -88,7 +88,11 @@ const app = createApp({
     render: () => h(App),
 });
 
+// Localisation package
 app.use(i18n);
+
+// Store package (Pinia is the default store management library for Vue 3)
+app.use(createPinia());
 
 // Mount the app
 app.mount("#app");
