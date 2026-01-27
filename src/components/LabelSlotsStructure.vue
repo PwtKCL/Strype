@@ -39,7 +39,7 @@
 
 <script lang="ts">
 import { AllFrameTypesIdentifier, AllowedSlotContent, areSlotCoreInfosEqual, BaseSlot, CaretPosition, FieldSlot, FlatSlotBase, getFrameDefType, isSlotBracketType, isSlotQuoteType, LabelSlotsContent, MediaDataAndDim, OptionalSlotType, PythonExecRunningState, SlotCoreInfos, SlotCursorInfos, SlotsStructure, SlotType } from "@/types/types";
-import Vue, { defineComponent, getCurrentInstance } from "vue";
+import Vue, { defineComponent, getCurrentInstance, inject } from "vue";
 import { useStore } from "@/store/store";
 import { mapStores } from "pinia";
 import FrameHeaderComponent from "@/components/FrameHeader.vue";
@@ -85,7 +85,11 @@ export default defineComponent({
             }
         }, []);
 
-        return { placeholderText };
+        // In Vue 3, we can no longer register something on $root.$refs (and so, use it later),
+        // therefore, we get the equivalent externalised registery from inject instead.
+        const slotsStructComponentsRegistry = inject("slotsStructComponentsRegistry") as Record<string, any>;
+
+        return { placeholderText, slotsStructComponentsRegistry };
     },
 
     components:{
@@ -115,8 +119,8 @@ export default defineComponent({
     },
 
     created(){
-        // Register this component on the root, to allow external calls for refactoring the slots
-        this.$root.$refs[this.labelSlotsStructDivId] = this;
+        // Register this component externally, to allow external calls for refactoring the slots
+        this.slotsStructComponentsRegistry[this.labelSlotsStructDivId] = this;
     },
     
     mounted() {

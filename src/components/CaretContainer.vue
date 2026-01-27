@@ -37,7 +37,7 @@
 //////////////////////
 //      Imports     //
 //////////////////////
-import Vue, { defineComponent, PropType } from "vue";
+import Vue, { defineComponent, inject, PropType } from "vue";
 import VueContext, { VueContextConstructor } from "vue-context";
 import { useStore } from "@/store/store";
 import Caret from"@/components/Caret.vue";
@@ -62,6 +62,13 @@ import { getParentOrJointParent } from "@/helpers/storeMethods";
 //////////////////////
 export default defineComponent({
     name: "CaretContainer",
+
+    setup(){
+        // In Vue 3, we can no longer register something on $root.$refs (and so, use it later),
+        // therefore, we get the equivalent externalised registery from inject instead.
+        const slotsStructComponentsRegistry = inject("slotsStructComponentsRegistry") as Record<string, any>;
+        return { slotsStructComponentsRegistry };
+    },
 
     components: {
         Caret,
@@ -250,7 +257,7 @@ export default defineComponent({
                                     // Refactor the slots, we call the refactorisation on the LabelSlotsStructure   
                                     // Since that's our last action, we can revert the flag to allow the registration of the state for undo/redo
                                     this.appStore.ignoreStateSavingActionsForUndoRedo = false;                                   
-                                    (this.$root.$refs[getFrameLabelSlotsStructureUID(frameId, 0)] as InstanceType<typeof LabelSlotsStructureComponent>)
+                                    (this.slotsStructComponentsRegistry[getFrameLabelSlotsStructureUID(frameId, 0)] as InstanceType<typeof LabelSlotsStructureComponent>)
                                         .checkSlotRefactoring(getLabelSlotUID({frameId: frameId, labelSlotsIndex: 0, slotId: "0", slotType: SlotType.code}), stateBeforeChanges, {doAfterCursorSet: () => {
                                             this.appStore.leftRightKey({key: "ArrowRight"}).then(() => this.appStore.leftRightKey({key: "ArrowRight"}));
                                         }});                                        

@@ -36,7 +36,7 @@
 //////////////////////
 //      Imports     //
 //////////////////////
-import { defineComponent } from "vue";
+import { defineComponent, inject } from "vue";
 import Frame from "@/components/Frame.vue";
 import CaretContainer from "@/components/CaretContainer.vue";
 import { useStore } from "@/store/store";
@@ -52,6 +52,14 @@ import ChildrenFrameStateToggle from "@/components/ChildrenFrameStateToggle.vue"
 //////////////////////
 export default defineComponent({
     name: "FrameContainer",
+
+    setup(){
+        // In Vue 3, we can no longer register something on $root.$refs (and so, use it later),
+        // therefore, we get the equivalent externalised registery from inject instead.
+        const caretContainerComponentsRegistry = inject("caretContainerComponentsRegistry") as Record<string, any>;
+        return { caretContainerComponentsRegistry };
+    },
+
 
     components: {
         ChildrenFrameStateToggle,
@@ -72,12 +80,12 @@ export default defineComponent({
 
     mounted() {
         // Register the caret container component at the upmost level for drag and drop
-        this.$root.$refs[getCaretUID(this.caretPosition.body, this.frameId)] = this.$refs[getCaretContainerRef()];
+        this.caretContainerComponentsRegistry[getCaretUID(this.caretPosition.body, this.frameId)] = this.$refs[getCaretContainerRef()];
     },
 
     destroyed() {
         // Remove the registration of the caret container component at the upmost level for drag and drop
-        delete this.$root.$refs[getCaretUID(this.caretPosition.body, this.frameId)];
+        delete this.caretContainerComponentsRegistry[getCaretUID(this.caretPosition.body, this.frameId)];
     },
 
     data: function(){

@@ -93,7 +93,7 @@
 //////////////////////
 //      Imports     //
 //////////////////////
-import Vue, { defineComponent } from "vue";
+import Vue, { defineComponent, inject } from "vue";
 import FrameHeader from "@/components/FrameHeader.vue";
 import LabelSlotsStructureComponent from "@/components/LabelSlotsStructure.vue";
 import CaretContainer from "@/components/CaretContainer.vue";
@@ -114,6 +114,14 @@ import {getDateTimeFormatted, isMacOSPlatform, removeIf} from "@/helpers/common"
 //////////////////////
 export default defineComponent({
     name: "Frame",
+
+    setup(){
+        // In Vue 3, we can no longer register something on $root.$refs (and so, use it later),
+        // therefore, we get the equivalent externalised registery from inject instead.
+        const caretContainerComponentsRegistry = inject("caretContainerComponentsRegistry") as Record<string, any>;
+        const slotsStructComponentsRegistry = inject("slotsStructComponentsRegistry") as Record<string, any>;
+        return { caretContainerComponentsRegistry, slotsStructComponentsRegistry};
+    },
 
     components: {
         FrameHeader,
@@ -370,7 +378,7 @@ export default defineComponent({
         document.getElementById(this.frameHeaderId)?.addEventListener(CustomEventTypes.frameContentEdited, this.onFrameContentEdited);
 
         // Register the caret container component at the upmost level for drag and drop
-        this.$root.$refs[getCaretUID(this.caretPosition.below, this.frameId)] = this.$refs[getCaretContainerRef()];
+        this.caretContainerComponentsRegistry[getCaretUID(this.caretPosition.below, this.frameId)] = this.$refs[getCaretContainerRef()];
     },
 
     destroyed() {
@@ -385,7 +393,7 @@ export default defineComponent({
         // ONLY if the frame is really removed from the state (because for a very strange reason, when reloading
         // a page and overwriting the frames with a state, the initial state's frame are destroyed after registered).
         if(this.appStore.frameObjects[this.frameId] == undefined){
-            delete this.$root.$refs[getCaretUID(this.caretPosition.below, this.frameId)];
+            delete this.caretContainerComponentsRegistry[getCaretUID(this.caretPosition.below, this.frameId)];
         }
     },
 
@@ -898,7 +906,7 @@ export default defineComponent({
                 // However, since no actual slot is clicked, the change from "self" to "self," isn't triggered.
                 // We can retrieve the LabelSlotsStructure component because its ref is in the root object, and 
                 // call updatePrependText() which will now notice the right context and do its work.
-                const labelSlotsStructComponent = this.$root.$refs[getFrameLabelSlotsStructureUID(this.frameId, 1)];
+                const labelSlotsStructComponent = this.slotsStructComponentsRegistry[getFrameLabelSlotsStructureUID(this.frameId, 1)];
                 if(labelSlotsStructComponent){
                     (labelSlotsStructComponent as InstanceType<typeof LabelSlotsStructureComponent>).updatePrependText();
                 }
