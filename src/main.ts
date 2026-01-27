@@ -1,7 +1,7 @@
 import { createApp, h} from "vue";
 import App from "@/App.vue";
 //import {createPinia/*, PiniaVuePlugin*/} from "pinia";
-//import i18n from "@/i18n";
+import i18n from "@/i18n";
 //import { BootstrapVue } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
@@ -87,6 +87,8 @@ export function getLocaleBuildDate(): string {
 const app = createApp({
     render: () => h(App),
 });
+
+app.use(i18n);
 
 // Mount the app
 app.mount("#app");
