@@ -104,7 +104,7 @@ import { computeAddFrameCommandContainerSize, CustomEventTypes, getActiveContext
 import { useStore } from "@/store/store";
 import { AddFrameCommandDef, AllFrameTypesIdentifier, CaretPosition, CollapsedState, defaultEmptyStrypeLayoutDividerSettings, FrameObject, PythonExecRunningState, SelectAllFramesAction, StrypePEALayoutMode, StrypeSyncTarget } from "@/types/types";
 import $ from "jquery";
-import Vue, { defineComponent } from "vue";
+import { defineComponent } from "vue";
 import { mapStores } from "pinia";
 import { getAvailableNavigationPositions, getFrameSectionIdFromFrameId } from "@/helpers/storeMethods";
 import scssVars  from "@/assets/style/_export.module.scss";
