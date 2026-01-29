@@ -54,14 +54,13 @@
 <script lang="ts">
 
 import Vue, { defineComponent } from "vue";
-import MenuComponent from "@/components/Menu.vue";
 import ModalDlg from "@/components/ModalDlg.vue";
 import {Demo, DemoGroup, getBuiltinDemos, getThirdPartyLibraryDemos} from "@/helpers/demos";
 import Parser from "@/parser/parser";
 import {AppSPYPrefix} from "@/main";
 import {escapeRegExp} from "lodash";
 import { BvModalEvent } from "bootstrap-vue";
-import { getMenuLeftPaneUID } from "@/helpers/editor";
+import {useStore} from "@/store/store";
 
 export default defineComponent({
     components: {ModalDlg},
@@ -160,7 +159,7 @@ export default defineComponent({
             // selectedDemoItemIndex is already set to the right value.
             // We first close the dialog, than simulate a "close with action" in the Menu (since we can't close with "OK" status.)
             this.$root.$emit("bv::hide::modal", this.dlgId);
-            (this.$root.$children[0].$refs[getMenuLeftPaneUID()] as InstanceType<typeof MenuComponent>).onStrypeMenuHideModalDlg({trigger: "ok"} as BvModalEvent, this.dlgId);
+            useStore().menuComponentAPI?.onStrypeMenuHideModalDlg({trigger: "ok"} as BvModalEvent, this.dlgId);
         },
 
         addSpecifiedLibrary() {

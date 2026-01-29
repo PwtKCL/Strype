@@ -14,8 +14,6 @@ import FrameContainer from "@/components/FrameContainer.vue";
 import FrameBody from "@/components/FrameBody.vue";
 import JointFrames from "@/components/JointFrames.vue";
 // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
-import CommandsComponent from "@/components/Commands.vue";
-import PythonExecutionArea from "@/components/PythonExecutionArea.vue";
 import { debounce } from "lodash";
 // #v-endif
 import {toUnicodeEscapes} from "@/parser/parser";
@@ -557,11 +555,11 @@ export function getFrameComponent(frameId: number, innerLookDetails?: {framePare
         // We don't need to parse recursively for getting the refs/frames as we can just find out what frame container it is in first directly...
         // And if we are already in the container (body), then we just return this component 
         const frameContainerId = (frameId < 0) ? frameId : getFrameContainer(frameId);
-        const containerElementRefs = vm.$root.$children[0].$refs[getFrameContainerUID(frameContainerId)] as (Vue|Element)[]; // Retrieve in App
-        if(containerElementRefs) {
+        const refedContainerElement = useStore().appComponentAPI?.getRefedFrameContainerComponent(getFrameContainerUID(frameContainerId)); // Retrieve in App
+        if(refedContainerElement) {
             result = (frameId < 0) 
-                ? containerElementRefs[0] as InstanceType<typeof FrameContainer>
-                : getFrameComponent(frameId,{frameParentComponent: containerElementRefs[0] as InstanceType<typeof FrameContainer>, listOfFrameIdToCheck: useStore().frameObjects[frameContainerId].childrenIds});
+                ? refedContainerElement
+                : getFrameComponent(frameId,{frameParentComponent: refedContainerElement, listOfFrameIdToCheck: useStore().frameObjects[frameContainerId].childrenIds});
         }
     }
 
@@ -2014,12 +2012,12 @@ export function setPythonExecAreaLayoutButtonPos(): void{
         const pythonConsoleTextArea = document.getElementById(getPEAConsoleId());
         const pythonTurtleContainerDiv = document.getElementById(getPEAGraphicsContainerDivId());
         const peaLayoutButtonsContainer = document.getElementsByClassName(scssVars.peaToggleLayoutButtonsContainerClassName)?.[0];
-        const peaComponent = ((vm.$children[0].$refs[getStrypeCommandComponentRefId()] as any).$refs[getPEAComponentRefId()]);
-        if(pythonConsoleTextArea && pythonTurtleContainerDiv && peaLayoutButtonsContainer && peaComponent){
+        const peaComponentAPI = (useStore().peaComponentAPI);
+        if(pythonConsoleTextArea && pythonTurtleContainerDiv && peaLayoutButtonsContainer && peaComponentAPI){
             // First get the natural position offset of the button, so can compute the new position:
             const peaExpandButtonNaturalPosOffset = parseInt((scssVars.pythonExecutionAreaLayoutButtonsPosOffset as string).replace("px",""));
             // Then, look for the scrollbars
-            if((peaComponent as InstanceType<typeof PythonExecutionArea>).isConsoleAreaShowing && !(peaComponent as InstanceType<typeof PythonExecutionArea>).isGraphicsAreaShowing){
+            if(peaComponentAPI?.getIsConsoleAreaShowing() && !peaComponentAPI?.getIsGraphicsAreaShowing()){
                 // In the Python console, we wrap the text, only the vertical scrollbar can appear.
                 const scrollDiff = pythonConsoleTextArea.getBoundingClientRect().width - pythonConsoleTextArea.clientWidth;
                 (peaLayoutButtonsContainer as HTMLDivElement).style.right = (pythonConsoleTextArea.scrollHeight > pythonConsoleTextArea.clientHeight) ? (peaExpandButtonNaturalPosOffset + scrollDiff + 2) + "px" : "";
@@ -2086,7 +2084,7 @@ export function computeAddFrameCommandContainerSize(isExpandedPEA?: boolean): vo
         // When we are done, we need to check again the min size of the commands/PEA splitter pane 1, since scroll bars
         // could have been added with the new change (need to wait for it to be effective though).
         setTimeout(() => {
-            (vm.$children[0].$refs[getStrypeCommandComponentRefId()] as InstanceType<typeof CommandsComponent>).setPEACommandsSplitterPanesMinSize(true);    
+            useStore().commandsComponentAPI?.setPEACommandsSplitterPanesMinSize(true);    
         }, 100);    
     }
 }

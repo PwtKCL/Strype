@@ -61,11 +61,9 @@ import { useStore } from "@/store/store";
 import Parser from "@/parser/parser";
 import { execPythonCode } from "@/helpers/execPythonCode";
 import { mapStores } from "pinia";
-import {adjustContextMenuPosition, checkEditorCodeErrors, countEditorCodeErrors, CustomEventTypes, debounceComputeAddFrameCommandContainerSize, getEditorCodeErrorsHTMLElements, getFrameUID, getMenuLeftPaneUID, getPEAComponentRefId, getPEAConsoleId, getPEAControlsDivId, getPEAGraphicsContainerDivId, getPEAGraphicsDivId, getPEATabContentContainerDivId, getStrypeCommandComponentRefId, hasPrecompiledCodeError, setContextMenuEventClientXY, setPythonExecAreaLayoutButtonPos, setPythonExecutionAreaTabsContentMaxHeight} from "@/helpers/editor";
+import {adjustContextMenuPosition, checkEditorCodeErrors, countEditorCodeErrors, CustomEventTypes, debounceComputeAddFrameCommandContainerSize, getEditorCodeErrorsHTMLElements, getFrameUID, getPEAComponentRefId, getPEAConsoleId, getPEAControlsDivId, getPEAGraphicsContainerDivId, getPEAGraphicsDivId, getPEATabContentContainerDivId, hasPrecompiledCodeError, setContextMenuEventClientXY, setPythonExecAreaLayoutButtonPos, setPythonExecutionAreaTabsContentMaxHeight} from "@/helpers/editor";
 import {defaultEmptyStrypeLayoutDividerSettings, Position, PythonExecRunningState, StrypePEALayoutData, StrypePEALayoutMode} from "@/types/types";
 import { PersistentImage, PersistentImageManager, WORLD_HEIGHT, WORLD_WIDTH } from "@/stryperuntime/image_and_collisions";
-import Menu from "@/components/Menu.vue";
-import CommandsComponent from "@/components/Commands.vue";
 import SVGIcon from "@/components/SVGIcon.vue";
 import {Splitpanes, Pane} from "splitpanes";
 import { debounce } from "lodash";
@@ -77,6 +75,7 @@ import audioBufferToWav from "audiobuffer-to-wav";
 import { saveAs } from "file-saver";
 import {bufferToBase64} from "@/helpers/media";
 import turtleImgURL from "@/assets/images/turtle.png" ;
+import { PEAComponentAPI } from "@/types/vue-component-api-types";
 
 // Helper to keep indexed tabs (for maintenance if we add some tabs etc)
 const enum PEATabIndexes {graphics, console}
@@ -123,6 +122,19 @@ export default defineComponent({
 
     props:{
         hasDefault43Ratio: Boolean,
+    },
+
+    created() {
+        // Expose this component that other components might need.
+        // Vue 3 has deprecated direct access to components.
+        // (we don't set it in setup() because we want to have this accessible, and the component created!)
+        const api: PEAComponentAPI = {
+            togglePEALayout: this.togglePEALayout,
+            clear: this.clear,
+            getIsConsoleAreaShowing: () => this.isConsoleAreaShowing,
+            getIsGraphicsAreaShowing: () => this.isGraphicsAreaShowing,
+        };
+        this.appStore.peaComponentAPI = api;
     },
 
     data: function() {
@@ -401,7 +413,7 @@ export default defineComponent({
     methods: {
         handlePEAMouseDown() {
             // Force the Strype menu to close in case it was opened
-            (this.$root.$children[0].$refs[getMenuLeftPaneUID()] as InstanceType<typeof Menu>).toggleMenuOnOff(null);
+            (this.appStore.menuComponentAPI)?.toggleMenuOnOff(null);
         },
 
         onSplitterPane1Resize(event: any) {
@@ -647,8 +659,7 @@ export default defineComponent({
                 // the right position of the divider between the commands and the PEA (in collapsed layouts)
                 if((layoutMode == StrypePEALayoutMode.tabsCollapsed || layoutMode == StrypePEALayoutMode.splitCollapsed)
                     && this.appStore.peaCommandsSplitterPane2Size && this.appStore.peaCommandsSplitterPane2Size[layoutMode] != undefined){
-                    (this.$root.$children[0].$refs[getStrypeCommandComponentRefId()] as InstanceType<typeof CommandsComponent>).commandsSplitterPane2Size
-                         = this.appStore.peaCommandsSplitterPane2Size[layoutMode] as number;
+                    this.appStore.commandsComponentAPI?.setCommandsSplitterPane2Size(this.appStore.peaCommandsSplitterPane2Size[layoutMode] as number);
                 }
 
                 // If we are switching to the split view (or between split views) and graphics exists, it can add scrolling bars which then mess up the rendering.
@@ -714,8 +725,8 @@ export default defineComponent({
                 const errors = getEditorCodeErrorsHTMLElements();
                 if(errors && errors.length > 0){
                     // The Strype Menu handles already navigation of errors, so we use it to navigate to the first error...
-                    (this.$root.$children[0].$refs[getMenuLeftPaneUID()] as InstanceType<typeof Menu>).currentErrorNavIndex = -1; 
-                    (this.$root.$children[0].$refs[getMenuLeftPaneUID()] as InstanceType<typeof Menu>).goToError(null, true);
+                    this.appStore.menuComponentAPI?.setCurrentErrorNavIndex(-1); 
+                    (this.appStore.menuComponentAPI)?.goToError(null, true);
                 }
             }, 200);
         },

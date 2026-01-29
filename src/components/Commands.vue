@@ -100,7 +100,7 @@
 
 <script lang="ts">
 import AddFrameCommand from "@/components/AddFrameCommand.vue";
-import { computeAddFrameCommandContainerSize, CustomEventTypes, getActiveContextMenu, getAddFrameCmdElementUID, getCaretContainerUID, getCloudDriveHandlerComponentRefId, getCommandsContainerUID, getCommandsRightPaneContainerId, getCurrentFrameSelectAllAction, getFrameUID, getEditorMiddleUID, getMenuLeftPaneUID, handleContextMenuKBInteraction, hiddenShorthandFrames, notifyDragEnded } from "@/helpers/editor";
+import { computeAddFrameCommandContainerSize, CustomEventTypes, getActiveContextMenu, getAddFrameCmdElementUID, getCaretContainerUID, getCommandsContainerUID, getCommandsRightPaneContainerId, getCurrentFrameSelectAllAction, getFrameUID, getEditorMiddleUID, getMenuLeftPaneUID, handleContextMenuKBInteraction, hiddenShorthandFrames, notifyDragEnded } from "@/helpers/editor";
 import { useStore } from "@/store/store";
 import { AddFrameCommandDef, AllFrameTypesIdentifier, CaretPosition, CollapsedState, defaultEmptyStrypeLayoutDividerSettings, FrameObject, PythonExecRunningState, SelectAllFramesAction, StrypePEALayoutMode, StrypeSyncTarget } from "@/types/types";
 import $ from "jquery";
@@ -114,6 +114,7 @@ import gdIcon from "@/assets/images/logoGDrive.png";
 import odIcon from "@/assets/images/logoOneDrive.svg";
 import { findCurrentStrypeLocation, STRYPE_LOCATION } from "@/helpers/pythonToFrames";
 import { clamp } from "lodash";
+import { CommandsComponentAPI } from "@/types/vue-component-api-types";
 // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
 import {Splitpanes, Pane, PaneData} from "splitpanes";
 import PythonExecutionArea from "@/components/PythonExecutionArea.vue";
@@ -121,7 +122,6 @@ import {getPEAConsoleId, getPEAGraphicsDivId, getPEATabContentContainerDivId, ge
 // #v-else
 import APIDiscovery from "@/components/APIDiscovery.vue";
 import { flash } from "@/helpers/webUSB";
-import CloudDriveHandlerComponent from "./CloudDriveHandler.vue";
 import { downloadHex, getPythonContent } from "@/helpers/download";
 import SimpleMsgModalDlg from "@/components/SimpleMsgModalDlg.vue";
 import { useBrowserDetect } from "vue3-detect-browser";
@@ -219,14 +219,13 @@ export default defineComponent({
         },
 
         syncedTargetName(): string {
-            const cloudDriveHandlerComponent =  ((this.$root.$children[0].$refs[getMenuLeftPaneUID()] as Vue).$refs[getCloudDriveHandlerComponentRefId()] as InstanceType<typeof CloudDriveHandlerComponent>);
+            const cloudDriveHandlerComponentAPI =  (this.appStore.cloudDriveHandlerComponentAPI);
             switch(this.appStore.syncTarget){
             case StrypeSyncTarget.fs:
                 return this.$t("appMessage.targetFS") as string;
             case StrypeSyncTarget.gd:
-                return cloudDriveHandlerComponent.getDriveName();
             case StrypeSyncTarget.od:
-                return cloudDriveHandlerComponent.getDriveName();
+                return (cloudDriveHandlerComponentAPI?.getDriveName())??"";
             default:
                 return "";
             }
@@ -284,6 +283,21 @@ export default defineComponent({
     },
 
     created() {
+        // Expose this component that other components might need.
+        // Vue 3 has deprecated direct access to components.
+        // (we don't set it in setup() because we want to have this accessible, and the component created!)
+        const api: CommandsComponentAPI = {
+            onCommandsSplitterResize: this.onCommandsSplitterResize,
+            resetPEACommmandsSplitterDefaultState: this.resetPEACommmandsSplitterDefaultState,
+            setCommandsSplitterPane2Size: (value: number) => {
+                this.commandsSplitterPane2Size= value;
+            },
+            // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
+            setPEACommandsSplitterPanesMinSize: this.setPEACommandsSplitterPanesMinSize,
+            // #v-endif
+        };
+        this.appStore.commandsComponentAPI = api;
+
         if(this.appStore.showKeystroke){
             window.addEventListener(
                 "dblclick",

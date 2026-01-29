@@ -148,6 +148,7 @@ import FrameHeader from "@/components/FrameHeader.vue";
 import { projectDocumentationFrameId } from "./main";
 import {inflateRaw} from "pako";
 import { Base64 } from "js-base64";
+import { AppComponentAPI } from "@/types/vue-component-api-types";
 
 let autoSaveTimerId = -1;
 let projectSaveFunctionsState : ProjectSaveFunction[] = [];
@@ -360,6 +361,21 @@ export default defineComponent({
 
         // By means of protection against browser crashes or anything that could prevent auto-backup, we do a backup every 2 minutes
         this.setAutoSaveState();
+
+        // Expose this component that other components might need
+        // Vue 3 has deprecated direct access to components.
+        // (we don't set it in setup() because we want to have this accessible, and the component created!)
+        const api: AppComponentAPI = {
+            applyShowAppProgress: this.applyShowAppProgress,
+            setStateFromPythonFile: this.setStateFromPythonFile,
+            finaliseOpenShareProject: this.finaliseOpenShareProject,
+            onExpandedPythonExecAreaSplitPaneResize: this.onExpandedPythonExecAreaSplitPaneResize,
+            onStrypeCommandsSplitPaneResize: this.onStrypeCommandsSplitPaneResize,
+            getRefedFrameContainerComponent: (refId: string) => {
+                return this.$refs[refId] as InstanceType<typeof FrameContainer>;
+            },
+        };
+        this.appStore.appComponentAPI = api;
 
         // Prevent the native context menu to be shown at some places we don't want it to be shown (basically everywhere but editable slots)
         // We can't know if that is called because of a click or because of the keyboard shortcut - and it's important to know because we need to process
@@ -623,6 +639,9 @@ export default defineComponent({
     },
 
     mounted() {
+        // Register the callback needed by the Settings store
+        this.settingsStore.saveSettingInLocalStorageHandler = (r: SaveRequestReason) => this.autoSaveStateToWebLocalStorage;
+
         // When the App is ready, we want to either open a project present in the local storage,
         // or open a shared project that is given by the URL (this takes priority over local storage).
         // If we need to open a shared project, when Google Drive is deteced, we may need to wait for the Google API (GAPI) to be loaded before doing anything.
@@ -1508,7 +1527,7 @@ export default defineComponent({
                     actOnTurtleImport();
 
                     // Clear the Python Execution Area as it could have be run before.
-                    ((this.$root.$children[0].$refs[getStrypeCommandComponentRefId()] as Vue).$refs[getPEAComponentRefId()] as any).clear();
+                    this.appStore.peaComponentAPI?.clear();
                     // #v-endif
                     
                     this.appStore.setDividerStates(

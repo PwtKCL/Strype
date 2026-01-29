@@ -236,7 +236,6 @@ import { generateSPYFileContent } from "@/helpers/load-save";
 import ModalDlg from "@/components/ModalDlg.vue";
 import { BvModalEvent } from "bootstrap-vue";
 import { cloneDeep } from "lodash";
-import App from "@/App.vue";
 import appPackageJson from "@/../package.json";
 import { getAboveFrameCaretPosition, getFrameSectionIdFromFrameId } from "@/helpers/storeMethods";
 import { getLocaleBuildDate } from "@/main";
@@ -250,6 +249,7 @@ import disabledRedoImgPath from "@/assets/images/disabledRedo.svg";
 import undoImgPath from "@/assets/images/undo.svg";
 import redoImgPath from "@/assets/images/redo.svg";
 import { useI18n } from "vue-i18n";
+import { MenuComponentAPI } from "@/types/vue-component-api-types";
 
 //////////////////////
 //     Component    //
@@ -284,7 +284,21 @@ export default defineComponent({
         ModalDlg,
     },
 
-   
+    created() {
+        // Expose this component that other components might need.
+        // Vue 3 has deprecated direct access to components.
+        // (we don't set it in setup() because we want to have this accessible, and the component created!)
+        const api: MenuComponentAPI = {
+            onStrypeMenuHideModalDlg: this.onStrypeMenuHideModalDlg,
+            toggleMenuOnOff: this.toggleMenuOnOff,
+            setCurrentErrorNavIndex: (value: number) => {
+                this.currentErrorNavIndex = value;
+            },
+            goToError: this.goToError,
+        };
+        this.appStore.menuComponentAPI = api;
+    },
+    
     data: function() {
         return {
             scssVars, // just to be able to use in template
@@ -1129,7 +1143,7 @@ export default defineComponent({
                     if (selectedDemo) {
                         selectedDemo.demoFile.then((content) => {
                             if (content) {
-                                (this.$root.$children[0] as InstanceType<typeof App>).setStateFromPythonFile(content, selectedDemo.name ?? "Demo", 0, false)
+                                this.appStore.appComponentAPI?.setStateFromPythonFile(content, selectedDemo.name ?? "Demo", 0, false)
                                     .then(() => this.saveTargetChoice(StrypeSyncTarget.none));
                             }
                         });
@@ -1169,7 +1183,7 @@ export default defineComponent({
                                 // name is not always available so we also check if content starts with a {,
                                 // which it will do for old-style spy files:
                                 if (file.name.endsWith(".py") || !(reader.result as string).trimStart().startsWith("{")) {
-                                    (this.$root.$children[0] as InstanceType<typeof App>).setStateFromPythonFile(reader.result as string, fileHandles[0].name, file.lastModified, true, fileHandles[0]);
+                                    this.appStore.appComponentAPI?.setStateFromPythonFile(reader.result as string, fileHandles[0].name, file.lastModified, true, fileHandles[0]);
                                 }
                                 else {
                                     this.appStore.setStateFromJSONStr(
@@ -1209,7 +1223,7 @@ export default defineComponent({
                                 // name is not always available so we also check if content starts with a {,
                                 // which it will do for spy files:
                                 if (fileName.endsWith(".py") || !content.trimStart().startsWith("{")) {
-                                    (this.$root.$children[0] as InstanceType<typeof App>).setStateFromPythonFile(content, fileName, lastModified, true);
+                                    this.appStore.appComponentAPI?.setStateFromPythonFile(content, fileName, lastModified, true);
                                 }
                                 else {
                                     this.appStore.setStateFromJSONStr(

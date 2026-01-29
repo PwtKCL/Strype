@@ -22,7 +22,6 @@ import { defineComponent } from "vue";
 import {mapStores} from "pinia";
 import {useStore} from "@/store/store";
 import Menu from "@/components/Menu.vue";
-import App from "@/App.vue";
 import SimpleMsgModalDlg from "@/components/SimpleMsgModalDlg.vue";
 import ModalDlg from "@/components/ModalDlg.vue";
 import { CustomEventTypes, getAppSimpleMsgDlgId, getCloudLoginErrorModalDlgId, getFrameUID, getSaveAsProjectModalDlg } from "@/helpers/editor";
@@ -33,6 +32,7 @@ import GoogleDriveComponent from "@/components/GoogleDriveComponent.vue";
 import OneDriveComponent from "@/components/OneDriveComponent.vue";
 import { generateSPYFileContent } from "@/helpers/load-save";
 import { AppSPYFullPrefix } from "@/main";
+import { AppComponentAPI, CloudDriveHandlerComponentAPI } from "@/types/vue-component-api-types";
 
 // This enum is used for flaging the action taken when a request to save a file on a Cloud Drive
 // has been done, and a file of the same name already exists on the Drive
@@ -50,6 +50,20 @@ export default defineComponent({
         ModalDlg,
         GoogleDriveComponent,
         OneDriveComponent,
+    },
+
+    created() {
+        // Expose this component that other components might need.
+        // Vue 3 has deprecated direct access to components.
+        // (we don't set it in setup() because we want to have this accessible, and the component created!)
+        const api: CloudDriveHandlerComponentAPI = {
+            getDriveName: this.getDriveName,
+            getSpecificCloudDriveComponent: this.getSpecificCloudDriveComponent,
+            searchCloudDriveElements: this.searchCloudDriveElements,
+            readFileContentForIO: this.readFileContentForIO,
+            writeFileContentForIO: this.writeFileContentForIO,
+        };
+        this.appStore.cloudDriveHandlerComponentAPI = api;
     },
 
     props: {
@@ -286,7 +300,7 @@ export default defineComponent({
                                     // We need to check if we're loading the new SPY format or the old one.
                                     const isSpyNewFormat = decodedURIFileContent.startsWith(AppSPYFullPrefix);
                                     const loadFn = (isSpyNewFormat) 
-                                        ? (this.$root.$children[0] as InstanceType<typeof App>).setStateFromPythonFile(decodedURIFileContent, projectName, -1, false)
+                                        ? (this.appStore.appComponentAPI as AppComponentAPI).setStateFromPythonFile(decodedURIFileContent, projectName, -1, false)
                                         : this.appStore.setStateFromJSONStr({stateJSONStr: decodedURIFileContent, showMessage: false });                            
                                     return loadFn
                                         .then(() => {
@@ -313,11 +327,11 @@ export default defineComponent({
                             })
                             .finally(() => {
                                 // Show a message to the user that the project has (/not) been loaded
-                                (this.$root.$children[0] as InstanceType<typeof App>).finaliseOpenShareProject({key: alertMsgKey, param: alertParams});
+                                this.appStore.appComponentAPI?.finaliseOpenShareProject({key: alertMsgKey, param: alertParams});
                             });
                     }
                     else{
-                        (this.$root.$children[0] as InstanceType<typeof App>).finaliseOpenShareProject({key: "errorMessage.retrievedSharedGenericProject", param: this.$t("errorMessage.cloudAPIFailed", {apiname: cloudDriveComponent.driveAPIName}) as string});
+                        this.appStore.appComponentAPI?.finaliseOpenShareProject({key: "errorMessage.retrievedSharedGenericProject", param: this.$t("errorMessage.cloudAPIFailed", {apiname: cloudDriveComponent.driveAPIName}) as string});
                     }
                 });
         },
@@ -550,7 +564,7 @@ export default defineComponent({
                 const isSpyNewFormat = (otherParams.fileName?.endsWith(`.${strypeFileExtension}`)??false) && fileContent.startsWith(AppSPYFullPrefix);
                 if(isPurePython){
                     // The loading mechanisms for a Python file differs from a Strype file AND it doens't maintain a "link" to Google Drive.
-                    (this.$root.$children[0] as InstanceType<typeof App>).setStateFromPythonFile(fileContent, otherParams.fileName as string, lastSaveDate, false).then(() => {
+                    this.appStore.appComponentAPI?.setStateFromPythonFile(fileContent, otherParams.fileName as string, lastSaveDate, false).then(() => {
                         this.saveFileId = undefined;
                         this.updateSignInStatus(cloudTarget, false);
                         this.appStore.strypeProjectLocation = undefined;
@@ -573,7 +587,7 @@ export default defineComponent({
                     // Load the file content in the editor
                     const isOpenedSharedProject = (this.openSharedProjectFileId.length > 0);
                     const fileLoadFn = (isSpyNewFormat) 
-                        ? (this.$root.$children[0] as InstanceType<typeof App>).setStateFromPythonFile(fileContent, otherParams.fileName as string, lastSaveDate, false)
+                        ? (this.appStore.appComponentAPI as AppComponentAPI).setStateFromPythonFile(fileContent, otherParams.fileName as string, lastSaveDate, false)
                         : this.appStore.setStateFromJSONStr({stateJSONStr: fileContent, showMessage: !isOpenedSharedProject});
                     fileLoadFn.then(() => {
                         // Give focus to the current (focusable) frame element so interaction can happen
@@ -607,7 +621,7 @@ export default defineComponent({
                                 this.saveFileId = undefined;
                                 this.updateSignInStatus(cloudTarget, false);
                                 if(isOpenedSharedProject){
-                                    (this.$root.$children[0] as InstanceType<typeof App>).finaliseOpenShareProject({key: "appMessage.retrievedSharedGenericProject", param: fileNameNoExt});
+                                    this.appStore.appComponentAPI?.finaliseOpenShareProject({key: "appMessage.retrievedSharedGenericProject", param: fileNameNoExt});
                                 }
                                 else{
                                     this.appStore.simpleModalDlgMsg = this.$t("errorMessage.driveFileReadOnly", {drivename: cloudDriveComponent.driveName}) as string;
@@ -622,7 +636,7 @@ export default defineComponent({
                         // When loading a file didn't work, we only need to handle the situation of opening a shared file 
                         // (because the error message would have been shown before for normal opening from the Drive picker)
                         if(this.openSharedProjectFileId.length > 0){
-                            (this.$root.$children[0] as InstanceType<typeof App>).finaliseOpenShareProject({key: "errorMessage.retrievedSharedGenericProject", param: reason});
+                            this.appStore.appComponentAPI?.finaliseOpenShareProject({key: "errorMessage.retrievedSharedGenericProject", param: reason});
                         }
                     }); 
                 }
