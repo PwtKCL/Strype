@@ -55,6 +55,7 @@ import { getFrameLabelSlotsStructureUID, getLabelSlotUID } from "@/helpers/edito
 import { preparePasteMediaData } from "@/helpers/media";
 import LabelSlotsStructureComponent from "@/components/LabelSlotsStructure.vue";
 import { getParentOrJointParent } from "@/helpers/storeMethods";
+import { eventBus } from "@/main";
 // #v-endif
 
 //////////////////////
@@ -341,7 +342,7 @@ export default defineComponent({
         },
 
         handleContextMenuHover(event: MouseEvent) {
-            this.$root.$emit(CustomEventTypes.contextMenuHovered, event.target as HTMLElement);
+            eventBus.emit(CustomEventTypes.contextMenuHovered, event.target as HTMLElement);
         },
 
         toggleCaret(): void {
@@ -428,7 +429,7 @@ export default defineComponent({
             const framesAdded = frameIdsAfterPaste.filter((frameId) => !frameIdsBeforePaste.has(frameId));
             // Then after nextTick tell all the new frames to update their prompts:
             Vue.nextTick(() => {
-                this.$root.$emit(CustomEventTypes.updateParamPrompts, framesAdded);
+                eventBus.emit(CustomEventTypes.updateParamPrompts, framesAdded);
             });
         },
     

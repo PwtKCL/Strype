@@ -125,6 +125,7 @@ import { flash } from "@/helpers/webUSB";
 import { downloadHex, getPythonContent } from "@/helpers/download";
 import SimpleMsgModalDlg from "@/components/SimpleMsgModalDlg.vue";
 import { useBrowserDetect } from "vue3-detect-browser";
+import { eventBus } from "@/main";
 // #v-endif
 
 // #v-ifdef MODE == VITE_MICROBIT_MODE
@@ -464,7 +465,7 @@ export default defineComponent({
                             // The micro:bit simulator do not support non-user interaction for a flash request.
                             // So we just tell the user here what to do...
                             this.appStore.simpleModalDlgMsg = this.$t("appMessage.startMBSimulatorNeedUserAction") as string;
-                            this.$root.$emit("bv::show::modal", this.startMBSimulatorlDlgId);                            
+                            eventBus.emit("bv::show::modal", this.startMBSimulatorlDlgId);                            
                         }
                     }
                     // #v-endif

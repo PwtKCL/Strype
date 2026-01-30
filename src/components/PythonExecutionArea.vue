@@ -76,6 +76,7 @@ import { saveAs } from "file-saver";
 import {bufferToBase64} from "@/helpers/media";
 import turtleImgURL from "@/assets/images/turtle.png" ;
 import { PEAComponentAPI } from "@/types/vue-component-api-types";
+import { eventBus } from "@/main";
 
 // Helper to keep indexed tabs (for maintenance if we add some tabs etc)
 const enum PEATabIndexes {graphics, console}
@@ -1002,7 +1003,7 @@ export default defineComponent({
         },
 
         handleContextMenuHover(event: MouseEvent) {
-            this.$root.$emit(CustomEventTypes.contextMenuHovered, event.target as HTMLElement);
+            eventBus.emit(CustomEventTypes.contextMenuHovered, event.target as HTMLElement);
         },
 
         async screenshotGraphicsArea() {

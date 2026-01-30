@@ -31,7 +31,7 @@ import { CloudDriveAPIState, CloudDriveComponent, CloudDriveFile, CloudFileShari
 import GoogleDriveComponent from "@/components/GoogleDriveComponent.vue";
 import OneDriveComponent from "@/components/OneDriveComponent.vue";
 import { generateSPYFileContent } from "@/helpers/load-save";
-import { AppSPYFullPrefix } from "@/main";
+import { AppSPYFullPrefix, eventBus } from "@/main";
 import { AppComponentAPI, CloudDriveHandlerComponentAPI } from "@/types/vue-component-api-types";
 
 // This enum is used for flaging the action taken when a request to save a file on a Cloud Drive
@@ -185,12 +185,12 @@ export default defineComponent({
         // After signing in or signed out the Cloud Drive:
         updateSignInStatus(cloudTarget: StrypeSyncTarget,signed: boolean) {
             if(signed){
-                this.$root.$emit(CustomEventTypes.addFunctionToEditorProjectSave, {syncTarget: cloudTarget, function: (saveReason: SaveRequestReason) => this.saveFile(cloudTarget, saveReason)});
+                eventBus.emit(CustomEventTypes.addFunctionToEditorProjectSave, {syncTarget: cloudTarget, function: (saveReason: SaveRequestReason) => this.saveFile(cloudTarget, saveReason)});
             }  
             else{
                 // If signing fails, reset to no sync
                 this.appStore.syncTarget = StrypeSyncTarget.none; 
-                this.$root.$emit(CustomEventTypes.removeFunctionToEditorProjectSave, cloudTarget);
+                eventBus.emit(CustomEventTypes.removeFunctionToEditorProjectSave, cloudTarget);
                 // At the very end, emit event for notifying the attempt to open a shared project is finished
                 this.$emit(CustomEventTypes.openSharedFileDone);
             }            
@@ -201,7 +201,7 @@ export default defineComponent({
         testCloudConnection(cloudTarget: StrypeSyncTarget){
             const cloudDriveComponent = this.getSpecificCloudDriveComponent(cloudTarget);
             cloudDriveComponent?.testCloudConnection(() => {
-                this.$root.$emit(CustomEventTypes.addFunctionToEditorProjectSave, {syncTarget: cloudTarget, function: (saveReason: SaveRequestReason) => this.saveFile(cloudTarget, saveReason)});
+                eventBus.emit(CustomEventTypes.addFunctionToEditorProjectSave, {syncTarget: cloudTarget, function: (saveReason: SaveRequestReason) => this.saveFile(cloudTarget, saveReason)});
                 this.doLoadFile(cloudTarget, this.openSharedProjectFileId, this.isSwappingCloudDriveTarget(cloudTarget));
             }, () => {
                 cloudDriveComponent.resetOAuthToken();
@@ -360,7 +360,7 @@ export default defineComponent({
                     // Something happened, we let the user know
                     const erroMsg = (typeof _ == "string") ? _ : JSON.stringify(_);
                     this.appStore.simpleModalDlgMsg = this.$t("errorMessage.clouldFileRestoreSharingStatus", {drivename: cloudDriveComponent.driveName, errordetails: erroMsg}) as string;
-                    this.$root.$emit("bv::show::modal", getAppSimpleMsgDlgId());
+                    eventBus.emit("bv::show::modal", getAppSimpleMsgDlgId());
                 })
                 .finally(() => {
                     // Reset the flag we kept during the sharing action
@@ -399,7 +399,7 @@ export default defineComponent({
                         }
 
                         // The project save method may not exist (the case when a user has loaded a read-only Drive project, then wants to save: sync is off, but connection probably still maintained)
-                        this.$root.$emit(CustomEventTypes.addFunctionToEditorProjectSave, {syncTarget: cloudTarget, function: (saveReason: SaveRequestReason) => this.saveFile(cloudTarget, saveReason)});
+                        eventBus.emit(CustomEventTypes.addFunctionToEditorProjectSave, {syncTarget: cloudTarget, function: (saveReason: SaveRequestReason) => this.saveFile(cloudTarget, saveReason)});
 
                         if(saveReason == SaveRequestReason.saveProjectAtOtherLocation){
                             cloudDriveComponent.pickFolderForSave();
@@ -421,7 +421,7 @@ export default defineComponent({
                     else{
                         // Notify the application that if we were saving for loading now we are done
                         if(this.saveReason == SaveRequestReason.loadProject) {
-                            this.$root.$emit(CustomEventTypes.saveStrypeProjectDoneForLoad);
+                            eventBus.emit(CustomEventTypes.saveStrypeProjectDoneForLoad);
                         }      
                     }
                 }
@@ -494,7 +494,7 @@ export default defineComponent({
                 this.appStore.projectLastSaveDate = Date.now();     
                 // Notify the application that if we were saving for loading now we are done
                 if(this.saveReason == SaveRequestReason.loadProject || (this.$parent as InstanceType<typeof Menu>).requestOpenProjectLater) {
-                    this.$root.$emit(CustomEventTypes.saveStrypeProjectDoneForLoad);
+                    eventBus.emit(CustomEventTypes.saveStrypeProjectDoneForLoad);
                 }                
             }, (errRespStatus: number) => {
                 // If we have an authorised error (for example, timed-out connexion) we should disconnect and warn the users
@@ -507,7 +507,7 @@ export default defineComponent({
                     // This can notably happen if the file has been locked in the meantime that we tried to save it.
                     // We show a modal and remove saving mechanisms.
                     this.appStore.simpleModalDlgMsg = this.$t((this.saveReason == SaveRequestReason.reloadBrowser) ? "errorMessage.driveNoFile" :"errorMessage.driveSaveFailed", {drivename: cloudDriveComponent.driveName}) as string;
-                    this.$root.$emit("bv::show::modal", getAppSimpleMsgDlgId());
+                    eventBus.emit("bv::show::modal", getAppSimpleMsgDlgId());
                     this.updateSignInStatus(cloudTarget,false);
                     // Reset the "Save As" flag of the Menu
                     (this.$parent as InstanceType<typeof Menu>).requestSaveAs = false;
@@ -533,7 +533,7 @@ export default defineComponent({
             if(this.saveReason == SaveRequestReason.loadProject || this.saveReason == SaveRequestReason.unloadPage){
                 const modalMsg = (this.saveReason == SaveRequestReason.loadProject) ? this.$t("errorMessage.gdriveConnectionSaveToLoadProjFailed") : this.$t("errorMessage.gdriveConnectionSaveToUnloadPageFailed") ;
                 this.appStore.simpleModalDlgMsg = modalMsg as string;
-                this.$root.$emit("bv::show::modal", this.loginErrorModalDlgId);
+                eventBus.emit("bv::show::modal", this.loginErrorModalDlgId);
                 // The signIn method will be called when the modal is dismissed
             }
             else{
@@ -625,7 +625,7 @@ export default defineComponent({
                                 }
                                 else{
                                     this.appStore.simpleModalDlgMsg = this.$t("errorMessage.driveFileReadOnly", {drivename: cloudDriveComponent.driveName}) as string;
-                                    this.$root.$emit("bv::show::modal", getAppSimpleMsgDlgId());
+                                    eventBus.emit("bv::show::modal", getAppSimpleMsgDlgId());
                                 }
                             }
                         });                    
@@ -643,11 +643,11 @@ export default defineComponent({
             }, (errorRespStatus: number) => {
                 if(errorRespStatus == 404){
                     this.appStore.simpleModalDlgMsg = this.$t("errorMessage.driveNoFile", {drivename: cloudDriveComponent.driveName}) as string;                    
-                    this.$root.$emit("bv::show::modal", getAppSimpleMsgDlgId());
+                    eventBus.emit("bv::show::modal", getAppSimpleMsgDlgId());
                 }
                 else{
                     this.appStore.simpleModalDlgMsg = this.$t("errorMessage.cloudDriveError", {drivename: cloudDriveComponent.driveName, error: errorRespStatus}) as string;                    
-                    this.$root.$emit("bv::show::modal", getAppSimpleMsgDlgId());
+                    eventBus.emit("bv::show::modal", getAppSimpleMsgDlgId());
                 }
                 // At the very end, emit event for notifying the attempt to open a shared project is finished
                 this.$emit(CustomEventTypes.openSharedFileDone);  
@@ -668,7 +668,7 @@ export default defineComponent({
         onUnsupportedByStrypeFilePicked(){
             // When a non-Strype file was picked to load, we notify the user on a modal dialog, and trigger the Drive picker again
             this.appStore.simpleModalDlgMsg = this.$t("errorMessage.gdriveWrongFile") as string;
-            this.$root.$emit("bv::show::modal", this.unsupportedByStrypeFilePickedModalDlgId);
+            eventBus.emit("bv::show::modal", this.unsupportedByStrypeFilePickedModalDlgId);
         },
 
         lookForAvailableProjectFileName(cloudTarget: StrypeSyncTarget, strypeProjectLocation: string){
@@ -678,7 +678,7 @@ export default defineComponent({
                 // Check if the file is locked before we propose to overwrite
                 cloudDriveComponent.checkIsFileLocked(existingFileId, () => {
                     // We show a dialog to the user to make their choice about what to do next
-                    this.$root.$emit("bv::show::modal", this.saveExistingCloudProjectModalDlgId);                        
+                    eventBus.emit("bv::show::modal", this.saveExistingCloudProjectModalDlgId);                        
                 }, () => {
                     // We shouldn't have an issue at this stage, but if it happens, we just attempt to connect again
                     this.proceedFailedConnectionCheckOnSave(cloudTarget);
@@ -687,7 +687,7 @@ export default defineComponent({
                 // but we save the bits we need for continuing the process later (initiate the request to copy file to false at this stage)
                 this.saveExistingCloudProjectInfos = {existingFileId: existingFileId, existingFileName: this.saveFileName, resumeProcessCallback: onSuccessCallback, isCopyFileRequested: false};                
                 
-                this.$root.$emit("bv::show::modal", this.saveExistingCloudProjectModalDlgId);
+                eventBus.emit("bv::show::modal", this.saveExistingCloudProjectModalDlgId);
             }, onSuccessCallback, () => this.proceedFailedConnectionCheckOnSave(cloudTarget));            
         },
 
@@ -705,7 +705,7 @@ export default defineComponent({
                 // User chose "copy": we invite the user to choose a new name in the next Vue rendering
                 this.saveExistingCloudProjectInfos.isCopyFileRequested = true;
                 this.$nextTick(() => {
-                    this.$root.$emit("bv::show::modal", getSaveAsProjectModalDlg());
+                    eventBus.emit("bv::show::modal", getSaveAsProjectModalDlg());
                 }); 
             }
             else{
