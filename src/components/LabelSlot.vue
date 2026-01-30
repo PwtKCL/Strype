@@ -88,7 +88,7 @@ import scssVars from "@/assets/style/_export.module.scss";
 import MediaPreviewPopup from "@/components/MediaPreviewPopup.vue";
 import {drawSoundOnCanvas} from "@/helpers/media";
 import { isMacOSPlatform } from "@/helpers/common";
-import { projectDocumentationFrameId } from "@/main";
+import { eventBus, projectDocumentationFrameId } from "@/main";
 
 // Default time to keep in cache: 5 minutes.
 const soundPreviewImages = new Cache<LoadedMedia>({ defaultTtl: 5 * 60 * 1000 });
@@ -431,7 +431,7 @@ export default defineComponent({
             const isErroneous = this.isFirstChange && this.appStore.isErroneousSlot(this.coreSlotInfo);
             // The parent (label slot structure) notifies the grand-parent (the frame header) that a slot is erroneous
             if(isErroneous){
-                this.$parent.$emit(CustomEventTypes.notifyLabelSlotInError);
+                eventBus.emit(CustomEventTypes.notifyLabelSlotInError);
             }
             return isErroneous;
         },
