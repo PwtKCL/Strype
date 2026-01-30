@@ -75,7 +75,6 @@ import audioBufferToWav from "audiobuffer-to-wav";
 import { saveAs } from "file-saver";
 import {bufferToBase64} from "@/helpers/media";
 import turtleImgURL from "@/assets/images/turtle.png" ;
-import { PEAComponentAPI } from "@/types/vue-component-api-types";
 import { eventBus } from "@/main";
 
 // Helper to keep indexed tabs (for maintenance if we add some tabs etc)
@@ -129,13 +128,12 @@ export default defineComponent({
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
-        const api: PEAComponentAPI = {
+        this.appStore.peaComponentAPI = {
             togglePEALayout: this.togglePEALayout,
             clear: this.clear,
             getIsConsoleAreaShowing: () => this.isConsoleAreaShowing,
             getIsGraphicsAreaShowing: () => this.isGraphicsAreaShowing,
         };
-        this.appStore.peaComponentAPI = api;
     },
 
     data: function() {

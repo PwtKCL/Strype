@@ -148,7 +148,6 @@ import FrameHeader from "@/components/FrameHeader.vue";
 import { eventBus, projectDocumentationFrameId } from "./main";
 import {inflateRaw} from "pako";
 import { Base64 } from "js-base64";
-import { AppComponentAPI } from "@/types/vue-component-api-types";
 
 let autoSaveTimerId = -1;
 let projectSaveFunctionsState : ProjectSaveFunction[] = [];
@@ -365,7 +364,7 @@ export default defineComponent({
         // Expose this component that other components might need
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
-        const api: AppComponentAPI = {
+        this.appStore.appComponentAPI = {
             applyShowAppProgress: this.applyShowAppProgress,
             setStateFromPythonFile: this.setStateFromPythonFile,
             finaliseOpenShareProject: this.finaliseOpenShareProject,
@@ -375,7 +374,6 @@ export default defineComponent({
                 return this.$refs[refId] as InstanceType<typeof FrameContainer>;
             },
         };
-        this.appStore.appComponentAPI = api;
 
         // Prevent the native context menu to be shown at some places we don't want it to be shown (basically everywhere but editable slots)
         // We can't know if that is called because of a click or because of the keyboard shortcut - and it's important to know because we need to process
@@ -662,11 +660,11 @@ export default defineComponent({
                 const afterAPILoaded = () => {
                     document.getElementById(getLoadProjectLinkId())?.click();
                 };
-                const cloudDriveHandlerComponent = (this.$refs[this.menuUID] as InstanceType<typeof Menu>).$refs[getCloudDriveHandlerComponentRefId()] as InstanceType<typeof CloudDriveHandlerComponent>;
+                const cloudDriveHandlerComponentAPI = this.appStore.cloudDriveHandlerComponentAPI;
                 // For Google API, we wait a bit as it must have been loaded first.
-                const specifcDriveComponent = cloudDriveHandlerComponent.getSpecificCloudDriveComponent(cloudTarget);
+                const specifcDriveComponent = cloudDriveHandlerComponentAPI?.getSpecificCloudDriveComponent(cloudTarget);
                 if(cloudTarget == StrypeSyncTarget.gd){                    
-                    cloudDriveHandlerComponent.getCloudAPIStatusWhenLoadedOrFailed(StrypeSyncTarget.gd)
+                    cloudDriveHandlerComponentAPI?.getCloudAPIStatusWhenLoadedOrFailed(StrypeSyncTarget.gd)
                         ?.then((gapiState) =>{
                             // Only open the project is the GAPI is loaded, and show a message of error if it hasn't.
                             if(gapiState == CloudDriveAPIState.LOADED){

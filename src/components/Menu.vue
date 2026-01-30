@@ -249,7 +249,6 @@ import disabledRedoImgPath from "@/assets/images/disabledRedo.svg";
 import undoImgPath from "@/assets/images/undo.svg";
 import redoImgPath from "@/assets/images/redo.svg";
 import { useI18n } from "vue-i18n";
-import { MenuComponentAPI } from "@/types/vue-component-api-types";
 
 //////////////////////
 //     Component    //
@@ -288,7 +287,7 @@ export default defineComponent({
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
-        const api: MenuComponentAPI = {
+        this.appStore.menuComponentAPI = {
             onStrypeMenuHideModalDlg: this.onStrypeMenuHideModalDlg,
             toggleMenuOnOff: this.toggleMenuOnOff,
             setCurrentErrorNavIndex: (value: number) => {
@@ -296,7 +295,6 @@ export default defineComponent({
             },
             goToError: this.goToError,
         };
-        this.appStore.menuComponentAPI = api;
     },
     
     data: function() {
@@ -942,16 +940,16 @@ export default defineComponent({
                 // We only generate the link if we don't have it already (from one dialog opening)
                 if(this.publicModeProjectSharingLink.length == 0) {
                     // Before generating a link, we change the file setttings on Google Drive to make it accessible at large.
-                    const cloudDriveHandlerComponent = (this.$refs[getCloudDriveHandlerComponentRefId()] as InstanceType<typeof CloudDriveHandler>);
+                    const cloudDriveHandlerComponentAPI = this.appStore.cloudDriveHandlerComponentAPI;
                     let createPermissionSucceeded = false;
-                    cloudDriveHandlerComponent.shareCloudDriveFile(this.appStore.syncTarget)
+                    cloudDriveHandlerComponentAPI?.shareCloudDriveFile(this.appStore.syncTarget)
                         .then((succeeded) => createPermissionSucceeded = succeeded)
                         .catch((errorMsg) => alertMessage = (errorMsg?.status)??errorMsg)
                         .finally(() => {
                             clearTimeout(noShareActionTimeOutHandle);
                             if(createPermissionSucceeded){
                                 // We have set the file public on the Drive, now we retrieve the sharing link.
-                                cloudDriveHandlerComponent.getPublicShareLink(this.appStore.syncTarget)
+                                cloudDriveHandlerComponentAPI?.getPublicShareLink(this.appStore.syncTarget)
                                     .then(({respStatus, webLink}) => {
                                         // We got the link or not, but we can only make it useful or show an error *if the user is still expecting this sharing mode from the dialog (if not, we just return)
                                         if(this.areShareProjectActionStillValid(forShareMode)){
@@ -1139,7 +1137,7 @@ export default defineComponent({
                     if(event.trigger == "event" && event.type == "hide"){
                         return;
                     }
-                    const selectedDemo = (this.$refs.openDemoDlg as InstanceType<typeof OpenDemoDlg>).getSelectedDemo();
+                    const selectedDemo = this.appStore.openDemoDlgComponentAPI?.getSelectedDemo();
                     if (selectedDemo) {
                         selectedDemo.demoFile.then((content) => {
                             if (content) {

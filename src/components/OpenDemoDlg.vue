@@ -69,6 +69,15 @@ export default defineComponent({
         dlgId: {type: String, required: true},
     },
     
+    created() {
+        // Expose this component that other components might need.
+        // Vue 3 has deprecated direct access to components.
+        // (we don't set it in setup() because we want to have this accessible, and the component created!)
+        useStore().openDemoDlgComponentAPI = {
+            getSelectedDemo: this.getSelectedDemo,
+        };
+    },
+
     data: function() {
         return {
             availableDemos: [] as DemoGroup[],

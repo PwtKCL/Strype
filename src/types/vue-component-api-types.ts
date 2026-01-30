@@ -10,12 +10,16 @@
  * 
  * To make reactivity working and code readable, datas are accessed or updated via proper getter/setter functions.
  * 
+ * !! When we use the Component API for instances of components (i.e. components that are not uniquely instanced in Strype)
+ * !! then use an intermediate property "forInstance" which acts as a hash map with the API methods for one instance.
+ * !! This API property is then expected to be an object of keyed methods (key is the component's id) rather than a method direct.
+ * 
  * (The APIs are accessible via the store, see in store why.)
  **/
 
 import FrameContainer from "@/components/FrameContainer.vue";
 import { BvModalEvent } from "bootstrap-vue";
-import { CloudDriveComponent, CloudDriveFile } from "@/types/cloud-drive-types";
+import { CloudDriveAPIState, CloudDriveComponent, CloudDriveFile } from "@/types/cloud-drive-types";
 import { AppEvent, SaveRequestReason, StrypePEALayoutMode, StrypeSyncTarget } from "@/types/types";
 
 export type AppComponentAPI = {
@@ -53,7 +57,23 @@ export type MenuComponentAPI = {
 export type CloudDriveHandlerComponentAPI = {
   getDriveName: () => string,
   getSpecificCloudDriveComponent: (cloudTarget: StrypeSyncTarget) => CloudDriveComponent | null,
+  getCloudAPIStatusWhenLoadedOrFailed: (cloudTarget: StrypeSyncTarget) => Promise<CloudDriveAPIState> | undefined,
+  shareCloudDriveFile: (cloudTarget: StrypeSyncTarget) => Promise<boolean>,
+  getPublicShareLink: (cloudTarget: StrypeSyncTarget) => Promise<{ respStatus: number, webLink: string }>,
   searchCloudDriveElements: (cloudTarget: StrypeSyncTarget, fileName: string, fileLocationId: string, searchAllSPYFiles: boolean, searchOptions: Record<string, string>) => Promise<CloudDriveFile[]>,
   readFileContentForIO: (cloudTarget: StrypeSyncTarget, fileId: string, isBinaryMode: boolean, filePath: string) => Promise<string | Uint8Array | {success: boolean, errorMsg: string}>,
   writeFileContentForIO: (cloudTarget: StrypeSyncTarget, fileContent: string|Uint8Array, fileInfos: {filePath: string, fileName?: string, fileId?: string, folderId?: string}) => Promise<string>,
+}
+
+export type CaretContainerComponentAPI = {
+  forInstance: {[componentInstanceKey: string]: {
+    setAreFramesDraggedOver: (v: boolean) => void,
+    getAreDropFramesAllowed: () => boolean,
+    setAreDropFramesAllowed: (v: boolean) => void,
+    setIsDuplicateDnDAction: (v: boolean) => void,
+  }},
+}
+
+export type OpenDemoDlgComponentAPI = {
+  getSelectedDemo: () => ({ name : string, demoFile: Promise<string | undefined> } | undefined),
 }

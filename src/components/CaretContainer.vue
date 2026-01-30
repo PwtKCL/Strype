@@ -76,6 +76,37 @@ export default defineComponent({
         VueContext,
     },
 
+    created(){
+        // Expose this component that other components might need.
+        // Vue 3 has deprecated direct access to components.
+        // (we don't set it in setup() because we want to have this accessible, and the component created!)
+        const apiMethods = {
+            setAreFramesDraggedOver: (value: boolean) => {
+                this.areFramesDraggedOver = value;
+            },
+            getAreDropFramesAllowed: () => {
+                return this.areDropFramesAllowed;
+            },
+            setAreDropFramesAllowed: (value: boolean) => {
+                this.areDropFramesAllowed = value;
+            },
+            setIsDuplicateDnDAction: (value: boolean) => {
+                this.isDuplicateDnDAction = value;
+            },
+        };
+        
+        if(this.appStore.caretContainerComponentAPI == null){    
+            this.appStore.caretContainerComponentAPI = {
+                forInstance: {
+                    [this.UID]: apiMethods,
+                },
+            };
+        }
+        else{
+            this.appStore.caretContainerComponentAPI.forInstance[this.UID] = apiMethods;
+        }
+    },
+
     props: {
         frameId: {type: Number, required: true},
         caretVisibility: String, //Flag indicating this caret is visible or not

@@ -15,7 +15,7 @@ import $ from "jquery";
 import { BvModalEvent } from "bootstrap-vue";
 import { TPyParser } from "tigerpython-parser";
 import emptyState from "@/store/initial-states/empty-state";
-import { AppComponentAPI, CloudDriveHandlerComponentAPI, CommandsComponentAPI, MenuComponentAPI } from "@/types/vue-component-api-types";
+import { AppComponentAPI, CaretContainerComponentAPI, CloudDriveHandlerComponentAPI, CommandsComponentAPI, MenuComponentAPI, OpenDemoDlgComponentAPI } from "@/types/vue-component-api-types";
 // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
 import { actOnTurtleImport } from "@/helpers/editor";
 import { PEAComponentAPI } from "@/types/vue-component-api-types";
@@ -92,6 +92,10 @@ export const useStore = defineStore("app", {
             menuComponentAPI: null as null | MenuComponentAPI,
 
             cloudDriveHandlerComponentAPI: null as null | CloudDriveHandlerComponentAPI,
+            
+            caretContainerComponentAPI: null as null | CaretContainerComponentAPI,
+
+            openDemoDlgComponentAPI: null as null | OpenDemoDlgComponentAPI,
 
             // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
             peaComponentAPI: null as null | PEAComponentAPI,

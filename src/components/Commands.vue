@@ -114,7 +114,6 @@ import gdIcon from "@/assets/images/logoGDrive.png";
 import odIcon from "@/assets/images/logoOneDrive.svg";
 import { findCurrentStrypeLocation, STRYPE_LOCATION } from "@/helpers/pythonToFrames";
 import { clamp } from "lodash";
-import { CommandsComponentAPI } from "@/types/vue-component-api-types";
 // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
 import {Splitpanes, Pane, PaneData} from "splitpanes";
 import PythonExecutionArea from "@/components/PythonExecutionArea.vue";
@@ -287,7 +286,7 @@ export default defineComponent({
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
-        const api: CommandsComponentAPI = {
+        this.appStore.commandsComponentAPI = {
             onCommandsSplitterResize: this.onCommandsSplitterResize,
             resetPEACommmandsSplitterDefaultState: this.resetPEACommmandsSplitterDefaultState,
             setCommandsSplitterPane2Size: (value: number) => {
@@ -297,7 +296,6 @@ export default defineComponent({
             setPEACommandsSplitterPanesMinSize: this.setPEACommandsSplitterPanesMinSize,
             // #v-endif
         };
-        this.appStore.commandsComponentAPI = api;
 
         if(this.appStore.showKeystroke){
             window.addEventListener(

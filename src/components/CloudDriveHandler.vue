@@ -32,7 +32,7 @@ import GoogleDriveComponent from "@/components/GoogleDriveComponent.vue";
 import OneDriveComponent from "@/components/OneDriveComponent.vue";
 import { generateSPYFileContent } from "@/helpers/load-save";
 import { AppSPYFullPrefix, eventBus } from "@/main";
-import { AppComponentAPI, CloudDriveHandlerComponentAPI } from "@/types/vue-component-api-types";
+import { AppComponentAPI } from "@/types/vue-component-api-types";
 
 // This enum is used for flaging the action taken when a request to save a file on a Cloud Drive
 // has been done, and a file of the same name already exists on the Drive
@@ -56,14 +56,16 @@ export default defineComponent({
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
-        const api: CloudDriveHandlerComponentAPI = {
+        this.appStore.cloudDriveHandlerComponentAPI =  {
             getDriveName: this.getDriveName,
             getSpecificCloudDriveComponent: this.getSpecificCloudDriveComponent,
+            getCloudAPIStatusWhenLoadedOrFailed: this.getCloudAPIStatusWhenLoadedOrFailed,
+            shareCloudDriveFile: this.shareCloudDriveFile,
+            getPublicShareLink: this.getPublicShareLink,
             searchCloudDriveElements: this.searchCloudDriveElements,
             readFileContentForIO: this.readFileContentForIO,
             writeFileContentForIO: this.writeFileContentForIO,
         };
-        this.appStore.cloudDriveHandlerComponentAPI = api;
     },
 
     props: {
