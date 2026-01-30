@@ -848,7 +848,7 @@ export default defineComponent({
                             eventBus.emit("bv::show::modal", this.shareProjectModalDlgId);                             
                         });                       
                     })
-                    .catch((_) => {
+                    .catch((_: any) => {
                         // Something happened, we let the user know
                         const erroMsg = (typeof _ == "string") ? _ : JSON.stringify(_);
                         this.appStore.simpleModalDlgMsg = this.$t("errorMessage.clouldFileRestoreSharingStatus", {drivename: cloudDriveHandlerComponent.getDriveName(), errordetails: erroMsg}) as string;
