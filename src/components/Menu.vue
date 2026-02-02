@@ -382,7 +382,7 @@ export default defineComponent({
         eventBus.on(CustomEventTypes.saveStrypeProjectDoneForLoad, this.openLoadProjectDlgAfterSaved);
 
         // Event listener for the Cloud Drive component to listen the attempt to open a shared project is done (successfully or not)
-        (this.$refs[this.cloudDriveHandlerComponentId] as InstanceType<typeof CloudDriveHandler>).$on(CustomEventTypes.openSharedFileDone, () => {
+        eventBus.on(CustomEventTypes.openSharedFileDone, () => {
             this.openSharedProjectId = "";
             this.openSharedProjectTarget = StrypeSyncTarget.none;
         });        
