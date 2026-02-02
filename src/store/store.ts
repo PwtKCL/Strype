@@ -15,10 +15,10 @@ import $ from "jquery";
 import { BvModalEvent } from "bootstrap-vue";
 import { TPyParser } from "tigerpython-parser";
 import emptyState from "@/store/initial-states/empty-state";
-import { AppComponentAPI, CaretContainerComponentAPI, CloudDriveHandlerComponentAPI, CommandsComponentAPI, MenuComponentAPI, OpenDemoDlgComponentAPI } from "@/types/vue-component-api-types";
+import { AppComponentAPI, AutoCompletionComponentAPI, CaretContainerComponentAPI, CloudDriveHandlerComponentAPI, CommandsComponentAPI, FrameComponentAPI, FrameHeaderComponentAPI, GoogleDriveFilePickerComponentAPI, LabelSlotComponentAPI, LabelSlotsStructureComponentAPI, MenuComponentAPI, OpenDemoDlgComponentAPI } from "@/types/vue-component-api-types";
 // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
 import { actOnTurtleImport } from "@/helpers/editor";
-import { PEAComponentAPI } from "@/types/vue-component-api-types";
+import { PEAComponentAPI, MediaPreviewPopupComponentAPI, EditImageDlgComponentAPI, EditSoundDlgComponentAPI } from "@/types/vue-component-api-types";
 
 // #v-endif
 
@@ -97,8 +97,26 @@ export const useStore = defineStore("app", {
 
             openDemoDlgComponentAPI: null as null | OpenDemoDlgComponentAPI,
 
+            labelSlotsStructureComponentAPI: null as null | LabelSlotsStructureComponentAPI,
+
+            labelSlotComponentAPI: null as null | LabelSlotComponentAPI,
+
+            googleDriveFilePickerComponentAPI: null as null | GoogleDriveFilePickerComponentAPI,
+
+            frameComponentAPI: null as null | FrameComponentAPI,
+
+            frameHeaderComponentAPI: null as null | FrameHeaderComponentAPI,
+
+            autoCompletionComponentAPI: null as null | AutoCompletionComponentAPI,
+
             // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
             peaComponentAPI: null as null | PEAComponentAPI,
+
+            mediaPreviewPopupComponentAPI:null as null | MediaPreviewPopupComponentAPI,
+
+            editImageDlgComponentAPI: null as null | EditImageDlgComponentAPI,
+
+            editSoundDlgComponentAPI: null as null | EditSoundDlgComponentAPI,
             // #v-endif
 
             /** END of the Vue components API part */

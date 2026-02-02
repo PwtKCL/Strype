@@ -96,6 +96,28 @@ function splitAtNewLines(labels : FrameLabel[], state: CollapsedState) : {item: 
 export default defineComponent({
     name: "FrameHeader",
 
+    created() {
+        // Expose this component that other components might need.
+        // Vue 3 has deprecated direct access to components.
+        // (we don't set it in setup() because we want to have this accessible, and the component created!)
+        const apiMethods = {
+            setHasErroneousSlot: (value: boolean) => {
+                this.hasErroneousSlot = value;
+            },
+        };
+        
+        if(this.appStore.frameHeaderComponentAPI == null){    
+            this.appStore.frameHeaderComponentAPI = {
+                forInstance: {
+                    [this.frameId]: apiMethods,
+                },
+            };
+        }
+        else{
+            this.appStore.frameHeaderComponentAPI.forInstance[this.frameId] = apiMethods;
+        }
+    },
+
     components: {
         ChildrenFrameStateToggle,
         LabelSlotsStructure,

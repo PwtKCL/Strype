@@ -95,6 +95,13 @@ export default defineComponent({
     },
 
     created() {
+        // Expose this component that other components might need.
+        // Vue 3 has deprecated direct access to components.
+        // (we don't set it in setup() because we want to have this accessible, and the component created!)
+        this.appStore.editSoundDlgComponentAPI = {
+            getUpdatedMedia: this.getUpdatedMedia,
+        };
+
         // Register the event listener for the dialog here
         eventBus.on("bv::modal::hide", this.onHideModalDlg as any);
     },

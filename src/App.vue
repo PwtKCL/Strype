@@ -113,7 +113,6 @@ import Vue, { defineComponent } from "vue";
 import { useI18n } from "vue-i18n";
 import MessageBanner from "@/components/MessageBanner.vue";
 import FrameContainer from "@/components/FrameContainer.vue";
-import Frame from "@/components/Frame.vue";
 import Commands from "@/components/Commands.vue";
 import Menu from "@/components/Menu.vue";
 import ModalDlg from "@/components/ModalDlg.vue";
@@ -122,7 +121,7 @@ import {Splitpanes, Pane, PaneData} from "splitpanes";
 import { useStore, settingsStore } from "@/store/store";
 import { AppEvent, ProjectSaveFunction, BaseSlot, CaretPosition, FrameObject, FrozenState, MessageTypes, ModifierKeyCode, Position, PythonExecRunningState, SaveRequestReason, SlotCursorInfos, SlotsStructure, SlotType, StringSlot, StrypeSyncTarget, StrypePEALayoutMode, defaultEmptyStrypeLayoutDividerSettings, EditImageInDialogFunction, EditSoundInDialogFunction, areSlotCoreInfosEqual, SlotCoreInfos, ProjectDocumentationDefinition, CollapsedState } from "@/types/types";
 import { CloudDriveAPIState, isSyncTargetCloudDrive } from "@/types/cloud-drive-types";
-import {getFrameContainerUID, getCloudDriveHandlerComponentRefId, getMenuLeftPaneUID, getEditorMiddleUID, getCommandsRightPaneContainerId, isElementLabelSlotInput, CustomEventTypes, getFrameUID, parseLabelSlotUID, getLabelSlotUID, getFrameLabelSlotsStructureUID, getSelectionCursorsComparisonValue, setDocumentSelection, getSameLevelAncestorIndex, autoSaveFreqMins, getImportDiffVersionModalDlgId, getAppSimpleMsgDlgId, getFrameContextMenuUID, getActiveContextMenu, actOnTurtleImport, setPythonExecutionAreaTabsContentMaxHeight, setManuallyResizedEditorHeightFlag, setPythonExecAreaLayoutButtonPos, isContextMenuItemSelected, getStrypeCommandComponentRefId, frameContextMenuShortcuts, getCompanionDndCanvasId, addDuplicateActionOnFramesDnD, removeDuplicateActionOnFramesDnD, getFrameComponent, getCaretContainerComponent, sharedStrypeProjectTargetKey, sharedStrypeProjectIdKey, getCaretContainerUID, getEditorID, getLoadProjectLinkId, AutoSaveKeyNames, getFrameHeaderUID} from "./helpers/editor";
+import {getFrameContainerUID, getMenuLeftPaneUID, getEditorMiddleUID, getCommandsRightPaneContainerId, isElementLabelSlotInput, CustomEventTypes, getFrameUID, parseLabelSlotUID, getLabelSlotUID, getFrameLabelSlotsStructureUID, getSelectionCursorsComparisonValue, setDocumentSelection, getSameLevelAncestorIndex, autoSaveFreqMins, getImportDiffVersionModalDlgId, getAppSimpleMsgDlgId, getFrameContextMenuUID, getActiveContextMenu, actOnTurtleImport, setPythonExecutionAreaTabsContentMaxHeight, setManuallyResizedEditorHeightFlag, setPythonExecAreaLayoutButtonPos, isContextMenuItemSelected, getStrypeCommandComponentRefId, frameContextMenuShortcuts, getCompanionDndCanvasId, addDuplicateActionOnFramesDnD, removeDuplicateActionOnFramesDnD, sharedStrypeProjectTargetKey, sharedStrypeProjectIdKey, getCaretContainerUID, getEditorID, getLoadProjectLinkId, AutoSaveKeyNames, getFrameHeaderUID, getCaretContainerIdForFrame} from "./helpers/editor";
 import { AllFrameTypesIdentifier} from "@/types/types";
 // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
 import { debounceComputeAddFrameCommandContainerSize, getPEATabContentContainerDivId, getPEAComponentRefId } from "@/helpers/editor";
@@ -133,10 +132,8 @@ import { DAPWrapper } from "./helpers/partial-flashing";
 import { mapStores } from "pinia";
 import { getFlatNeighbourFieldSlotInfos, getSlotIdFromParentIdAndIndexSplit, getSlotParentIdAndIndexSplit, retrieveParentSlotFromSlotInfos, retrieveSlotFromSlotInfos, getFrameBelowCaretPosition, checkCodeErrors, calculateNextCollapseState } from "./helpers/storeMethods";
 import { cloneDeep } from "lodash";
-import { VueContextConstructor } from "vue-context";
 import { BACKEND_SKULPT_DIV_ID } from "@/autocompletion/ac-skulpt";
 import {pasteMixedPython} from "@/helpers/pythonToFrames";
-import CloudDriveHandlerComponent from "@/components/CloudDriveHandler.vue";
 import { BvEvent, BvModalEvent } from "bootstrap-vue";
 import MediaPreviewPopup from "@/components/MediaPreviewPopup.vue";
 import EditImageDlg from "@/components/EditImageDlg.vue";
@@ -370,9 +367,6 @@ export default defineComponent({
             finaliseOpenShareProject: this.finaliseOpenShareProject,
             onExpandedPythonExecAreaSplitPaneResize: this.onExpandedPythonExecAreaSplitPaneResize,
             onStrypeCommandsSplitPaneResize: this.onStrypeCommandsSplitPaneResize,
-            getRefedFrameContainerComponent: (refId: string) => {
-                return this.$refs[refId] as InstanceType<typeof FrameContainer>;
-            },
         };
 
         // Prevent the native context menu to be shown at some places we don't want it to be shown (basically everywhere but editable slots)
@@ -555,9 +549,10 @@ export default defineComponent({
         // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
         // Listen to the Python execution area size change events (as the editor needs to be resized too)
         document.addEventListener(CustomEventTypes.pythonExecAreaExpandCollapseChanged, (event) => {
-            this.isExpandedPythonExecArea = (event as CustomEvent).detail;
-            (this.$refs[this.strypeCommandsRefId] as InstanceType<typeof Commands>).isExpandedPEA = (event as CustomEvent).detail;
-            (this.$refs[this.strypeCommandsRefId] as InstanceType<typeof Commands>).hasPEAExpanded ||= (event as CustomEvent).detail;
+            const expandedPEAValue = (event as CustomEvent<boolean>).detail;
+            this.isExpandedPythonExecArea = expandedPEAValue;
+            this.appStore.commandsComponentAPI?.setIsExpandedPEA(expandedPEAValue);
+            this.appStore.commandsComponentAPI?.setLogicalORHasPEAExpanded(expandedPEAValue);
             setTimeout(() => {
                 debounceComputeAddFrameCommandContainerSize((event as CustomEvent).detail);
                 if((event as CustomEvent).detail){
@@ -655,8 +650,8 @@ export default defineComponent({
         if(shareProjectId && sharedProjectTarget && isSyncTargetCloudDrive(parseInt(sharedProjectTarget))) {
             const loadCloudSharedProject = () => {
                 const cloudTarget = parseInt(sharedProjectTarget) as StrypeSyncTarget;
-                (this.$refs[getMenuLeftPaneUID()] as InstanceType<typeof Menu>).openSharedProjectTarget = cloudTarget;
-                (this.$refs[getMenuLeftPaneUID()] as InstanceType<typeof Menu>).openSharedProjectId = shareProjectId;
+                this.appStore.menuComponentAPI?.setOpenSharedProjectTarget(cloudTarget);
+                this.appStore.menuComponentAPI?.setOpenSharedProjectId(shareProjectId);
                 const afterAPILoaded = () => {
                     document.getElementById(getLoadProjectLinkId())?.click();
                 };
@@ -702,8 +697,7 @@ export default defineComponent({
                     // Google Drive will not expose the file directly, so we can *try* to extract the file ID and then get the data with the API (without authentication).
                     // Extract the file ID and attempt a retrieving of the file with the Google Drive API (it waits a bit for the API to be loaded)
                     const sharedFileID = shareProjectId.substring(googleDrivePublicURLPreamble.length).match(/^([^/]+)\/.*$/)?.[1];
-                    ((this.$refs[this.menuUID] as InstanceType<typeof Menu>).$refs[getCloudDriveHandlerComponentRefId()] as InstanceType<typeof CloudDriveHandlerComponent>)
-                        ?.getPublicSharedProjectContent(StrypeSyncTarget.gd, sharedFileID??"");
+                    this.appStore.cloudDriveHandlerComponentAPI?.getPublicSharedProjectContent(StrypeSyncTarget.gd, sharedFileID??"");
                 
                 }
                 else{
@@ -725,7 +719,7 @@ export default defineComponent({
                                     alertMsgKey = "appMessage.retrievedSharedGenericProject";
                                     alertParams = this.appStore.projectName;
                                     // A generic project is saved in memory, so we must make sure there is no target destination saved.
-                                    (this.$refs[this.menuUID] as InstanceType<typeof Menu>).saveTargetChoice(StrypeSyncTarget.none);
+                                    this.appStore.menuComponentAPI?.saveTargetChoice(StrypeSyncTarget.none);
                                 },
                                 (reason) => {
                                     alertMsgKey = "errorMessage.retrievedSharedGenericProject";
@@ -793,11 +787,8 @@ export default defineComponent({
         // Register a listener for a request to close a caret context menu (used by Frame.vue)
         eventBus.on(CustomEventTypes.requestCaretContextMenuClose, () => {
             // We find the CaretContainer component currently active to properly close the menu using the component close() method.
-            const currentFrameComponent = getFrameComponent(this.appStore.currentFrame.id);
-            if(currentFrameComponent){
-                const currentCaretContainerComponent = getCaretContainerComponent(currentFrameComponent);
-                ((currentCaretContainerComponent.$refs.menu as unknown) as VueContextConstructor).close();
-            }
+            this.appStore.caretContainerComponentAPI?.forInstance[getCaretContainerUID(this.appStore.currentFrame.caretPosition, this.appStore.currentFrame.id)]
+                .closeContextMenu();            
         });
 
         eventBus.on(CustomEventTypes.addFunctionToEditorProjectSave, (psf: ProjectSaveFunction) => {
@@ -832,7 +823,7 @@ export default defineComponent({
             // However, if we are in a situation of requesting a save to open a new project, AND the project wasn't coming
             // from any source (FS or GD) we need to let the user perform a standard save.
             if(saveReason == SaveRequestReason.loadProject && this.appStore.syncTarget == StrypeSyncTarget.none){
-                (this.$refs[this.menuUID] as InstanceType<typeof Menu>).handleSaveMenuClick(undefined, saveReason);
+                this.appStore.menuComponentAPI?.handleSaveMenuClick(undefined, saveReason);
             }
             else {
                 projectSaveFunctionsState.forEach((psf) => psf.function(saveReason));
@@ -1010,19 +1001,19 @@ export default defineComponent({
                     // about reloading the project from that Cloud Drive again (only if we were not attempting to open a shared project via the URL)
                     if(this.appStore.currentCloudSaveFileId) {
                         // We need to have the specific Cloud Drive component loaded for getting its name and register the generic signin callback, so we do that now...
-                        const cloudHandlerVueComponent = ((this.$refs[this.menuUID] as InstanceType<typeof Menu>).$refs[getCloudDriveHandlerComponentRefId()] as InstanceType<typeof CloudDriveHandlerComponent>);
-                        cloudHandlerVueComponent.setGenericSignInCallBack(this.appStore.syncTarget, () => cloudHandlerVueComponent.saveFile(this.appStore.syncTarget, SaveRequestReason.reloadBrowser));       
-                        this.cloudDriveName = cloudHandlerVueComponent.getDriveName();
+                        const cloudHandlerComponentAPI = this.appStore.cloudDriveHandlerComponentAPI;
+                        cloudHandlerComponentAPI?.setGenericSignInCallBack(this.appStore.syncTarget, () => this.appStore.cloudDriveHandlerComponentAPI?.saveFile(this.appStore.syncTarget, SaveRequestReason.reloadBrowser));
+                        this.cloudDriveName = cloudHandlerComponentAPI?.getDriveName()??"";
                         const execGetCloudDriveFileFunction = (event: BvModalEvent, dlgId: string) => {
                             if(dlgId == this.resyncToCloudDriveAtStartupModalDlgId){
                                 if(event.trigger == "ok" || event.trigger=="event"){
                                     // Initiate a connection to the Cloud Drive (for updating the Cloud Drive with local changes)
-                                    cloudHandlerVueComponent.signInFn();                                
+                                    cloudHandlerComponentAPI?.signInFn();                                
                                     eventBus.off("bv::modal::hide", execGetCloudDriveFileFunction as any); 
                                 }
                                 else{
                                     // We make sure we do not keep a wrong sync target!
-                                    (this.$refs[this.menuUID] as InstanceType<typeof Menu>).saveTargetChoice(StrypeSyncTarget.none);                      
+                                    this.appStore.menuComponentAPI?.saveTargetChoice(StrypeSyncTarget.none);                      
                                 }
                             }
                         };
@@ -1031,7 +1022,7 @@ export default defineComponent({
                     }
                     // When a file has been reloaded and it was previously saved the File System, we want to clear off any references to that file
                     else if(this.appStore.syncTarget == StrypeSyncTarget.fs){
-                        (this.$refs[this.menuUID] as InstanceType<typeof Menu>).saveTargetChoice(StrypeSyncTarget.none);
+                        this.appStore.menuComponentAPI?.saveTargetChoice(StrypeSyncTarget.none);
                     }
                 }, () => {});
             }, () => {});
@@ -1090,7 +1081,7 @@ export default defineComponent({
 
         handleWholeEditorMouseDown(){
             // Force the Strype menu to close in case it was opened
-            (this.$refs[getMenuLeftPaneUID()] as InstanceType<typeof Menu>).toggleMenuOnOff(null);
+            this.appStore.menuComponentAPI?.toggleMenuOnOff(null);
         },
 
         handleDocumentSelectionChange(){
@@ -1193,16 +1184,14 @@ export default defineComponent({
                             const menuPosition = this.ensureFrameKBShortcutContextMenu(areFramesSelected);
                             // We retrieve the element on which we need to call the menu: the first frame of the selection if some frames are selected,
                             // the current blue caret otherwise
-                            const frameComponent = getFrameComponent((areFramesSelected) ? this.appStore.selectedFrames[0] : this.appStore.currentFrame.id);
-                            if(frameComponent) {
-                                if(areFramesSelected){
-                                    (frameComponent as InstanceType<typeof Frame>).handleClick(event, menuPosition);
-                                }
-                                else{
-                                    // When there is no selection, the menu to open is for the current caret, which can either be inside a frame's body or under a frame
-                                    const caretContainerComponent = getCaretContainerComponent(frameComponent);
-                                    caretContainerComponent.handleClick(event, menuPosition);
-                                }
+                            const frameComponentId = (areFramesSelected) ? this.appStore.selectedFrames[0] : this.appStore.currentFrame.id;
+                            if(areFramesSelected){
+                                this.appStore.frameComponentAPI?.forInstance[frameComponentId].handleClick(event, menuPosition);
+                            }
+                            else{
+                                // When there is no selection, the menu to open is for the current caret, which can either be inside a frame's body or under a frame
+                                const caretContainerComponentId = getCaretContainerIdForFrame(frameComponentId);
+                                this.appStore.caretContainerComponentAPI?.forInstance[caretContainerComponentId].handleClick(event, menuPosition);
                             }
                         });  
                     }
@@ -1506,7 +1495,7 @@ export default defineComponent({
 
             // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
             // When the rightmost panel (with Strype commands) is resized, we need to also update the Turtle canvas and break the natural 4:3 ratio of the PEA
-            (this.$refs[this.strypeCommandsRefId] as InstanceType<typeof Commands>).isCommandsSplitterChanged = true;
+            this.appStore.commandsComponentAPI?.setIsCommandsSplitterChanged(true);
             document.getElementById(getPEATabContentContainerDivId())?.dispatchEvent(new CustomEvent(CustomEventTypes.pythonExecAreaSizeChanged));
             // #v-endif
         },
@@ -1537,7 +1526,7 @@ export default defineComponent({
                         () => {
                             // Finally, we can trigger the notifcation a file from FS has been loaded.
                             if(requestFSFileLoadedNotification){
-                                (this.$refs[this.menuUID] as InstanceType<typeof Menu>).onFileLoaded(fileName, lastSaveDate, fileLocation);
+                                this.appStore.menuComponentAPI?.onFileLoaded(fileName, lastSaveDate, fileLocation);
                             }
                             resolve();
                         },
@@ -1549,21 +1538,18 @@ export default defineComponent({
                 }
             });
         },
-        getMediaPreviewPopupInstance() {
-            return this.$refs.mediaPreviewPopup;
-        },
         getPeaComponent() {
             return (this.$refs[this.strypeCommandsRefId] as any).$refs[getPEAComponentRefId()];
         },
         editImageInDialog(imageDataURL: string, showPreview: (dataURL: string) => void, callback: (replacement: {code: string, mediaType: string}) => void) {
-            const editImageDlg = this.$refs.editImageDlg as InstanceType<typeof EditImageDlg>;
+            const editImageDlgComponentAPI = this.appStore.editImageDlgComponentAPI;
             this.imgToEditInDialog = imageDataURL;
             this.showImgPreview = showPreview;
 
             const editedImage = (event: BvModalEvent, dlgId: string) => {
                 if((event.trigger == "ok" || event.trigger=="event") && dlgId == "editImageDlg"){
                     //Call the callback:
-                    editImageDlg.getUpdatedMedia().then(callback);
+                    editImageDlgComponentAPI?.getUpdatedMedia().then(callback);
 
                     eventBus.off("bv::modal::hide", editedImage as any);
                 }
@@ -1573,13 +1559,13 @@ export default defineComponent({
             eventBus.emit("bv::show::modal", "editImageDlg");
         },
         editSoundInDialog(audioBuffer: AudioBuffer, callback: (replacement: {code: string, mediaType: string}) => void) {
-            const editSoundDlg = this.$refs.editSoundDlg as InstanceType<typeof EditSoundDlg>;
+            const editSoundDlgComponentAPI = this.appStore.editSoundDlgComponentAPI;
             this.soundToEditInDialog = audioBuffer;
 
             const editedSound = (event: BvModalEvent, dlgId: string) => {
                 if((event.trigger == "ok" || event.trigger=="event") && dlgId == "editSoundDlg"){
                     //Call the callback:
-                    editSoundDlg.getUpdatedMedia().then(callback);
+                    editSoundDlgComponentAPI?.getUpdatedMedia().then(callback);
 
                     eventBus.off("bv::modal::hide", editedSound as any);
                 }
@@ -1590,9 +1576,8 @@ export default defineComponent({
         },
     },
 
-    provide() : { mediaPreviewPopupInstance : any, peaComponent: any, editImageInDialog : EditImageInDialogFunction, editSoundInDialog : EditSoundInDialogFunction} {
+    provide() : { peaComponent: any, editImageInDialog : EditImageInDialogFunction, editSoundInDialog : EditSoundInDialogFunction} {
         return {
-            mediaPreviewPopupInstance: this.getMediaPreviewPopupInstance,
             peaComponent: this.getPeaComponent,
             // Note, this provides the function:
             editImageInDialog: this.editImageInDialog,

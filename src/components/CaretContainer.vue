@@ -53,7 +53,6 @@ import {detectBrowser} from "@/helpers/browser";
 import { getFrameDefType, SlotType, MediaDataAndDim} from "@/types/types";
 import { getFrameLabelSlotsStructureUID, getLabelSlotUID } from "@/helpers/editor";
 import { preparePasteMediaData } from "@/helpers/media";
-import LabelSlotsStructureComponent from "@/components/LabelSlotsStructure.vue";
 import { getParentOrJointParent } from "@/helpers/storeMethods";
 import { eventBus } from "@/main";
 // #v-endif
@@ -93,6 +92,11 @@ export default defineComponent({
             setIsDuplicateDnDAction: (value: boolean) => {
                 this.isDuplicateDnDAction = value;
             },
+            closeContextMenu: () => {
+                ((this.$refs.menu as unknown) as VueContextConstructor).close();
+            },
+            handleClick: this.handleClick,
+            doPaste: this.doPaste,
         };
         
         if(this.appStore.caretContainerComponentAPI == null){    
@@ -289,7 +293,7 @@ export default defineComponent({
                                     // Refactor the slots, we call the refactorisation on the LabelSlotsStructure   
                                     // Since that's our last action, we can revert the flag to allow the registration of the state for undo/redo
                                     this.appStore.ignoreStateSavingActionsForUndoRedo = false;                                   
-                                    (this.slotsStructComponentsRegistry[getFrameLabelSlotsStructureUID(frameId, 0)] as InstanceType<typeof LabelSlotsStructureComponent>)
+                                    this.appStore.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(frameId, 0)]
                                         .checkSlotRefactoring(getLabelSlotUID({frameId: frameId, labelSlotsIndex: 0, slotId: "0", slotType: SlotType.code}), stateBeforeChanges, {doAfterCursorSet: () => {
                                             this.appStore.leftRightKey({key: "ArrowRight"}).then(() => this.appStore.leftRightKey({key: "ArrowRight"}));
                                         }});                                        

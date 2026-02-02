@@ -294,6 +294,15 @@ export default defineComponent({
             },
             // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
             setPEACommandsSplitterPanesMinSize: this.setPEACommandsSplitterPanesMinSize,
+            setIsExpandedPEA: (value: boolean) => {
+                this.isExpandedPEA = value;
+            },
+            setLogicalORHasPEAExpanded: (value: boolean) => {
+                this.hasPEAExpanded ||= value;
+            },
+            setIsCommandsSplitterChanged: (value: boolean) => {
+                this.isCommandsSplitterChanged = value;
+            },
             // #v-endif
         };
 
@@ -449,10 +458,9 @@ export default defineComponent({
                 // #v-endif
                 if((event.ctrlKey || event.metaKey) && eventKeyLowCase === "enter" && isTargetRefDefined) {
                     // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
-                    ((this.$refs[getPEAComponentRefId()] as InstanceType<typeof PythonExecutionArea>).$refs.runButton as HTMLButtonElement).focus();
-                    ((this.$refs[getPEAComponentRefId()] as InstanceType<typeof PythonExecutionArea>).$refs.runButton as HTMLButtonElement).click();
+                    this.appStore.peaComponentAPI?.focusClickRunButton();
                     // Need to unfocus to avoid keyboard focus non-obviously remaining with the run button:
-                    ((this.$refs[getPEAComponentRefId()] as InstanceType<typeof PythonExecutionArea>).$refs.runButton as HTMLButtonElement).blur();
+                    this.appStore.peaComponentAPI?.blurRunButton();
                     // #v-else
                     // If the run Python shortcut is triggered with the micro:bit version, we start/stop the simulator.                        
                     if(event.ctrlKey){
@@ -488,7 +496,7 @@ export default defineComponent({
                 // (then we just leave the PEA handling it, see at the end of these conditions for related code)
                 let extraConditionsForPEA = true;
                 // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
-                extraConditionsForPEA = !(isPythonExecuting && ((this.$refs[getPEAComponentRefId()] as InstanceType<typeof PythonExecutionArea>).$data.isTurtleListeningKeyEvents || (this.$refs[getPEAComponentRefId()] as InstanceType<typeof PythonExecutionArea>).$data.isRunningStrypeGraphics));
+                extraConditionsForPEA = !(isPythonExecuting && this.appStore.peaComponentAPI?.getIsTurtleListeningKeyEvents() || this.appStore.peaComponentAPI?.getIsRunningStrypeGraphics());
                 // #v-endif
                 if (!isDraggingFrames && !isEditing && extraConditionsForPEA && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Tab", "Home", "End", "PageUp", "PageDown"].includes(event.key)) {
                     event.stopImmediatePropagation();
@@ -614,7 +622,7 @@ export default defineComponent({
                         }
                     }
                     // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
-                    else if(isPythonExecuting && !(this.$refs[getPEAComponentRefId()] as InstanceType<typeof PythonExecutionArea>).$data.isRunningStrypeGraphics){
+                    else if(isPythonExecuting && !this.appStore.peaComponentAPI?.getIsRunningStrypeGraphics()){
                         // The special case when the user's code is being executing, we want to handle the key events carefully.
                         // If there is a combination key (ctrl,...) we just ignore the events, otherwise, if Turtle is active we pass events to the Turtle graphics,
                         // and if it's not active AND the Python Execution console hasn't go focus, we prevents events.
@@ -854,7 +862,7 @@ export default defineComponent({
             return new Promise((resolve) => {
                 this.hasPEAExpanded = false;
                 this.isCommandsSplitterChanged = false;               
-                (this.$refs[this.peaComponentRefId] as InstanceType<typeof PythonExecutionArea>).togglePEALayout(StrypePEALayoutMode.tabsCollapsed);
+                this.appStore.peaComponentAPI?.togglePEALayout(StrypePEALayoutMode.tabsCollapsed);
                 // Once we have the flags set, we set a timer to wait for the splitter to update before returning from the promise
                 setTimeout(() => {
                     resolve();

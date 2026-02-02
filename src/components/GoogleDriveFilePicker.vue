@@ -12,6 +12,15 @@ import { CustomEventTypes } from "@/helpers/editor";
 
 export default defineComponent({
     name: "GoogleDriveFilePicker",
+
+    created() {
+        // Expose this component that other components might need.
+        // Vue 3 has deprecated direct access to components.
+        // (we don't set it in setup() because we want to have this accessible, and the component created!)
+        this.appStore.googleDriveFilePickerComponentAPI = {
+            startPicking: this.startPicking,            
+        };
+    },
     
     props: {
         devKey : String,

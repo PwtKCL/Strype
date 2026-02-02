@@ -75,6 +75,8 @@ export default defineComponent({
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
         useStore().openDemoDlgComponentAPI = {
             getSelectedDemo: this.getSelectedDemo,
+            updateAvailableDemos: this.updateAvailableDemos,
+            shown: this.shown,
         };
     },
 

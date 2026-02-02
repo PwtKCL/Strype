@@ -124,6 +124,7 @@ export default defineComponent({
         hasDefault43Ratio: Boolean,
     },
 
+    // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
     created() {
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
@@ -133,8 +134,25 @@ export default defineComponent({
             clear: this.clear,
             getIsConsoleAreaShowing: () => this.isConsoleAreaShowing,
             getIsGraphicsAreaShowing: () => this.isGraphicsAreaShowing,
+            focusClickRunButton: () => {
+                (this.$refs.runButton as HTMLButtonElement).focus();
+                (this.$refs.runButton as HTMLButtonElement).click();
+            },
+            blurRunButton: () => {
+                (this.$refs.runButton as HTMLButtonElement).blur();
+            },
+            getIsTurtleListeningKeyEvents: () => {
+                return this.isTurtleListeningKeyEvents;
+            },
+            getIsRunningStrypeGraphics: () => {
+                return this.isRunningStrypeGraphics;
+            },
+            downloadWAV: this.downloadWAV,
+            getPersistentImageManager: this.getPersistentImageManager,
+            redrawCanvas: this.redrawCanvas,
         };
     },
+    // #v-endif
 
     data: function() {
         return {

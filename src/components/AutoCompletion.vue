@@ -99,7 +99,30 @@ export default defineComponent({
         PopUpItem,
     },
 
+    created() {
+        // Expose this component that other components might need.
+        // Vue 3 has deprecated direct access to components.
+        // (we don't set it in setup() because we want to have this accessible, and the component created!)
+        const apiMethods = {
+            updateACForModuleImport: this.updateACForModuleImport,
+            updateACForImportFrom: this.updateACForImportFrom,
+            updateAC: this.updateAC,
+        };
+        
+        if(this.appStore.autoCompletionComponentAPI == null){    
+            this.appStore.autoCompletionComponentAPI = {
+                forInstance: {
+                    [this.AC_UID]: apiMethods,
+                },
+            };
+        }
+        else{
+            this.appStore.autoCompletionComponentAPI.forInstance[this.AC_UID] = apiMethods;
+        }
+    },
+
     props: {
+        AC_UID: {type: String, required: true},
         list: [String],
         slotId: {type: String, required: true},
     },

@@ -16,7 +16,6 @@ import { useStore } from "@/store/store";
 import { CloudDriveAPIState, CloudDriveFile, CloudFileSharingStatus, GDFile } from "@/types/cloud-drive-types";
 import { mapStores } from "pinia";
 import { defineComponent, PropType } from "vue";
-import CloudDriveHandlerComponent from "@/components/CloudDriveHandler.vue";
 import { MessageDefinitions, StrypeSyncTarget } from "@/types/types";
 import GoogleDriveFilePicker from "@/components/GoogleDriveFilePicker.vue";
 import { pythonFileExtension, strypeFileExtension } from "@/helpers/common";
@@ -319,7 +318,7 @@ export default defineComponent({
         },
 
         pickFolderForSave(){
-            (this.$refs[this.googleDriveFilePickerComponentId] as InstanceType<typeof GoogleDriveFilePicker>).startPicking(true);
+            this.appStore.googleDriveFilePickerComponentAPI?.startPicking(true);
         },
 
         loadPickedFileId(id: string, otherParams: {fileName?: string}, onGettingFileMetadataSucces: (fileNameFromDrive: string, fileModifiedDateTime: string)=>void
@@ -346,7 +345,7 @@ export default defineComponent({
         
         openFilePicker(startingFromFolderId: string | undefined): Promise<void> {
             // Launch the file picker for this cloud drive (this would be called after we made sure the connection to OneDrive is (still) valid)
-            (this.$refs[this.googleDriveFilePickerComponentId] as InstanceType<typeof GoogleDriveFilePicker>).startPicking(false, startingFromFolderId);
+            this.appStore.googleDriveFilePickerComponentAPI?.startPicking(false, startingFromFolderId);
             return Promise.resolve();     
         },
 
@@ -616,7 +615,7 @@ export default defineComponent({
                              
                     if (response && response.error == undefined) {
                         this.oauthToken = response.access_token;
-                        (this.$parent as InstanceType<typeof CloudDriveHandlerComponent>).updateSignInStatus(StrypeSyncTarget.gd, true);
+                        this.appStore.cloudDriveHandlerComponentAPI?.updateSignInStatus(StrypeSyncTarget.gd, true);
                     }
 
                     // In any case, continue the action requested by the user (need to do it in a next tick to make sure the oauthToken is updated in all Vue components)
