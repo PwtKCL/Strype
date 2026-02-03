@@ -93,14 +93,14 @@
 //////////////////////
 //      Imports     //
 //////////////////////
-import Vue, { defineComponent, inject } from "vue";
+import Vue, { defineComponent } from "vue";
 import FrameHeader from "@/components/FrameHeader.vue";
 import CaretContainer from "@/components/CaretContainer.vue";
 import { useStore } from "@/store/store";
 import { DefaultFramesDefinition, CaretPosition, CollapsedState, CurrentFrame, FrozenState, NavigationPosition, AllFrameTypesIdentifier, Position, PythonExecRunningState, FrameContextMenuActionName, ContainerTypesIdentifiers } from "@/types/types";
 import VueContext, {VueContextConstructor}  from "vue-context";
 import { getAboveFrameCaretPosition, getAllChildrenAndJointFramesIds, getLastSibling, getNextSibling, getOutmostDisabledAncestorFrameId, getParentId, getParentOrJointParent, isFramePartOfJointStructure, isLastInParent, frameOrChildHasErrors, calculateNextCollapseState } from "@/helpers/storeMethods";
-import { CustomEventTypes, getFrameBodyUID, getFrameContextMenuUID, getFrameHeaderUID, getFrameUID, isIdAFrameId, getFrameBodyRef, getJointFramesRef, getCaretContainerRef, setContextMenuEventClientXY, adjustContextMenuPosition, getActiveContextMenu, notifyDragStarted, getCaretUID, getHTML2CanvasFramesSelectionCropOptions, parseFrameUID, getFrameLabelSlotsStructureUID } from "@/helpers/editor";
+import { CustomEventTypes, getFrameBodyUID, getFrameContextMenuUID, getFrameHeaderUID, getFrameUID, isIdAFrameId, getFrameBodyRef, getJointFramesRef, getCaretContainerRef, setContextMenuEventClientXY, adjustContextMenuPosition, getActiveContextMenu, notifyDragStarted, getHTML2CanvasFramesSelectionCropOptions, parseFrameUID, getFrameLabelSlotsStructureUID, getCaretUID } from "@/helpers/editor";
 import { mapStores } from "pinia";
 import { BPopover } from "bootstrap-vue";
 import html2canvas from "html2canvas";
@@ -114,14 +114,6 @@ import { eventBus } from "@/main";
 //////////////////////
 export default defineComponent({
     name: "Frame",
-
-    setup(){
-        // In Vue 3, we can no longer register something on $root.$refs (and so, use it later),
-        // therefore, we get the equivalent externalised registery from inject instead.
-        const caretContainerComponentsRegistry = inject("caretContainerComponentsRegistry") as Record<string, any>;
-        const slotsStructComponentsRegistry = inject("slotsStructComponentsRegistry") as Record<string, any>;
-        return { caretContainerComponentsRegistry, slotsStructComponentsRegistry};
-    },
 
     created() {
         // Expose this component that other components might need.
@@ -397,9 +389,6 @@ export default defineComponent({
 
         // The frame header can listen for events from the editable slots focus to manage header level error messages
         document.getElementById(this.frameHeaderId)?.addEventListener(CustomEventTypes.frameContentEdited, this.onFrameContentEdited);
-
-        // Register the caret container component at the upmost level for drag and drop
-        this.caretContainerComponentsRegistry[getCaretUID(this.caretPosition.below, this.frameId)] = this.$refs[getCaretContainerRef()];
     },
 
     destroyed() {
@@ -410,11 +399,14 @@ export default defineComponent({
         // however, just to keep things tidy, let's clear the frame focus event listener when the frame is destroyed
         document.getElementById(this.frameHeaderId)?.removeEventListener(CustomEventTypes.frameContentEdited, this.onFrameContentEdited);
         
-        // Remove the registration of the caret container component at the upmost level for drag and drop
+        // Remove the registration of the caret container component API related to this frame,
+        // the frame header component API related to this frame and the component API of this frame.
         // ONLY if the frame is really removed from the state (because for a very strange reason, when reloading
         // a page and overwriting the frames with a state, the initial state's frame are destroyed after registered).
         if(this.appStore.frameObjects[this.frameId] == undefined){
-            delete this.caretContainerComponentsRegistry[getCaretUID(this.caretPosition.below, this.frameId)];
+            delete this.appStore.caretContainerComponentAPI?.forInstance[getCaretUID(this.caretPosition.below, this.frameId)];
+            delete this.appStore.frameComponentAPI?.forInstance[this.frameId];
+            delete this.appStore.frameHeaderComponentAPI?.forInstance[this.frameId];
         }
     },
 

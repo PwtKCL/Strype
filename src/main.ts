@@ -101,10 +101,6 @@ app.use(createPinia());
 // Mount the app
 app.mount("#app");
 
-// Register all the "refs" we were globally using against $root in Vue 2: $root is not a mutable Vue instance in Vue 3.
-app.provide("slotsStructComponentsRegistry", {});
-app.provide("caretContainerComponentsRegistry", {});
-
 /*
 // Install BootstrapVue
 Vue.use(BootstrapVue);

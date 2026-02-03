@@ -70,7 +70,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject } from "vue";
+import { defineComponent } from "vue";
 import {AllFrameTypesIdentifier, APIItemTextualDescription, getFrameDefType, PythonExecRunningState, SlotCursorInfos, SlotType} from "@/types/types";
 import { useStore } from "@/store/store";
 import { getFocusedEditableSlotTextSelectionStartEnd, getFrameLabelSlotsStructureUID, getLabelSlotUID, setDocumentSelection } from "@/helpers/editor";
@@ -80,13 +80,6 @@ import { cloneDeep } from "lodash";
 
 export default defineComponent({
     name: "APIDiscovery",
-
-    setup(){
-        // In Vue 3, we can no longer register something on $root.$refs (and so, use it later),
-        // therefore, we get the equivalent externalised registery from inject instead.
-        const slotsStructComponentsRegistry = inject("slotsStructComponentsRegistry") as Record<string, any>;
-        return { slotsStructComponentsRegistry };
-    },
 
     data: function () {
         return {

@@ -39,7 +39,7 @@
 
 <script lang="ts">
 import { AllFrameTypesIdentifier, AllowedSlotContent, areSlotCoreInfosEqual, BaseSlot, CaretPosition, FieldSlot, FlatSlotBase, getFrameDefType, isSlotBracketType, isSlotQuoteType, LabelSlotsContent, MediaDataAndDim, OptionalSlotType, PythonExecRunningState, SlotCoreInfos, SlotCursorInfos, SlotsStructure, SlotType } from "@/types/types";
-import Vue, { defineComponent, getCurrentInstance, inject } from "vue";
+import Vue, { defineComponent, getCurrentInstance } from "vue";
 import { useStore } from "@/store/store";
 import { mapStores } from "pinia";
 import LabelSlot from "@/components/LabelSlot.vue";
@@ -85,11 +85,7 @@ export default defineComponent({
             }
         }, []);
 
-        // In Vue 3, we can no longer register something on $root.$refs (and so, use it later),
-        // therefore, we get the equivalent externalised registery from inject instead.
-        const slotsStructComponentsRegistry = inject("slotsStructComponentsRegistry") as Record<string, any>;
-
-        return { placeholderText, slotsStructComponentsRegistry };
+        return { placeholderText };
     },
 
     components:{
@@ -119,9 +115,6 @@ export default defineComponent({
     },
 
     created(){
-        // Register this component externally, to allow external calls for refactoring the slots
-        this.slotsStructComponentsRegistry[this.labelSlotsStructDivId] = this;
-
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
