@@ -60,6 +60,7 @@ import Parser from "@/parser/parser";
 import {AppSPYPrefix, eventBus} from "@/main";
 import {escapeRegExp} from "lodash";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
+import { BvTriggerableEvent } from "bootstrap-vue-next";
 
 export default defineComponent({
     components: {ModalDlg},
@@ -169,7 +170,7 @@ export default defineComponent({
             // selectedDemoItemIndex is already set to the right value.
             // We first close the dialog, than simulate a "close with action" in the Menu (since we can't close with "OK" status.)
             eventBus.emit("bv::hide::modal", this.dlgId);
-            vueComponentsAPIHandler.menuComponentAPI?.onStrypeMenuHideModalDlg({trigger: "ok"} as BvModalEvent, this.dlgId);
+            vueComponentsAPIHandler.menuComponentAPI?.onStrypeMenuHideModalDlg({trigger: "ok", componentId: this.dlgId} as BvTriggerableEvent);
         },
 
         addSpecifiedLibrary() {

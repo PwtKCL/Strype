@@ -128,7 +128,7 @@ export default defineComponent({
         },
 
         validateOnEnterKeyDown(event: KeyboardEvent){
-            // Hitting "enter" on the dialog triggers its validation (the trigger property of the BvModalEvent sent by Bootstrap will be "event" in that case)
+            // Hitting "enter" on the dialog triggers its validation.
             // Only if there is not focus on a button already (then it show leave the action on that button to be performed)
             if((document.activeElement?.tagName.toLocaleLowerCase()??"") != "button" && event.code.toLowerCase() == "enter" && this.appStore.isModalDlgShown && this.dlgId == this.appStore.currentModalDlgId){
                 eventBus.emit("bv::hide::modal", this.dlgId);
