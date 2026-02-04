@@ -13,11 +13,10 @@ import { getAPIItemTextualDescriptions } from "@/helpers/microbitAPIDiscovery";
 import {cloneDeep, isEqual} from "lodash";
 import { TPyParser } from "tigerpython-parser";
 import emptyState from "@/store/initial-states/empty-state";
-// #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
-import { actOnTurtleImport } from "@/helpers/editor";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
-
+// #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
+import { actOnTurtleImport } from "@/helpers/editor";
 // #v-endif
 
 function getState(): StateAppObject {

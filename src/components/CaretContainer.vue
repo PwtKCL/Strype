@@ -49,13 +49,13 @@ import { getAboveFrameCaretPosition, getFrameSectionIdFromFrameId } from "@/help
 import { pasteMixedPython } from "@/helpers/pythonToFrames";
 import scssVars  from "@/assets/style/_export.module.scss";
 import {detectBrowser} from "@/helpers/browser";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
 import { getFrameDefType, SlotType, MediaDataAndDim} from "@/types/types";
 import { getFrameLabelSlotsStructureUID, getLabelSlotUID } from "@/helpers/editor";
 import { preparePasteMediaData } from "@/helpers/media";
 import { getParentOrJointParent } from "@/helpers/storeMethods";
 import { eventBus } from "@/main";
-import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 // #v-endif
 
 //////////////////////

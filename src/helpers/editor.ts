@@ -12,7 +12,7 @@ import { debounce } from "lodash";
 // #v-endif
 import {toUnicodeEscapes} from "@/parser/parser";
 import {fromUnicodeEscapes} from "@/helpers/pythonToFrames";
-import { vueComponentsAPIHandler } from "./vueComponentAPI";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 export const undoMaxSteps = 50;
 export const autoSaveFreqMins = 2; // The number of minutes between each autosave action.

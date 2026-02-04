@@ -114,6 +114,7 @@ import gdIcon from "@/assets/images/logoGDrive.png";
 import odIcon from "@/assets/images/logoOneDrive.svg";
 import { findCurrentStrypeLocation, STRYPE_LOCATION } from "@/helpers/pythonToFrames";
 import { clamp } from "lodash";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
 import {Splitpanes, Pane, PaneData} from "splitpanes";
 import PythonExecutionArea from "@/components/PythonExecutionArea.vue";
@@ -125,7 +126,6 @@ import { downloadHex, getPythonContent } from "@/helpers/download";
 import SimpleMsgModalDlg from "@/components/SimpleMsgModalDlg.vue";
 import { useBrowserDetect } from "vue3-detect-browser";
 import { eventBus } from "@/main";
-import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 // #v-endif
 
 // #v-ifdef MODE == VITE_MICROBIT_MODE

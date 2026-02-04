@@ -5,7 +5,7 @@ import i18n from "@/i18n";
 import {cloneDeep, escapeRegExp} from "lodash";
 import {AppName, AppSPYFullPrefix, projectDocumentationFrameId} from "@/main";
 import {toUnicodeEscapes, stringToCollapsed, stringToFrozen} from "@/parser/parser";
-import { vueComponentsAPIHandler } from "./vueComponentAPI";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 const TOP_LEVEL_TEMP_ID = -999;
 
