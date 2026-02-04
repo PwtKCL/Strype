@@ -30,8 +30,7 @@ import {EditImageInDialogFunction, EditSoundInDialogFunction, LoadedMedia} from 
 import {PersistentImageManager} from "@/stryperuntime/image_and_collisions";
 import {getDateTimeFormatted} from "@/helpers/common";
 import {saveAs} from "file-saver";
-import { useStore } from "@/store/store";
-import { mapStores } from "pinia";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 // These bits of text are not translated because they are class names:
 const HTMLImageClass = "<a href='https://strype.org/doc/library/#strype.graphics.Image' target='_blank'>Image</a>";
@@ -44,7 +43,7 @@ export default defineComponent({
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
-        this.appStore.mediaPreviewPopupComponentAPI = {
+        vueComponentsAPIHandler.mediaPreviewPopupComponentAPI = {
             showPopup: this.showPopup,
             startHidePopup: this.startHidePopup,
         };    
@@ -108,11 +107,11 @@ export default defineComponent({
         doPreviewImage(imgDataURL: string) {
             document.getElementById("strypeGraphicsPEATab")?.click();
             this.$nextTick(() => {
-                const imgManager: PersistentImageManager | undefined = this.appStore.peaComponentAPI?.getPersistentImageManager();
+                const imgManager: PersistentImageManager | undefined = vueComponentsAPIHandler.peaComponentAPI?.getPersistentImageManager();
                 imgManager?.clear();
                 // null is passed to clear the preview when the edit dialog is closed:
                 if (imgDataURL == null) {
-                    this.appStore.peaComponentAPI?.redrawCanvas();
+                    vueComponentsAPIHandler.peaComponentAPI?.redrawCanvas();
                     return;
                 }
                 const checkered = new OffscreenCanvas(800, 600);
@@ -128,14 +127,14 @@ export default defineComponent({
                 const preview = new Image();
                 preview.onload = () => {
                     imgManager?.addPersistentImage(preview);
-                    this.appStore.peaComponentAPI?.redrawCanvas();
+                    vueComponentsAPIHandler.peaComponentAPI?.redrawCanvas();
                 };
                 preview.src = imgDataURL;
-                this.appStore.peaComponentAPI?.redrawCanvas();
+                vueComponentsAPIHandler.peaComponentAPI?.redrawCanvas();
             });
             this.stopPreviewOnHide = () => {
-                this.appStore.peaComponentAPI?.getPersistentImageManager().clear();
-                this.appStore.peaComponentAPI?.redrawCanvas();
+                vueComponentsAPIHandler.peaComponentAPI?.getPersistentImageManager().clear();
+                vueComponentsAPIHandler.peaComponentAPI?.redrawCanvas();
             };
         },
         doPreview() {
@@ -199,7 +198,7 @@ export default defineComponent({
         },
         doDownload() {
             if (this.audioBuffer !== undefined) {
-                this.appStore.peaComponentAPI?.downloadWAV(this.audioBuffer, "strype-sound");
+                vueComponentsAPIHandler.peaComponentAPI?.downloadWAV(this.audioBuffer, "strype-sound");
             }
             else if (this.imgDataURL) {
                 saveAs(this.imgDataURL, `strype-image_${getDateTimeFormatted(new Date(Date.now()))}.png`);
@@ -208,8 +207,6 @@ export default defineComponent({
     },
     
     computed: {
-        ...mapStores(useStore),
-
         doEditImageInDialog() : EditImageInDialogFunction {
             return (this as any).editImageInDialog as EditImageInDialogFunction;
         },

@@ -26,7 +26,7 @@ import { defineComponent, PropType } from "vue";
 import CTree from "@wsfe/ctree";
 import type { TreeNode } from "@wsfe/ctree/types/src/store";
 import { AppEvent } from "@/types/types";
-import { useStore } from "@/store/store";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 export default defineComponent({
     name: "CloudDriveItemPicker",
@@ -120,7 +120,7 @@ export default defineComponent({
             // Trigger or stop the app progress bar.
             const emitPayload: AppEvent = {requestAttention: newValue};
             emitPayload.message = this.$t("appMessage.cloudDriveItemPickerLoadingFolderContent").toString();
-            useStore().appComponentAPI?.applyShowAppProgress(emitPayload);
+            vueComponentsAPIHandler.appComponentAPI?.applyShowAppProgress(emitPayload);
             // And block or release the overlay
             document.dispatchEvent(new CustomEvent(CustomEventTypes.requestAppNotOnTop, {detail: newValue}));
         },        

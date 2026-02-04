@@ -21,6 +21,7 @@ import GoogleDriveFilePicker from "@/components/GoogleDriveFilePicker.vue";
 import { pythonFileExtension, strypeFileExtension } from "@/helpers/common";
 import { AppSPYFullPrefix, eventBus } from "@/main";
 import { getCloudLoginErrorModalDlgId } from "@/helpers/editor";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 //////////////////////
 //     Component    //
@@ -318,7 +319,7 @@ export default defineComponent({
         },
 
         pickFolderForSave(){
-            this.appStore.googleDriveFilePickerComponentAPI?.startPicking(true);
+            vueComponentsAPIHandler.googleDriveFilePickerComponentAPI?.startPicking(true);
         },
 
         loadPickedFileId(id: string, otherParams: {fileName?: string}, onGettingFileMetadataSucces: (fileNameFromDrive: string, fileModifiedDateTime: string)=>void
@@ -345,7 +346,7 @@ export default defineComponent({
         
         openFilePicker(startingFromFolderId: string | undefined): Promise<void> {
             // Launch the file picker for this cloud drive (this would be called after we made sure the connection to OneDrive is (still) valid)
-            this.appStore.googleDriveFilePickerComponentAPI?.startPicking(false, startingFromFolderId);
+            vueComponentsAPIHandler.googleDriveFilePickerComponentAPI?.startPicking(false, startingFromFolderId);
             return Promise.resolve();     
         },
 
@@ -615,7 +616,7 @@ export default defineComponent({
                              
                     if (response && response.error == undefined) {
                         this.oauthToken = response.access_token;
-                        this.appStore.cloudDriveHandlerComponentAPI?.updateSignInStatus(StrypeSyncTarget.gd, true);
+                        vueComponentsAPIHandler.cloudDriveHandlerComponentAPI?.updateSignInStatus(StrypeSyncTarget.gd, true);
                     }
 
                     // In any case, continue the action requested by the user (need to do it in a next tick to make sure the oauthToken is updated in all Vue components)

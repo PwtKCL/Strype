@@ -77,6 +77,7 @@ import { getFocusedEditableSlotTextSelectionStartEnd, getFrameLabelSlotsStructur
 import { mapStores } from "pinia";
 import { getAPIItemTextualDescriptions } from "@/helpers/microbitAPIDiscovery";
 import { cloneDeep } from "lodash";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 export default defineComponent({
     name: "APIDiscovery",
@@ -364,7 +365,7 @@ export default defineComponent({
 
                     //Refactor the slots, we call the refactorisation on the LabelSlotsStructure
                     const stateBeforeChanges = cloneDeep(this.appStore.$state);
-                    this.appStore.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(slotInfos.frameId, slotInfos.labelSlotsIndex)].checkSlotRefactoring(getLabelSlotUID(slotInfos), stateBeforeChanges);
+                    vueComponentsAPIHandler.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(slotInfos.frameId, slotInfos.labelSlotsIndex)].checkSlotRefactoring(getLabelSlotUID(slotInfos), stateBeforeChanges);
                     if(needToSelectArgs){
                         // We have waited slots to be refactorised, we can do the args selection: from the current cursor position to the last of the same level slot
                         setTimeout(() => {

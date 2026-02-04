@@ -12,6 +12,7 @@ import { debounce } from "lodash";
 // #v-endif
 import {toUnicodeEscapes} from "@/parser/parser";
 import {fromUnicodeEscapes} from "@/helpers/pythonToFrames";
+import { vueComponentsAPIHandler } from "./vueComponentAPI";
 
 export const undoMaxSteps = 50;
 export const autoSaveFreqMins = 2; // The number of minutes between each autosave action.
@@ -1056,17 +1057,17 @@ const bodyMouseMoveEventHandlerForFrameDnD = (mouseEvent: MouseEvent): void => {
             const closestCaretEl = document.getElementById(getCaretUID(currentCaretPositionsForDnD[closestCaretPositionIndex].caretPosition as string, currentCaretPositionsForDnD[closestCaretPositionIndex].frameId));
             // First remove the drop indicator of the current drop position (if any)
             if(currentCaretDropPosId.length > 0){
-                useStore().caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].setAreFramesDraggedOver(false);
+                vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].setAreFramesDraggedOver(false);
                 // Not really required but just better to reset things properly
-                useStore().caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].setAreDropFramesAllowed(true);
+                vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].setAreDropFramesAllowed(true);
                 // We make sure that we remove the "drag and d&d" flag on this caret since it's no longer a candidate for dropping the frames at this position...
                 removeDuplicateActionOnFramesDnD();
             }
             currentCaretDropPosId = closestCaretEl?.id??"";
             currentCaretDropPosFrameId = newCaretDropPosFrameId;
             currentCaretDropPosCaretPos = newCaretDropPosCaretPos;
-            useStore().caretContainerComponentAPI?.forInstance[getCaretUID(newCaretDropPosCaretPos, newCaretDropPosFrameId)]?.setAreFramesDraggedOver(true);
-            useStore().caretContainerComponentAPI?.forInstance[getCaretUID(newCaretDropPosCaretPos, newCaretDropPosFrameId)]?.setAreDropFramesAllowed(isFrameDropAllowed(newCaretDropPosFrameId, newCaretDropPosCaretPos));            
+            vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretUID(newCaretDropPosCaretPos, newCaretDropPosFrameId)]?.setAreFramesDraggedOver(true);
+            vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretUID(newCaretDropPosCaretPos, newCaretDropPosFrameId)]?.setAreDropFramesAllowed(isFrameDropAllowed(newCaretDropPosFrameId, newCaretDropPosCaretPos));            
         }
 
         // Update the duplicate status based on whether they are holding ctrl/alt:
@@ -1083,7 +1084,7 @@ const bodyMouseMoveEventHandlerForFrameDnD = (mouseEvent: MouseEvent): void => {
 export function addDuplicateActionOnFramesDnD(): void {
     // Add the "+" symbol
     if(currentCaretDropPosFrameId != 0){
-        useStore().caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].setIsDuplicateDnDAction(true);
+        vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].setIsDuplicateDnDAction(true);
     }
 
     // Do not blur the source frame(s)
@@ -1094,7 +1095,7 @@ export function addDuplicateActionOnFramesDnD(): void {
 export function removeDuplicateActionOnFramesDnD(): void {
     // Remove the "+" symbol on the destination caret
     if(currentCaretDropPosFrameId != 0){
-        useStore().caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].setIsDuplicateDnDAction(false);
+        vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].setIsDuplicateDnDAction(false);
     }
 
     // Restore the blur on the source frame(s) only if we are still dragging 
@@ -1108,7 +1109,7 @@ export function removeDuplicateActionOnFramesDnD(): void {
 // there is no "dragend" being raised by the browser consequently.
 const bodyMouseUpEventHandlerForFrameDnD = (event: MouseEvent): void => {
     if(useStore().isDraggingFrame){
-        const areDropFramesAllowed = useStore().caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].getAreDropFramesAllowed();
+        const areDropFramesAllowed = vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].getAreDropFramesAllowed();
         // Notify the drag even is finished
         notifyDragEnded();
 
@@ -1251,9 +1252,9 @@ export function notifyDragEnded():void {
     (document.getElementsByTagName("body")[0] as HTMLBodyElement).removeEventListener("mouseup", bodyMouseUpEventHandlerForFrameDnD);
     document.getElementsByTagName("body")[0]?.classList.remove(scssVars.draggingFrameClassName);
     if(currentCaretDropPosId.length > 0){
-        useStore().caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].setAreDropFramesAllowed(false);
+        vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].setAreDropFramesAllowed(false);
         // Not really required but just better to reset things properly
-        useStore().caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].setAreDropFramesAllowed(true);
+        vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretUID(currentCaretDropPosCaretPos, currentCaretDropPosFrameId)].setAreDropFramesAllowed(true);
     }
     // Reset flags in the next tick to let UI update properly
     Vue.nextTick(() => {
@@ -1955,7 +1956,7 @@ export function setPythonExecAreaLayoutButtonPos(): void{
         const pythonConsoleTextArea = document.getElementById(getPEAConsoleId());
         const pythonTurtleContainerDiv = document.getElementById(getPEAGraphicsContainerDivId());
         const peaLayoutButtonsContainer = document.getElementsByClassName(scssVars.peaToggleLayoutButtonsContainerClassName)?.[0];
-        const peaComponentAPI = (useStore().peaComponentAPI);
+        const peaComponentAPI = vueComponentsAPIHandler.peaComponentAPI;
         if(pythonConsoleTextArea && pythonTurtleContainerDiv && peaLayoutButtonsContainer && peaComponentAPI){
             // First get the natural position offset of the button, so can compute the new position:
             const peaExpandButtonNaturalPosOffset = parseInt((scssVars.pythonExecutionAreaLayoutButtonsPosOffset as string).replace("px",""));
@@ -2027,7 +2028,7 @@ export function computeAddFrameCommandContainerSize(isExpandedPEA?: boolean): vo
         // When we are done, we need to check again the min size of the commands/PEA splitter pane 1, since scroll bars
         // could have been added with the new change (need to wait for it to be effective though).
         setTimeout(() => {
-            useStore().commandsComponentAPI?.setPEACommandsSplitterPanesMinSize(true);    
+            vueComponentsAPIHandler.commandsComponentAPI?.setPEACommandsSplitterPanesMinSize(true);    
         }, 100);    
     }
 }

@@ -149,6 +149,7 @@ import { eventBus, projectDocumentationFrameId } from "./main";
 import {inflateRaw} from "pako";
 import { Base64 } from "js-base64";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
+import { vueComponentsAPIHandler } from "./helpers/vueComponentAPI";
 
 let autoSaveTimerId = -1;
 let projectSaveFunctionsState : ProjectSaveFunction[] = [];
@@ -366,7 +367,7 @@ export default defineComponent({
         // Expose this component that other components might need
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
-        this.appStore.appComponentAPI = {
+        vueComponentsAPIHandler.appComponentAPI = {
             applyShowAppProgress: this.applyShowAppProgress,
             setStateFromPythonFile: this.setStateFromPythonFile,
             finaliseOpenShareProject: this.finaliseOpenShareProject,
@@ -556,8 +557,8 @@ export default defineComponent({
         document.addEventListener(CustomEventTypes.pythonExecAreaExpandCollapseChanged, (event) => {
             const expandedPEAValue = (event as CustomEvent<boolean>).detail;
             this.isExpandedPythonExecArea = expandedPEAValue;
-            this.appStore.commandsComponentAPI?.setIsExpandedPEA(expandedPEAValue);
-            this.appStore.commandsComponentAPI?.setLogicalORHasPEAExpanded(expandedPEAValue);
+            vueComponentsAPIHandler.commandsComponentAPI?.setIsExpandedPEA(expandedPEAValue);
+            vueComponentsAPIHandler.commandsComponentAPI?.setLogicalORHasPEAExpanded(expandedPEAValue);
             setTimeout(() => {
                 debounceComputeAddFrameCommandContainerSize((event as CustomEvent).detail);
                 if((event as CustomEvent).detail){
@@ -655,12 +656,12 @@ export default defineComponent({
         if(shareProjectId && sharedProjectTarget && isSyncTargetCloudDrive(parseInt(sharedProjectTarget))) {
             const loadCloudSharedProject = () => {
                 const cloudTarget = parseInt(sharedProjectTarget) as StrypeSyncTarget;
-                this.appStore.menuComponentAPI?.setOpenSharedProjectTarget(cloudTarget);
-                this.appStore.menuComponentAPI?.setOpenSharedProjectId(shareProjectId);
+                vueComponentsAPIHandler.menuComponentAPI?.setOpenSharedProjectTarget(cloudTarget);
+                vueComponentsAPIHandler.menuComponentAPI?.setOpenSharedProjectId(shareProjectId);
                 const afterAPILoaded = () => {
                     document.getElementById(getLoadProjectLinkId())?.click();
                 };
-                const cloudDriveHandlerComponentAPI = this.appStore.cloudDriveHandlerComponentAPI;
+                const cloudDriveHandlerComponentAPI = vueComponentsAPIHandler.cloudDriveHandlerComponentAPI;
                 // For Google API, we wait a bit as it must have been loaded first.
                 const specifcDriveComponent = cloudDriveHandlerComponentAPI?.getSpecificCloudDriveComponent(cloudTarget);
                 if(cloudTarget == StrypeSyncTarget.gd){                    
@@ -702,7 +703,7 @@ export default defineComponent({
                     // Google Drive will not expose the file directly, so we can *try* to extract the file ID and then get the data with the API (without authentication).
                     // Extract the file ID and attempt a retrieving of the file with the Google Drive API (it waits a bit for the API to be loaded)
                     const sharedFileID = shareProjectId.substring(googleDrivePublicURLPreamble.length).match(/^([^/]+)\/.*$/)?.[1];
-                    this.appStore.cloudDriveHandlerComponentAPI?.getPublicSharedProjectContent(StrypeSyncTarget.gd, sharedFileID??"");
+                    vueComponentsAPIHandler.cloudDriveHandlerComponentAPI?.getPublicSharedProjectContent(StrypeSyncTarget.gd, sharedFileID??"");
                 
                 }
                 else{
@@ -724,7 +725,7 @@ export default defineComponent({
                                     alertMsgKey = "appMessage.retrievedSharedGenericProject";
                                     alertParams = this.appStore.projectName;
                                     // A generic project is saved in memory, so we must make sure there is no target destination saved.
-                                    this.appStore.menuComponentAPI?.saveTargetChoice(StrypeSyncTarget.none);
+                                    vueComponentsAPIHandler.menuComponentAPI?.saveTargetChoice(StrypeSyncTarget.none);
                                 },
                                 (reason) => {
                                     alertMsgKey = "errorMessage.retrievedSharedGenericProject";
@@ -792,7 +793,7 @@ export default defineComponent({
         // Register a listener for a request to close a caret context menu (used by Frame.vue)
         eventBus.on(CustomEventTypes.requestCaretContextMenuClose, () => {
             // We find the CaretContainer component currently active to properly close the menu using the component close() method.
-            this.appStore.caretContainerComponentAPI?.forInstance[getCaretContainerUID(this.appStore.currentFrame.caretPosition, this.appStore.currentFrame.id)]
+            vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretContainerUID(this.appStore.currentFrame.caretPosition, this.appStore.currentFrame.id)]
                 .closeContextMenu();            
         });
 
@@ -828,7 +829,7 @@ export default defineComponent({
             // However, if we are in a situation of requesting a save to open a new project, AND the project wasn't coming
             // from any source (FS or GD) we need to let the user perform a standard save.
             if(saveReason == SaveRequestReason.loadProject && this.appStore.syncTarget == StrypeSyncTarget.none){
-                this.appStore.menuComponentAPI?.handleSaveMenuClick(undefined, saveReason);
+                vueComponentsAPIHandler.menuComponentAPI?.handleSaveMenuClick(undefined, saveReason);
             }
             else {
                 projectSaveFunctionsState.forEach((psf) => psf.function(saveReason));
@@ -1007,8 +1008,8 @@ export default defineComponent({
                     // about reloading the project from that Cloud Drive again (only if we were not attempting to open a shared project via the URL)
                     if(this.appStore.currentCloudSaveFileId) {
                         // We need to have the specific Cloud Drive component loaded for getting its name and register the generic signin callback, so we do that now...
-                        const cloudHandlerComponentAPI = this.appStore.cloudDriveHandlerComponentAPI;
-                        cloudHandlerComponentAPI?.setGenericSignInCallBack(this.appStore.syncTarget, () => this.appStore.cloudDriveHandlerComponentAPI?.saveFile(this.appStore.syncTarget, SaveRequestReason.reloadBrowser));
+                        const cloudHandlerComponentAPI = vueComponentsAPIHandler.cloudDriveHandlerComponentAPI;
+                        cloudHandlerComponentAPI?.setGenericSignInCallBack(this.appStore.syncTarget, () => vueComponentsAPIHandler.cloudDriveHandlerComponentAPI?.saveFile(this.appStore.syncTarget, SaveRequestReason.reloadBrowser));
                         this.cloudDriveName = cloudHandlerComponentAPI?.getDriveName()??"";
                         const execGetCloudDriveFileFunction = (event: BvTriggerableEvent) => {
                             const dlgId = event.componentId;
@@ -1020,7 +1021,7 @@ export default defineComponent({
                                 }
                                 else{
                                     // We make sure we do not keep a wrong sync target!
-                                    this.appStore.menuComponentAPI?.saveTargetChoice(StrypeSyncTarget.none);                      
+                                    vueComponentsAPIHandler.menuComponentAPI?.saveTargetChoice(StrypeSyncTarget.none);                      
                                 }
                             }
                         };
@@ -1029,7 +1030,7 @@ export default defineComponent({
                     }
                     // When a file has been reloaded and it was previously saved the File System, we want to clear off any references to that file
                     else if(this.appStore.syncTarget == StrypeSyncTarget.fs){
-                        this.appStore.menuComponentAPI?.saveTargetChoice(StrypeSyncTarget.none);
+                        vueComponentsAPIHandler.menuComponentAPI?.saveTargetChoice(StrypeSyncTarget.none);
                     }
                 }, () => {});
             }, () => {});
@@ -1088,7 +1089,7 @@ export default defineComponent({
 
         handleWholeEditorMouseDown(){
             // Force the Strype menu to close in case it was opened
-            this.appStore.menuComponentAPI?.toggleMenuOnOff(null);
+            vueComponentsAPIHandler.menuComponentAPI?.toggleMenuOnOff(null);
         },
 
         handleDocumentSelectionChange(){
@@ -1193,12 +1194,12 @@ export default defineComponent({
                             // the current blue caret otherwise
                             const frameComponentId = (areFramesSelected) ? this.appStore.selectedFrames[0] : this.appStore.currentFrame.id;
                             if(areFramesSelected){
-                                this.appStore.frameComponentAPI?.forInstance[frameComponentId].handleClick(event, menuPosition);
+                                vueComponentsAPIHandler.frameComponentAPI?.forInstance[frameComponentId].handleClick(event, menuPosition);
                             }
                             else{
                                 // When there is no selection, the menu to open is for the current caret, which can either be inside a frame's body or under a frame
                                 const caretContainerComponentId = getCaretContainerIdForFrame(frameComponentId);
-                                this.appStore.caretContainerComponentAPI?.forInstance[caretContainerComponentId].handleClick(event, menuPosition);
+                                vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[caretContainerComponentId].handleClick(event, menuPosition);
                             }
                         });  
                     }
@@ -1502,7 +1503,7 @@ export default defineComponent({
 
             // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
             // When the rightmost panel (with Strype commands) is resized, we need to also update the Turtle canvas and break the natural 4:3 ratio of the PEA
-            this.appStore.commandsComponentAPI?.setIsCommandsSplitterChanged(true);
+            vueComponentsAPIHandler.commandsComponentAPI?.setIsCommandsSplitterChanged(true);
             document.getElementById(getPEATabContentContainerDivId())?.dispatchEvent(new CustomEvent(CustomEventTypes.pythonExecAreaSizeChanged));
             // #v-endif
         },
@@ -1521,7 +1522,7 @@ export default defineComponent({
                     actOnTurtleImport();
 
                     // Clear the Python Execution Area as it could have be run before.
-                    this.appStore.peaComponentAPI?.clear();
+                    vueComponentsAPIHandler.peaComponentAPI?.clear();
                     // #v-endif
                     
                     this.appStore.setDividerStates(
@@ -1533,7 +1534,7 @@ export default defineComponent({
                         () => {
                             // Finally, we can trigger the notifcation a file from FS has been loaded.
                             if(requestFSFileLoadedNotification){
-                                this.appStore.menuComponentAPI?.onFileLoaded(fileName, lastSaveDate, fileLocation);
+                                vueComponentsAPIHandler.menuComponentAPI?.onFileLoaded(fileName, lastSaveDate, fileLocation);
                             }
                             resolve();
                         },
@@ -1549,7 +1550,7 @@ export default defineComponent({
             return (this.$refs[this.strypeCommandsRefId] as any).$refs[getPEAComponentRefId()];
         },
         editImageInDialog(imageDataURL: string, showPreview: (dataURL: string) => void, callback: (replacement: {code: string, mediaType: string}) => void) {
-            const editImageDlgComponentAPI = this.appStore.editImageDlgComponentAPI;
+            const editImageDlgComponentAPI = vueComponentsAPIHandler.editImageDlgComponentAPI;
             this.imgToEditInDialog = imageDataURL;
             this.showImgPreview = showPreview;
 
@@ -1567,7 +1568,7 @@ export default defineComponent({
             eventBus.emit(CustomEventTypes.showStrypeModal, "editImageDlg");
         },
         editSoundInDialog(audioBuffer: AudioBuffer, callback: (replacement: {code: string, mediaType: string}) => void) {
-            const editSoundDlgComponentAPI = this.appStore.editSoundDlgComponentAPI;
+            const editSoundDlgComponentAPI = vueComponentsAPIHandler.editSoundDlgComponentAPI;
             this.soundToEditInDialog = audioBuffer;
 
             const editedSound = (event: BvTriggerableEvent) => {

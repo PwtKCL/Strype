@@ -87,6 +87,7 @@ import scssVars from "@/assets/style/_export.module.scss";
 import {drawSoundOnCanvas} from "@/helpers/media";
 import { isMacOSPlatform } from "@/helpers/common";
 import { eventBus, projectDocumentationFrameId } from "@/main";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 // Default time to keep in cache: 5 minutes.
 const soundPreviewImages = new Cache<LoadedMedia>({ defaultTtl: 5 * 60 * 1000 });
@@ -102,15 +103,15 @@ export default defineComponent({
             handleUpDown: this.handleUpDown,
         };
         
-        if(this.appStore.labelSlotComponentAPI == null){    
-            this.appStore.labelSlotComponentAPI = {
+        if(vueComponentsAPIHandler.labelSlotComponentAPI == null){    
+            vueComponentsAPIHandler.labelSlotComponentAPI = {
                 forInstance: {
                     [this.UID]: apiMethods,
                 },
             };
         }
         else{
-            this.appStore.labelSlotComponentAPI.forInstance[this.UID] = apiMethods;
+            vueComponentsAPIHandler.labelSlotComponentAPI.forInstance[this.UID] = apiMethods;
         }
     },
 
@@ -458,7 +459,7 @@ export default defineComponent({
         // Event callback equivalent to what would happen for a focus event callback 
         // (the spans don't get focus anymore because the containg editable div grab it)
         onGetCaret(event: MouseEvent, fromNaturalClick?: boolean): void {
-            Vue.nextTick(() => this.appStore.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, this.labelSlotsIndex)].updatePrependText());
+            Vue.nextTick(() => vueComponentsAPIHandler.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, this.labelSlotsIndex)].updatePrependText());
 
             // When this method is triggered by a natural click on the text slot, we delay the chain of actions a bit,
             // because the potential blurring of another slot may interfer with with timing and scrolling into view.
@@ -476,7 +477,7 @@ export default defineComponent({
                     if(frameDiv){
                         const frameComponentId = (this.isDisabled) ? outmostDisabledFrameAncestorId: this.frameId;
                         // The frame component can only be a frame (and not a frame container) since we've clicked on a slot...
-                        this.appStore.frameComponentAPI?.forInstance[frameComponentId].changeToggledCaretPosition(event.clientY, frameDiv);
+                        vueComponentsAPIHandler.frameComponentAPI?.forInstance[frameComponentId].changeToggledCaretPosition(event.clientY, frameDiv);
                         // Even if visually and logically in the app the slot doesn't have focus, the browser will see differently
                         // (a click happened on the span...) - to make sure no undesirable effect occur, we set the focus on the frame div
                         (document.getElementById(getFrameUID(frameComponentId)))?.focus();                        
@@ -616,7 +617,7 @@ export default defineComponent({
                     }
                     this.contextAC = "";
                     this.$nextTick(() => {
-                        const acComponentAPIForInstance = this.appStore.autoCompletionComponentAPI?.forInstance[this.AC_UID];
+                        const acComponentAPIForInstance = vueComponentsAPIHandler.autoCompletionComponentAPI?.forInstance[this.AC_UID];
                         if (acComponentAPIForInstance && this.tokenAC != null) {
                             if (this.labelSlotsIndex == 0) {
                                 // If we are in first slot in the import frame, look for modules:
@@ -636,7 +637,7 @@ export default defineComponent({
                     this.tokenAC = resultsAC.tokenAC;
   
                     this.$nextTick(() => {
-                        this.appStore.autoCompletionComponentAPI?.forInstance[this.AC_UID].updateAC(this.frameId, this.tokenAC, this.contextAC);                        
+                        vueComponentsAPIHandler.autoCompletionComponentAPI?.forInstance[this.AC_UID].updateAC(this.frameId, this.tokenAC, this.contextAC);                        
                     });
                 }
             }
@@ -646,7 +647,7 @@ export default defineComponent({
         // Event callback equivalent to what would happen for a blur event callback 
         // (the spans don't get focus anymore because the containg editable div grab it)
         onLoseCaret(keepIgnoreKeyEventFlagOn?: boolean): void {
-            Vue.nextTick(() => this.appStore.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, this.labelSlotsIndex)].updatePrependTextAndCheckErrors());
+            Vue.nextTick(() => vueComponentsAPIHandler.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, this.labelSlotsIndex)].updatePrependTextAndCheckErrors());
             
             // Before anything, we make sure that the current frame still exists,
             // and that our slot still exists.  If we shouldn't exist any more, we should
@@ -1243,7 +1244,7 @@ export default defineComponent({
 
             if (focusSlotCursorInfos && anchorSlotCursorInfos && (!areSlotCoreInfosEqual(focusSlotCursorInfos.slotInfos, anchorSlotCursorInfos.slotInfos) || focusSlotCursorInfos.cursorPos != anchorSlotCursorInfos.cursorPos)) {
                 this.deleteSlots(undefined, (resultingSlotUID, stateBeforeChanges) => {
-                    this.appStore.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, this.labelSlotsIndex)].checkSlotRefactoring(resultingSlotUID, stateBeforeChanges,{doAfterCursorSet: () => {
+                    vueComponentsAPIHandler.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, this.labelSlotsIndex)].checkSlotRefactoring(resultingSlotUID, stateBeforeChanges,{doAfterCursorSet: () => {
                         // The focused slot might no longer be us after the delete, so we must send the paste again to the new focus.
                         const focusSlotCursorInfos = this.appStore.focusSlotCursorInfos;
                         const anchorSlotCursorInfos = this.appStore.anchorSlotCursorInfos;
@@ -1419,7 +1420,7 @@ export default defineComponent({
                         // We don't actually require slot to be regenerated, but we need to mark the action for undo/redo
                         this.$nextTick(() => {
                             this.appStore.bypassEditableSlotBlurErrorCheck = false;
-                            this.appStore.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, this.labelSlotsIndex)].checkSlotRefactoring(this.UID, stateBeforeChanges);
+                            vueComponentsAPIHandler.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, this.labelSlotsIndex)].checkSlotRefactoring(this.UID, stateBeforeChanges);
                         });
                     }
                     else{
@@ -1444,7 +1445,7 @@ export default defineComponent({
                             // In any case, we check if the slots need to be refactorised (next tick required to account for the changed done when deleting brackets/strings)
                             // (in this scenario, we don't emit a "requestSlotsRefactoring" event, because if we delete using backspace, "this" component will actually not exist anymore
                             // and it looks like Vue will pick that up and not fire the listener.)
-                            this.appStore.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, this.labelSlotsIndex)].checkSlotRefactoring(slotUID, stateBeforeChanges);
+                            vueComponentsAPIHandler.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, this.labelSlotsIndex)].checkSlotRefactoring(slotUID, stateBeforeChanges);
                         });
                     }
                 }
@@ -1500,7 +1501,7 @@ export default defineComponent({
                     // In any case, except if we are in a chain of actions, we check if the slots need to be refactorised (next tick required to account for the changed done when deleting brackets/strings)
                     // As we deleted some slots, we need to call the refactoring on the resulting focused slot:
                     if(chainedActionFunction == undefined) {
-                        this.$nextTick(() => this.appStore.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, this.labelSlotsIndex)].checkSlotRefactoring(resultingSlotUID, stateBeforeChanges));
+                        this.$nextTick(() => vueComponentsAPIHandler.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, this.labelSlotsIndex)].checkSlotRefactoring(resultingSlotUID, stateBeforeChanges));
                     }
                     else{
                         // we continue doing the chained action if a function has been specified
@@ -1700,7 +1701,7 @@ export default defineComponent({
         },
         showMediaPreviewPopup(event : MouseEvent) {
             if (!this.isPythonExecuting && !this.isDisabled) {
-                useStore().mediaPreviewPopupComponentAPI?.showPopup(event, this.mediaPreview, (repl : { code: string, mediaType : string }) => {
+                vueComponentsAPIHandler.mediaPreviewPopupComponentAPI?.showPopup(event, this.mediaPreview, (repl : { code: string, mediaType : string }) => {
                     this.appStore.setFrameEditableSlotContent(
                         {
                             ...this.coreSlotInfo,
@@ -1714,7 +1715,7 @@ export default defineComponent({
             }
         },
         startHideMediaPreviewPopup() {
-            this.appStore.mediaPreviewPopupComponentAPI?.startHidePopup();
+            vueComponentsAPIHandler.mediaPreviewPopupComponentAPI?.startHidePopup();
         },
     },
     watch: {

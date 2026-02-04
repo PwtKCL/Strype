@@ -55,6 +55,7 @@ import { getFrameLabelSlotsStructureUID, getLabelSlotUID } from "@/helpers/edito
 import { preparePasteMediaData } from "@/helpers/media";
 import { getParentOrJointParent } from "@/helpers/storeMethods";
 import { eventBus } from "@/main";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 // #v-endif
 
 //////////////////////
@@ -92,15 +93,15 @@ export default defineComponent({
             doPaste: this.doPaste,
         };
         
-        if(this.appStore.caretContainerComponentAPI == null){    
-            this.appStore.caretContainerComponentAPI = {
+        if(vueComponentsAPIHandler.caretContainerComponentAPI == null){    
+            vueComponentsAPIHandler.caretContainerComponentAPI = {
                 forInstance: {
                     [this.UID]: apiMethods,
                 },
             };
         }
         else{
-            this.appStore.caretContainerComponentAPI.forInstance[this.UID] = apiMethods;
+            vueComponentsAPIHandler.caretContainerComponentAPI.forInstance[this.UID] = apiMethods;
         }
     },
 
@@ -286,7 +287,7 @@ export default defineComponent({
                                     // Refactor the slots, we call the refactorisation on the LabelSlotsStructure   
                                     // Since that's our last action, we can revert the flag to allow the registration of the state for undo/redo
                                     this.appStore.ignoreStateSavingActionsForUndoRedo = false;                                   
-                                    this.appStore.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(frameId, 0)]
+                                    vueComponentsAPIHandler.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(frameId, 0)]
                                         .checkSlotRefactoring(getLabelSlotUID({frameId: frameId, labelSlotsIndex: 0, slotId: "0", slotType: SlotType.code}), stateBeforeChanges, {doAfterCursorSet: () => {
                                             this.appStore.leftRightKey({key: "ArrowRight"}).then(() => this.appStore.leftRightKey({key: "ArrowRight"}));
                                         }});                                        

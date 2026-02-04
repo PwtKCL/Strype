@@ -13,11 +13,10 @@ import { getAPIItemTextualDescriptions } from "@/helpers/microbitAPIDiscovery";
 import {cloneDeep, isEqual} from "lodash";
 import { TPyParser } from "tigerpython-parser";
 import emptyState from "@/store/initial-states/empty-state";
-import { AppComponentAPI, AutoCompletionComponentAPI, CaretContainerComponentAPI, CloudDriveHandlerComponentAPI, CommandsComponentAPI, FrameComponentAPI, FrameHeaderComponentAPI, GoogleDriveFilePickerComponentAPI, LabelSlotComponentAPI, LabelSlotsStructureComponentAPI, MenuComponentAPI, OpenDemoDlgComponentAPI } from "@/types/vue-component-api-types";
 // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
 import { actOnTurtleImport } from "@/helpers/editor";
-import { PEAComponentAPI, MediaPreviewPopupComponentAPI, EditImageDlgComponentAPI, EditSoundDlgComponentAPI } from "@/types/vue-component-api-types";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 // #v-endif
 
@@ -73,52 +72,7 @@ export const useStore = defineStore("app", {
 
             defsContainerId: -2,
 
-            /** END of flags that need checking when a build is done **/
-
-            /** Application-wide exposed Vue Components methods and accessors to data/computer props ( --> "API")
-             * Done here because some of those Components are ALSO used in the store and in helpers scripts,
-             * and it is just easier to have one same mechanism across the application than 2 ways 
-             * (the other way is using provide/inject, which would be suitable only for Components calls).
-             * 
-             * Externalising the components as APIs is because Vue 3 doesn't expose $children anymore.
-             * 
-             * The components MUST set their API content when they are created.
-             */
-            appComponentAPI: null as null | AppComponentAPI,
-
-            commandsComponentAPI: null as null | CommandsComponentAPI,
-
-            menuComponentAPI: null as null | MenuComponentAPI,
-
-            cloudDriveHandlerComponentAPI: null as null | CloudDriveHandlerComponentAPI,
-            
-            caretContainerComponentAPI: null as null | CaretContainerComponentAPI,
-
-            openDemoDlgComponentAPI: null as null | OpenDemoDlgComponentAPI,
-
-            labelSlotsStructureComponentAPI: null as null | LabelSlotsStructureComponentAPI,
-
-            labelSlotComponentAPI: null as null | LabelSlotComponentAPI,
-
-            googleDriveFilePickerComponentAPI: null as null | GoogleDriveFilePickerComponentAPI,
-
-            frameComponentAPI: null as null | FrameComponentAPI,
-
-            frameHeaderComponentAPI: null as null | FrameHeaderComponentAPI,
-
-            autoCompletionComponentAPI: null as null | AutoCompletionComponentAPI,
-
-            // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
-            peaComponentAPI: null as null | PEAComponentAPI,
-
-            mediaPreviewPopupComponentAPI:null as null | MediaPreviewPopupComponentAPI,
-
-            editImageDlgComponentAPI: null as null | EditImageDlgComponentAPI,
-
-            editSoundDlgComponentAPI: null as null | EditSoundDlgComponentAPI,
-            // #v-endif
-
-            /** END of the Vue components API part */
+            /** END of flags that need checking when a build is done **/           
 
             currentFrame: { id: -3, caretPosition: CaretPosition.body } as CurrentFrame,
 
@@ -2718,7 +2672,7 @@ export const useStore = defineStore("app", {
                     // If this splitter was changed, the PEA needs to be resized once the splitter has updated
                     setTimeout(() => {
                         if (this.editorCommandsSplitterPane2Size != undefined && this.editorCommandsSplitterPane2Size[newPEALayout ?? StrypePEALayoutMode.tabsCollapsed] != undefined) {
-                            this.appComponentAPI?.onStrypeCommandsSplitPaneResize({1: {size: this.editorCommandsSplitterPane2Size[newPEALayout ?? StrypePEALayoutMode.tabsCollapsed]}}, newPEALayout);
+                            vueComponentsAPIHandler.appComponentAPI?.onStrypeCommandsSplitPaneResize({1: {size: this.editorCommandsSplitterPane2Size[newPEALayout ?? StrypePEALayoutMode.tabsCollapsed]}}, newPEALayout);
                         }
                     }, chainedTimeOuts);
                 }
@@ -2726,7 +2680,7 @@ export const useStore = defineStore("app", {
                     setTimeout(() => {
                         this.peaLayoutMode = newPEALayout;
                         // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
-                        this.peaComponentAPI?.togglePEALayout(newPEALayout);
+                        vueComponentsAPIHandler.peaComponentAPI?.togglePEALayout(newPEALayout);
                         // #v-endif
                     }, chainedTimeOuts += 200);
                 }
@@ -2737,7 +2691,7 @@ export const useStore = defineStore("app", {
                     if (forceSetUndefined || (newPEACommandsSplitterPane2Size && newPEACommandsSplitterPane2Size[newPEALayout] != undefined)) {
                         setTimeout(() => {
                             if (this.peaCommandsSplitterPane2Size && this.peaCommandsSplitterPane2Size[newPEALayout] != undefined) {
-                                this.commandsComponentAPI?.onCommandsSplitterResize({1: {size: this.peaCommandsSplitterPane2Size[newPEALayout]}});
+                                vueComponentsAPIHandler.commandsComponentAPI?.onCommandsSplitterResize({1: {size: this.peaCommandsSplitterPane2Size[newPEALayout]}});
                             }
                         }, (chainedTimeOuts += 200));
                     }
@@ -2754,7 +2708,7 @@ export const useStore = defineStore("app", {
                     if (forceSetUndefined || (newPEAExpandedSplitterPane2Size != undefined && newPEAExpandedSplitterPane2Size[newPEALayout] != undefined)) {
                         setTimeout(() => {
                             if (this.peaExpandedSplitterPane2Size != undefined && this.peaExpandedSplitterPane2Size[newPEALayout] != undefined) {
-                                this.appComponentAPI?.onExpandedPythonExecAreaSplitPaneResize({1: {size: this.peaExpandedSplitterPane2Size[newPEALayout]}});
+                                vueComponentsAPIHandler.appComponentAPI?.onExpandedPythonExecAreaSplitPaneResize({1: {size: this.peaExpandedSplitterPane2Size[newPEALayout]}});
                             }
                         }, (chainedTimeOuts += 200));
                     }
@@ -2774,7 +2728,7 @@ export const useStore = defineStore("app", {
                 actOnTurtleImport();
 
                 // Clear the Python Execution Area as it could have be run before.
-                this.peaComponentAPI?.clear(); 
+                vueComponentsAPIHandler.peaComponentAPI?.clear(); 
                 
                 // With the PEA, the styling of the overall UI layout is quite complex as some things depend on the "natural"
                 // default state of the layout, and we handle some styling manually. To make things clearer, we always reset 
@@ -2795,7 +2749,7 @@ export const useStore = defineStore("app", {
                 const newPEASplitViewSplitterPane1Size = newState.peaSplitViewSplitterPane1Size;
                 delete newState.peaSplitViewSplitterPane1Size;  
 
-                this.commandsComponentAPI?.resetPEACommmandsSplitterDefaultState().then(() => {
+                vueComponentsAPIHandler.commandsComponentAPI?.resetPEACommmandsSplitterDefaultState().then(() => {
                     this.updateState(JSON.parse(JSON.stringify(newState)));
                     // Wait a bit after we have reset everything for the UI to get ready, then affect backed up changes
                     this.setDividerStates(newEditorCommandsSplitterPane2Size, newPEALayout ?? StrypePEALayoutMode.tabsCollapsed, newPEACommandsSplitterPane2Size, newPEASplitViewSplitterPane1Size, newPEAExpandedSplitterPane2Size, resolve, true);

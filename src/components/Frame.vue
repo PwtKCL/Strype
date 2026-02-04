@@ -108,6 +108,7 @@ import { saveAs } from "file-saver";
 import scssVars from "@/assets/style/_export.module.scss";
 import {getDateTimeFormatted, isMacOSPlatform, removeIf} from "@/helpers/common";
 import { eventBus } from "@/main";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 //////////////////////
 //     Component    //
@@ -124,15 +125,15 @@ export default defineComponent({
             handleClick: this.handleClick,
         };
         
-        if(this.appStore.frameComponentAPI == null){    
-            this.appStore.frameComponentAPI = {
+        if(vueComponentsAPIHandler.frameComponentAPI == null){    
+            vueComponentsAPIHandler.frameComponentAPI = {
                 forInstance: {
                     [this.frameId]: apiMethods,
                 },
             };
         }
         else{
-            this.appStore.frameComponentAPI.forInstance[this.frameId] = apiMethods;
+            vueComponentsAPIHandler.frameComponentAPI.forInstance[this.frameId] = apiMethods;
         }
     },
 
@@ -409,9 +410,9 @@ export default defineComponent({
         // ONLY if the frame is really removed from the state (because for a very strange reason, when reloading
         // a page and overwriting the frames with a state, the initial state's frame are destroyed after registered).
         if(this.appStore.frameObjects[this.frameId] == undefined){
-            delete this.appStore.caretContainerComponentAPI?.forInstance[getCaretUID(this.caretPosition.below, this.frameId)];
-            delete this.appStore.frameComponentAPI?.forInstance[this.frameId];
-            delete this.appStore.frameHeaderComponentAPI?.forInstance[this.frameId];
+            delete vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretUID(this.caretPosition.below, this.frameId)];
+            delete vueComponentsAPIHandler.frameComponentAPI?.forInstance[this.frameId];
+            delete vueComponentsAPIHandler.frameHeaderComponentAPI?.forInstance[this.frameId];
         }
     },
 
@@ -924,7 +925,7 @@ export default defineComponent({
                 // However, since no actual slot is clicked, the change from "self" to "self," isn't triggered.
                 // We can retrieve the LabelSlotsStructure component because its ref is in the root object, and 
                 // call updatePrependText() which will now notice the right context and do its work.
-                this.appStore.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, 1)]
+                vueComponentsAPIHandler.labelSlotsStructureComponentAPI?.forInstance[getFrameLabelSlotsStructureUID(this.frameId, 1)]
                     .updatePrependText();                
                 return;
             }

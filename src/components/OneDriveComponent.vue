@@ -38,6 +38,7 @@ import ModalDlg from "@/components/ModalDlg.vue";
 import { CustomEventTypes } from "@/helpers/editor";
 import { eventBus } from "@/main";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 //////////////////////
 //     Component    //
@@ -235,7 +236,7 @@ export default defineComponent({
                     }
                 }
             
-                this.appStore.cloudDriveHandlerComponentAPI?.updateSignInStatus(StrypeSyncTarget.od, true);
+                vueComponentsAPIHandler.cloudDriveHandlerComponentAPI?.updateSignInStatus(StrypeSyncTarget.od, true);
                 callback(StrypeSyncTarget.od);
             }
         },   

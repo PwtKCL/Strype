@@ -76,6 +76,7 @@ import { saveAs } from "file-saver";
 import {bufferToBase64} from "@/helpers/media";
 import turtleImgURL from "@/assets/images/turtle.png" ;
 import { eventBus } from "@/main";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 // Helper to keep indexed tabs (for maintenance if we add some tabs etc)
 const enum PEATabIndexes {graphics, console}
@@ -129,7 +130,7 @@ export default defineComponent({
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
-        this.appStore.peaComponentAPI = {
+        vueComponentsAPIHandler.peaComponentAPI = {
             togglePEALayout: this.togglePEALayout,
             clear: this.clear,
             getIsConsoleAreaShowing: () => this.isConsoleAreaShowing,
@@ -430,7 +431,7 @@ export default defineComponent({
     methods: {
         handlePEAMouseDown() {
             // Force the Strype menu to close in case it was opened
-            (this.appStore.menuComponentAPI)?.toggleMenuOnOff(null);
+            (vueComponentsAPIHandler.menuComponentAPI)?.toggleMenuOnOff(null);
         },
 
         onSplitterPane1Resize(event: any) {
@@ -676,7 +677,7 @@ export default defineComponent({
                 // the right position of the divider between the commands and the PEA (in collapsed layouts)
                 if((layoutMode == StrypePEALayoutMode.tabsCollapsed || layoutMode == StrypePEALayoutMode.splitCollapsed)
                     && this.appStore.peaCommandsSplitterPane2Size && this.appStore.peaCommandsSplitterPane2Size[layoutMode] != undefined){
-                    this.appStore.commandsComponentAPI?.setCommandsSplitterPane2Size(this.appStore.peaCommandsSplitterPane2Size[layoutMode] as number);
+                    vueComponentsAPIHandler.commandsComponentAPI?.setCommandsSplitterPane2Size(this.appStore.peaCommandsSplitterPane2Size[layoutMode] as number);
                 }
 
                 // If we are switching to the split view (or between split views) and graphics exists, it can add scrolling bars which then mess up the rendering.
@@ -742,8 +743,8 @@ export default defineComponent({
                 const errors = getEditorCodeErrorsHTMLElements();
                 if(errors && errors.length > 0){
                     // The Strype Menu handles already navigation of errors, so we use it to navigate to the first error...
-                    this.appStore.menuComponentAPI?.setCurrentErrorNavIndex(-1); 
-                    (this.appStore.menuComponentAPI)?.goToError(null, true);
+                    vueComponentsAPIHandler.menuComponentAPI?.setCurrentErrorNavIndex(-1); 
+                    vueComponentsAPIHandler.menuComponentAPI?.goToError(null, true);
                 }
             }, 200);
         },

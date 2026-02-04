@@ -32,6 +32,7 @@ import OneDriveComponent from "@/components/OneDriveComponent.vue";
 import { generateSPYFileContent } from "@/helpers/load-save";
 import { AppSPYFullPrefix, eventBus } from "@/main";
 import { AppComponentAPI } from "@/types/vue-component-api-types";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 // This enum is used for flaging the action taken when a request to save a file on a Cloud Drive
 // has been done, and a file of the same name already exists on the Drive
@@ -55,7 +56,7 @@ export default defineComponent({
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
-        this.appStore.cloudDriveHandlerComponentAPI =  {
+        vueComponentsAPIHandler.cloudDriveHandlerComponentAPI =  {
             getDriveName: this.getDriveName,
             getSpecificCloudDriveComponent: this.getSpecificCloudDriveComponent,
             getCloudAPIStatusWhenLoadedOrFailed: this.getCloudAPIStatusWhenLoadedOrFailed,
@@ -319,7 +320,7 @@ export default defineComponent({
                                     // We need to check if we're loading the new SPY format or the old one.
                                     const isSpyNewFormat = decodedURIFileContent.startsWith(AppSPYFullPrefix);
                                     const loadFn = (isSpyNewFormat) 
-                                        ? (this.appStore.appComponentAPI as AppComponentAPI).setStateFromPythonFile(decodedURIFileContent, projectName, -1, false)
+                                        ? (vueComponentsAPIHandler.appComponentAPI as AppComponentAPI).setStateFromPythonFile(decodedURIFileContent, projectName, -1, false)
                                         : this.appStore.setStateFromJSONStr({stateJSONStr: decodedURIFileContent, showMessage: false });                            
                                     return loadFn
                                         .then(() => {
@@ -346,11 +347,11 @@ export default defineComponent({
                             })
                             .finally(() => {
                                 // Show a message to the user that the project has (/not) been loaded
-                                this.appStore.appComponentAPI?.finaliseOpenShareProject({key: alertMsgKey, param: alertParams});
+                                vueComponentsAPIHandler.appComponentAPI?.finaliseOpenShareProject({key: alertMsgKey, param: alertParams});
                             });
                     }
                     else{
-                        this.appStore.appComponentAPI?.finaliseOpenShareProject({key: "errorMessage.retrievedSharedGenericProject", param: this.$t("errorMessage.cloudAPIFailed", {apiname: cloudDriveComponent.driveAPIName}) as string});
+                        vueComponentsAPIHandler.appComponentAPI?.finaliseOpenShareProject({key: "errorMessage.retrievedSharedGenericProject", param: this.$t("errorMessage.cloudAPIFailed", {apiname: cloudDriveComponent.driveAPIName}) as string});
                     }
                 });
         },
@@ -405,7 +406,7 @@ export default defineComponent({
                     // and the folder is "Strype". In the case we know the user didn't explictly request to save a given location so we target "Strype".
                     let isStrypeForNewCloudDriveTargetSave = saveReason == SaveRequestReason.saveProjectAtLocation 
                         && this.isSwappingCloudDriveTarget(cloudTarget)
-                        && (this.appStore.menuComponentAPI?.getCurrentDriveLocation() == "Strype");
+                        && (vueComponentsAPIHandler.menuComponentAPI?.getCurrentDriveLocation() == "Strype");
                     const updateStrypeProjectLocation =  isStrypeForNewCloudDriveTargetSave || (typeof this.appStore.strypeProjectLocation != "string") || this.appStore.syncTarget == StrypeSyncTarget.none;
                     const createStrypeFolder = updateStrypeProjectLocation || !(this.appStore.strypeProjectLocation);
                     cloudDriveComponent?.checkDriveStrypeOrOtherFolder(createStrypeFolder, createStrypeFolder, (strypeFolderId: string | null) => {
@@ -501,18 +502,18 @@ export default defineComponent({
                 this.appStore.syncTarget = cloudTarget;
                 this.appStore.isEditorContentModified = false;
                 // Reset the "Save As" flag of the Menu
-                this.appStore.menuComponentAPI?.setRequestSaveAs(false);
+                vueComponentsAPIHandler.menuComponentAPI?.setRequestSaveAs(false);
                 // Set the project name when we have made an explicit saving
                 if(isExplictSave || this.saveReason == SaveRequestReason.overwriteExistingProject){
                     this.appStore.projectName = this.saveFileName;
                     // We also make sure the target is clearly set in the menu: since we have several cloud drives,
                     // it is not possible that a sync target changes between open and save or between saves.
-                    this.appStore.menuComponentAPI?.saveTargetChoice(cloudTarget);
+                    vueComponentsAPIHandler.menuComponentAPI?.saveTargetChoice(cloudTarget);
                 }               
                 // The saving date is updated in any cases
                 this.appStore.projectLastSaveDate = Date.now();     
                 // Notify the application that if we were saving for loading now we are done
-                if(this.saveReason == SaveRequestReason.loadProject || this.appStore.menuComponentAPI?.getRequestOpenProjectLater()) {
+                if(this.saveReason == SaveRequestReason.loadProject || vueComponentsAPIHandler.menuComponentAPI?.getRequestOpenProjectLater()) {
                     eventBus.emit(CustomEventTypes.saveStrypeProjectDoneForLoad);
                 }                
             }, (errRespStatus: number) => {
@@ -529,7 +530,7 @@ export default defineComponent({
                     eventBus.emit("bv::show::modal", getAppSimpleMsgDlgId());
                     this.updateSignInStatus(cloudTarget,false);
                     // Reset the "Save As" flag of the Menu
-                    this.appStore.menuComponentAPI?.setRequestSaveAs(false);
+                    vueComponentsAPIHandler.menuComponentAPI?.setRequestSaveAs(false);
                     // When we tried to save a project upon request by the user when the a project was reloaded in the brower, failure to connect clears off the Drive information
                     if(this.saveReason == SaveRequestReason.reloadBrowser){
                         this.appStore.currentCloudSaveFileId = undefined;
@@ -583,14 +584,14 @@ export default defineComponent({
                 const isSpyNewFormat = (otherParams.fileName?.endsWith(`.${strypeFileExtension}`)??false) && fileContent.startsWith(AppSPYFullPrefix);
                 if(isPurePython){
                     // The loading mechanisms for a Python file differs from a Strype file AND it doens't maintain a "link" to Google Drive.
-                    this.appStore.appComponentAPI?.setStateFromPythonFile(fileContent, otherParams.fileName as string, lastSaveDate, false).then(() => {
+                    vueComponentsAPIHandler.appComponentAPI?.setStateFromPythonFile(fileContent, otherParams.fileName as string, lastSaveDate, false).then(() => {
                         this.saveFileId = undefined;
                         this.updateSignInStatus(cloudTarget, false);
                         this.appStore.strypeProjectLocation = undefined;
                         this.appStore.strypeProjectLocationAlias = "";
                         this.appStore.strypeProjectLocationPath = "";
                         this.appStore.projectLastSaveDate = lastSaveDate;
-                        this.appStore.menuComponentAPI?.saveTargetChoice(StrypeSyncTarget.none);
+                        vueComponentsAPIHandler.menuComponentAPI?.saveTargetChoice(StrypeSyncTarget.none);
                         // Give focus to the current (focusable) frame element so interaction can happen
                         document.getElementById(getFrameUID(this.appStore.currentFrame.id))?.focus();                        
                         // At the very end, emit event for notifying the attempt to open a shared project is finished in case that Python file was shared
@@ -606,7 +607,7 @@ export default defineComponent({
                     // Load the file content in the editor
                     const isOpenedSharedProject = (this.openSharedProjectFileId.length > 0);
                     const fileLoadFn = (isSpyNewFormat) 
-                        ? (this.appStore.appComponentAPI as AppComponentAPI).setStateFromPythonFile(fileContent, otherParams.fileName as string, lastSaveDate, false)
+                        ? (vueComponentsAPIHandler.appComponentAPI as AppComponentAPI).setStateFromPythonFile(fileContent, otherParams.fileName as string, lastSaveDate, false)
                         : this.appStore.setStateFromJSONStr({stateJSONStr: fileContent, showMessage: !isOpenedSharedProject});
                     fileLoadFn.then(() => {
                         // Give focus to the current (focusable) frame element so interaction can happen
@@ -631,7 +632,7 @@ export default defineComponent({
                         
                         // And finally register the correct target flags via the Menu 
                         // (it is necessary when switching from FS to a Drive to also update the Menu flags, which will update the state too)
-                        this.appStore.menuComponentAPI?.saveTargetChoice((isOpenedSharedProject) ? StrypeSyncTarget.none : cloudTarget);
+                        vueComponentsAPIHandler.menuComponentAPI?.saveTargetChoice((isOpenedSharedProject) ? StrypeSyncTarget.none : cloudTarget);
 
                         // We check that the file has write access and isn't locked (in the Drive). 
                         // We use that also (regardless the access rights) to make accessed shared project READONLY.
@@ -640,7 +641,7 @@ export default defineComponent({
                                 this.saveFileId = undefined;
                                 this.updateSignInStatus(cloudTarget, false);
                                 if(isOpenedSharedProject){
-                                    this.appStore.appComponentAPI?.finaliseOpenShareProject({key: "appMessage.retrievedSharedGenericProject", param: fileNameNoExt});
+                                    vueComponentsAPIHandler.appComponentAPI?.finaliseOpenShareProject({key: "appMessage.retrievedSharedGenericProject", param: fileNameNoExt});
                                 }
                                 else{
                                     this.appStore.simpleModalDlgMsg = this.$t("errorMessage.driveFileReadOnly", {drivename: cloudDriveComponent.driveName}) as string;
@@ -655,7 +656,7 @@ export default defineComponent({
                         // When loading a file didn't work, we only need to handle the situation of opening a shared file 
                         // (because the error message would have been shown before for normal opening from the Drive picker)
                         if(this.openSharedProjectFileId.length > 0){
-                            this.appStore.appComponentAPI?.finaliseOpenShareProject({key: "errorMessage.retrievedSharedGenericProject", param: reason});
+                            vueComponentsAPIHandler.appComponentAPI?.finaliseOpenShareProject({key: "errorMessage.retrievedSharedGenericProject", param: reason});
                         }
                     }); 
                 }
@@ -681,7 +682,7 @@ export default defineComponent({
 
         onFolderToSavePickCancelled(){
             // Reset the "Save As" flag of the Menu
-            this.appStore.menuComponentAPI?.setRequestSaveAs(false);
+            vueComponentsAPIHandler.menuComponentAPI?.setRequestSaveAs(false);
         },
 
         onUnsupportedByStrypeFilePicked(){
@@ -729,7 +730,7 @@ export default defineComponent({
             }
             else{
                 // If user chose "cancel": we only reset the "Save As" flag of the Menu
-                this.appStore.menuComponentAPI?.setRequestSaveAs(false);
+                vueComponentsAPIHandler.menuComponentAPI?.setRequestSaveAs(false);
             }
         },
 

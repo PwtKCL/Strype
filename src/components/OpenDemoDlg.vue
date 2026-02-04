@@ -59,7 +59,7 @@ import {Demo, DemoGroup, getBuiltinDemos, getThirdPartyLibraryDemos} from "@/hel
 import Parser from "@/parser/parser";
 import {AppSPYPrefix, eventBus} from "@/main";
 import {escapeRegExp} from "lodash";
-import {useStore} from "@/store/store";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 export default defineComponent({
     components: {ModalDlg},
@@ -72,7 +72,7 @@ export default defineComponent({
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
-        useStore().openDemoDlgComponentAPI = {
+        vueComponentsAPIHandler.openDemoDlgComponentAPI = {
             getSelectedDemo: this.getSelectedDemo,
             updateAvailableDemos: this.updateAvailableDemos,
             shown: this.shown,
@@ -169,7 +169,7 @@ export default defineComponent({
             // selectedDemoItemIndex is already set to the right value.
             // We first close the dialog, than simulate a "close with action" in the Menu (since we can't close with "OK" status.)
             eventBus.emit("bv::hide::modal", this.dlgId);
-            useStore().menuComponentAPI?.onStrypeMenuHideModalDlg({trigger: "ok"} as BvModalEvent, this.dlgId);
+            vueComponentsAPIHandler.menuComponentAPI?.onStrypeMenuHideModalDlg({trigger: "ok"} as BvModalEvent, this.dlgId);
         },
 
         addSpecifiedLibrary() {
