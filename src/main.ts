@@ -2,9 +2,9 @@ import { createApp, h} from "vue";
 import App from "@/App.vue";
 import  {createPinia } from "pinia";
 import i18n from "@/i18n";
-//import { BootstrapVue } from "bootstrap-vue";
+import { createBootstrap } from "bootstrap-vue-next";
 import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
+import "bootstrap-vue-next/dist/bootstrap-vue-next.css";
 import mitt from "mitt";
 //import vBlur from "v-blur";
 import { StrypePlatform } from "./types/types";
@@ -94,6 +94,9 @@ const app = createApp({
 
 // Localisation package
 app.use(i18n);
+
+// Bootstrap
+app.use(createBootstrap());
 
 // Store package (Pinia is the default store management library for Vue 3)
 app.use(createPinia());

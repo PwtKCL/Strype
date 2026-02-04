@@ -11,14 +11,13 @@ import { DAPWrapper } from "@/helpers/partial-flashing";
 import LZString from "lz-string";
 import { getAPIItemTextualDescriptions } from "@/helpers/microbitAPIDiscovery";
 import {cloneDeep, isEqual} from "lodash";
-import $ from "jquery";
-import { BvModalEvent } from "bootstrap-vue";
 import { TPyParser } from "tigerpython-parser";
 import emptyState from "@/store/initial-states/empty-state";
 import { AppComponentAPI, AutoCompletionComponentAPI, CaretContainerComponentAPI, CloudDriveHandlerComponentAPI, CommandsComponentAPI, FrameComponentAPI, FrameHeaderComponentAPI, GoogleDriveFilePickerComponentAPI, LabelSlotComponentAPI, LabelSlotsStructureComponentAPI, MenuComponentAPI, OpenDemoDlgComponentAPI } from "@/types/vue-component-api-types";
 // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
 import { actOnTurtleImport } from "@/helpers/editor";
 import { PEAComponentAPI, MediaPreviewPopupComponentAPI, EditImageDlgComponentAPI, EditSoundDlgComponentAPI } from "@/types/vue-component-api-types";
+import { BvTriggerableEvent } from "bootstrap-vue-next";
 
 // #v-endif
 
@@ -2617,8 +2616,8 @@ export const useStore = defineStore("app", {
                             if(!isVersionCorrect) {
                                 // If the version isn't correct, we ask confirmation to the user before continuing 
                                 // for ease of coding, we register a "one time" event listener on the modal
-                                const execSetStateFunction = (event: BvModalEvent, dlgId: string) => {
-                                    if((event.trigger == "ok" || event.trigger=="event") && dlgId == getImportDiffVersionModalDlgId()){
+                                const execSetStateFunction = (event: BvTriggerableEvent) => {
+                                    if((event.trigger == "ok" || event.trigger=="event") && event.componentId == getImportDiffVersionModalDlgId()){
                                         this.doSetStateFromJSONStr(newStateStr).then(() => {
                                             eventBus.off("bv::modal::hide", execSetStateFunction as any); 
                                             resolve();          

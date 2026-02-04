@@ -234,7 +234,6 @@ import { downloadHex, downloadPython } from "@/helpers/download";
 import { canBrowserOpenFilePicker, canBrowserSaveFilePicker, openFile, saveFile } from "@/helpers/filePicker";
 import { generateSPYFileContent } from "@/helpers/load-save";
 import ModalDlg from "@/components/ModalDlg.vue";
-import { BvModalEvent } from "bootstrap-vue";
 import { cloneDeep } from "lodash";
 import appPackageJson from "@/../package.json";
 import { getAboveFrameCaretPosition, getFrameSectionIdFromFrameId } from "@/helpers/storeMethods";
@@ -249,6 +248,7 @@ import disabledRedoImgPath from "@/assets/images/disabledRedo.svg";
 import undoImgPath from "@/assets/images/undo.svg";
 import redoImgPath from "@/assets/images/redo.svg";
 import { useI18n } from "vue-i18n";
+import { BvTriggerableEvent } from "bootstrap-vue-next";
 
 //////////////////////
 //     Component    //
@@ -786,7 +786,7 @@ export default defineComponent({
                 // There is no intermediate steps when the target is selected for opening a project
                 // (we first close the target selector modal, then validate)
                 eventBus.emit("bv::hide::modal", this.loadProjectModalDlgId);
-                this.onStrypeMenuHideModalDlg({trigger: "ok"} as BvModalEvent, this.loadProjectModalDlgId);
+                this.onStrypeMenuHideModalDlg({trigger: "ok", componentId: this.loadProjectModalDlgId} as BvTriggerableEvent);
             }
         },
 
@@ -828,7 +828,7 @@ export default defineComponent({
         saveCurrentProject(saveReason?: SaveRequestReason){
             // This method is called when sync is activated, and bypass the "save as" dialog we show to change the project name/location.
             // (note that the @click event in the template already checks if we are synced)
-            this.onStrypeMenuHideModalDlg({trigger: "ok"} as BvModalEvent, this.saveProjectModalDlgId, this.appStore.projectName, saveReason);
+            this.onStrypeMenuHideModalDlg({trigger: "ok", componentId: this.saveProjectModalDlgId} as BvTriggerableEvent, this.appStore.projectName, saveReason);
             this.showMenu = false;
         },
 
@@ -847,7 +847,7 @@ export default defineComponent({
             navigator.clipboard.writeText(`${window.location}?${sharedStrypeProjectIdKey}=spy:${this.shareContentZippedBase64}`);
 
             eventBus.emit("bv::hide::modal", this.shareProjectChooseMethodDlgId);
-            this.onStrypeMenuHideModalDlg({trigger: "ok"} as BvModalEvent, this.shareProjectChooseMethodDlgId);
+            this.onStrypeMenuHideModalDlg({trigger: "ok", componentId: this.shareProjectChooseMethodDlgId} as BvTriggerableEvent);
         },
 
         copyCloudLink() {
@@ -872,11 +872,12 @@ export default defineComponent({
                     });
 
                 eventBus.emit("bv::hide::modal", this.shareProjectChooseMethodDlgId);
-                this.onStrypeMenuHideModalDlg({trigger: "ok"} as BvModalEvent, this.shareProjectChooseMethodDlgId);
+                this.onStrypeMenuHideModalDlg({trigger: "ok", componentId: this.shareProjectChooseMethodDlgId} as BvTriggerableEvent);
             }
         },
 
-        onStrypeMenuShownModalDlg(event: BvModalEvent, dlgId: string) {
+        onStrypeMenuShownModalDlg(event: BvTriggerableEvent) {
+            const dlgId = event.componentId;
             // This method handles the workflow of the menu entries' related dialog
             this.showMenu = false;
             if(dlgId == this.saveProjectModalDlgId){
@@ -1019,11 +1020,12 @@ export default defineComponent({
             eventBus.emit("bv::show::modal", getAppSimpleMsgDlgId());        
         },
 
-        onStrypeMenuHideModalDlg(event: BvModalEvent, dlgId: string, forcedProjectName?: string, saveReason ?: SaveRequestReason) {
+        onStrypeMenuHideModalDlg(event: BvTriggerableEvent, forcedProjectName?: string, saveReason ?: SaveRequestReason) {
             // This method handles the workflow after acting on any modal dialog of the Strype menu entries.
             // For most cases, if there is no confirmation, nothing special happens.
             // Only exception: if the user cancelled or proceeded to save a file copy following an clash with an existing project name on Google Drive,
             // we release the flag to indicate we were doing a file copy, to avoid messing up the targets in future calls of a load/save project
+            const dlgId = event.componentId;
             if(dlgId == this.shareProjectModalDlgId){
                 if(event.trigger == "ok"){
                     // The sharing link creation has succeed and we need to have a user action to allow a copy to the clipboard, which we do here.
@@ -1071,18 +1073,15 @@ export default defineComponent({
                 this.currentModalButtonGroupIDInAction = "";
                 this.requestSaveAs = false;
             }
-            else if(event.trigger == "ok" || event.trigger == "event"){
+            else if(event.trigger == "ok"){
                 // Case of "load file"
                 if(dlgId == this.loadProjectModalDlgId){
-                    // We do not do anything if the modal is closed by a "hide" event.
-                    if(event.trigger == "event" && event.type == "hide"){
-                        return;
-                    }
                     this.currentModalButtonGroupIDInAction = this.loadProjectTargetButtonGpId;
                     this.loadProject();
                 }
                 // Case of request to save/discard the file currently opened, before loading a new file.
                 else if(dlgId == this.saveOnLoadModalDlgId){
+                    //TODO: check behaviour here, what event to use?!
                     eventBus.emit(CustomEventTypes.requestEditorProjectSaveNow, SaveRequestReason.loadProject);
                 }
                 // Case of standard "save file"
@@ -1156,10 +1155,6 @@ export default defineComponent({
                     this.currentModalButtonGroupIDInAction = "";
                 }
                 else if (dlgId == this.loadDemoProjectModalDlgId) {
-                    // We do not do anything if the modal is closed by a "hide" event.
-                    if(event.trigger == "event" && event.type == "hide"){
-                        return;
-                    }
                     const selectedDemo = this.appStore.openDemoDlgComponentAPI?.getSelectedDemo();
                     if (selectedDemo) {
                         selectedDemo.demoFile.then((content) => {

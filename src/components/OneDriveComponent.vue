@@ -35,9 +35,9 @@ import { CloudDriveFile } from "@/types/cloud-drive-types";
 import type { BaseItem, DriveItem, Permission, UploadSession } from "@microsoft/microsoft-graph-types";
 import CloudDriveItemPicker from "@/components/CloudDriveItemPicker.vue";
 import ModalDlg from "@/components/ModalDlg.vue";
-import { BvModalEvent } from "bootstrap-vue";
 import { CustomEventTypes } from "@/helpers/editor";
 import { eventBus } from "@/main";
+import { BvTriggerableEvent } from "bootstrap-vue-next";
 
 //////////////////////
 //     Component    //
@@ -497,8 +497,8 @@ export default defineComponent({
             this.onFolderToSaveFilePicked(StrypeSyncTarget.od);
         },
 
-        onFolderPickerForWSAccountHideModalDlg(event: BvModalEvent, dlgId: string ){
-            if(dlgId == this.folderPickerForWSAccountDlgId){
+        onFolderPickerForWSAccountHideModalDlg(event: BvTriggerableEvent){
+            if(event.componentId == this.folderPickerForWSAccountDlgId){
                 if(event.trigger == "ok"){
                     // Trigger the selection's validation
                     document.dispatchEvent(new CustomEvent(CustomEventTypes.requestedCloudDrivePickerPickedItem));

@@ -59,7 +59,6 @@ import {Demo, DemoGroup, getBuiltinDemos, getThirdPartyLibraryDemos} from "@/hel
 import Parser from "@/parser/parser";
 import {AppSPYPrefix, eventBus} from "@/main";
 import {escapeRegExp} from "lodash";
-import { BvModalEvent } from "bootstrap-vue";
 import {useStore} from "@/store/store";
 
 export default defineComponent({

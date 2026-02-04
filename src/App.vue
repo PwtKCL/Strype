@@ -1,4 +1,7 @@
 <template>
+    <!-- With the new package for Boostrap (for Vue 3), BOrchestrator must be added inside the app component-->
+    <BOrchestrator />
+
     <div id="app" class="container-fluid print-full-height">
         <div v-if="showAppProgress || setAppNotOnTop" :class="{'app-overlay-pane': true, 'app-progress-pane': showAppProgress}" @contextmenu="handleOverlayRightClick">
             <div v-if="showAppProgress" class="app-progress-container">
@@ -111,6 +114,7 @@
 //////////////////////
 import Vue, { defineComponent } from "vue";
 import { useI18n } from "vue-i18n";
+import { BOrchestrator } from "bootstrap-vue-next";
 import MessageBanner from "@/components/MessageBanner.vue";
 import FrameContainer from "@/components/FrameContainer.vue";
 import Commands from "@/components/Commands.vue";
@@ -134,7 +138,6 @@ import { getFlatNeighbourFieldSlotInfos, getSlotIdFromParentIdAndIndexSplit, get
 import { cloneDeep } from "lodash";
 import { BACKEND_SKULPT_DIV_ID } from "@/autocompletion/ac-skulpt";
 import {pasteMixedPython} from "@/helpers/pythonToFrames";
-import { BvEvent, BvModalEvent } from "bootstrap-vue";
 import MediaPreviewPopup from "@/components/MediaPreviewPopup.vue";
 import EditImageDlg from "@/components/EditImageDlg.vue";
 import EditSoundDlg from "@/components/EditSoundDlg.vue";
@@ -145,6 +148,7 @@ import FrameHeader from "@/components/FrameHeader.vue";
 import { eventBus, projectDocumentationFrameId } from "./main";
 import {inflateRaw} from "pako";
 import { Base64 } from "js-base64";
+import { BvTriggerableEvent } from "bootstrap-vue-next";
 
 let autoSaveTimerId = -1;
 let projectSaveFunctionsState : ProjectSaveFunction[] = [];
@@ -162,6 +166,7 @@ export default defineComponent({
     },
     
     components: {
+        BOrchestrator,
         FrameHeader,
         MessageBanner,
         FrameContainer,
@@ -620,7 +625,7 @@ export default defineComponent({
         });
 
         // The events from Bootstrap modal are registered to the root app element.
-        eventBus.on("bv::modal::hide", this.onHideModalDlg as any);  
+        eventBus.on(CustomEventTypes.hideStrypeModal, this.onHideModalDlg);  
     },
 
     destroyed() {
@@ -628,7 +633,7 @@ export default defineComponent({
         document.removeEventListener("selectionchange", this.handleDocumentSelectionChange);
         document.removeEventListener("mouseup", this.checkMouseSelection);
         document.removeEventListener("wheel", this.blockScrollOnContextMenu);
-        eventBus.off("bv::modal::hide", this.onHideModalDlg as any);  
+        eventBus.off(CustomEventTypes.hideStrypeModal, this.onHideModalDlg);  
     },
 
     mounted() {
@@ -958,11 +963,12 @@ export default defineComponent({
                     resolve((event as CustomEvent).detail as boolean);
                 };
                 document.addEventListener(CustomEventTypes.resetLSOnShareProjectLoadConfirmed, handleConfirmationFromDlg);
-                eventBus.emit("bv::show::modal", this.confirmResetLSOnShareProjectLoadDlgId);
+                eventBus.emit(CustomEventTypes.showStrypeModal, this.confirmResetLSOnShareProjectLoadDlgId);                
             });
         },
 
-        onHideModalDlg(event: BvEvent, dlgId: string) {
+        onHideModalDlg(event: BvTriggerableEvent) {
+            const dlgId = event.componentId;
             if(dlgId == this.confirmResetLSOnShareProjectLoadDlgId) {
                 document.dispatchEvent(new CustomEvent(CustomEventTypes.resetLSOnShareProjectLoadConfirmed, {detail: (event.trigger == "ok")}));
             }
@@ -1004,7 +1010,8 @@ export default defineComponent({
                         const cloudHandlerComponentAPI = this.appStore.cloudDriveHandlerComponentAPI;
                         cloudHandlerComponentAPI?.setGenericSignInCallBack(this.appStore.syncTarget, () => this.appStore.cloudDriveHandlerComponentAPI?.saveFile(this.appStore.syncTarget, SaveRequestReason.reloadBrowser));
                         this.cloudDriveName = cloudHandlerComponentAPI?.getDriveName()??"";
-                        const execGetCloudDriveFileFunction = (event: BvModalEvent, dlgId: string) => {
+                        const execGetCloudDriveFileFunction = (event: BvTriggerableEvent) => {
+                            const dlgId = event.componentId;
                             if(dlgId == this.resyncToCloudDriveAtStartupModalDlgId){
                                 if(event.trigger == "ok" || event.trigger=="event"){
                                     // Initiate a connection to the Cloud Drive (for updating the Cloud Drive with local changes)
@@ -1017,8 +1024,8 @@ export default defineComponent({
                                 }
                             }
                         };
-                        eventBus.on("bv::modal::hide", execGetCloudDriveFileFunction as any);   
-                        eventBus.emit("bv::show::modal", this.resyncToCloudDriveAtStartupModalDlgId);
+                        eventBus.on(CustomEventTypes.hideStrypeModal, execGetCloudDriveFileFunction);   
+                        eventBus.emit(CustomEventTypes.showStrypeModal, this.resyncToCloudDriveAtStartupModalDlgId);
                     }
                     // When a file has been reloaded and it was previously saved the File System, we want to clear off any references to that file
                     else if(this.appStore.syncTarget == StrypeSyncTarget.fs){
@@ -1054,10 +1061,10 @@ export default defineComponent({
             const isSavedProject = this.appStore.syncTarget != StrypeSyncTarget.none && !this.appStore.isEditorContentModified;
             if(isSavedProject){
                 // (*) project is saved (to the cloud or FS) without modifications
-                this.onHideModalDlg({trigger: "ok"} as BvModalEvent, this.confirmNewProjectModalDlgId);
+                this.onHideModalDlg({trigger: "ok", componentId: this.confirmNewProjectModalDlgId } as BvTriggerableEvent);
             }
             else {
-                eventBus.emit("bv::show::modal", this.confirmNewProjectModalDlgId);
+                eventBus.emit(CustomEventTypes.showStrypeModal, this.confirmNewProjectModalDlgId);
             }            
         },
 
@@ -1546,7 +1553,8 @@ export default defineComponent({
             this.imgToEditInDialog = imageDataURL;
             this.showImgPreview = showPreview;
 
-            const editedImage = (event: BvModalEvent, dlgId: string) => {
+            const editedImage = (event: BvTriggerableEvent) => {
+                const dlgId = event.componentId;
                 if((event.trigger == "ok" || event.trigger=="event") && dlgId == "editImageDlg"){
                     //Call the callback:
                     editImageDlgComponentAPI?.getUpdatedMedia().then(callback);
@@ -1554,15 +1562,16 @@ export default defineComponent({
                     eventBus.off("bv::modal::hide", editedImage as any);
                 }
             };
-            eventBus.on("bv::modal::hide", editedImage as any);
+            eventBus.on(CustomEventTypes.hideStrypeModal, editedImage);
 
-            eventBus.emit("bv::show::modal", "editImageDlg");
+            eventBus.emit(CustomEventTypes.showStrypeModal, "editImageDlg");
         },
         editSoundInDialog(audioBuffer: AudioBuffer, callback: (replacement: {code: string, mediaType: string}) => void) {
             const editSoundDlgComponentAPI = this.appStore.editSoundDlgComponentAPI;
             this.soundToEditInDialog = audioBuffer;
 
-            const editedSound = (event: BvModalEvent, dlgId: string) => {
+            const editedSound = (event: BvTriggerableEvent) => {
+                const dlgId = event.componentId;
                 if((event.trigger == "ok" || event.trigger=="event") && dlgId == "editSoundDlg"){
                     //Call the callback:
                     editSoundDlgComponentAPI?.getUpdatedMedia().then(callback);
@@ -1570,9 +1579,9 @@ export default defineComponent({
                     eventBus.off("bv::modal::hide", editedSound as any);
                 }
             };
-            eventBus.on("bv::modal::hide", editedSound as any);
+            eventBus.on(CustomEventTypes.hideStrypeModal, editedSound);
 
-            eventBus.emit("bv::show::modal", "editSoundDlg");
+            eventBus.emit(CustomEventTypes.showStrypeModal, "editSoundDlg");
         },
     },
 

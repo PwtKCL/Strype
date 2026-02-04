@@ -55,11 +55,11 @@ import { Cropper } from "vue-advanced-cropper";
 import "vue-advanced-cropper/dist/style.css";
 import { useStore } from "@/store/store";
 import { mapStores } from "pinia";
-import { BvModalEvent } from "bootstrap-vue";
 import {drawSoundOnCanvas, getRMS, audioBufferToDataURL} from "@/helpers/media";
 import {TranslateResult} from "vue-i18n";
 import {isMacOSPlatform} from "@/helpers/common";
 import { eventBus } from "@/main";
+import { BvTriggerableEvent } from "bootstrap-vue-next";
 
 const previewImageWidth = 300;
 const previewImageHeight = 100;
@@ -135,7 +135,7 @@ export default defineComponent({
 
     methods:{
         isMacOSPlatform,
-        onHideModalDlg(event: BvModalEvent, id: string){
+        onHideModalDlg(event: BvTriggerableEvent){
             if (this.stopPreview != null) {
                 this.stopPreview();
             }

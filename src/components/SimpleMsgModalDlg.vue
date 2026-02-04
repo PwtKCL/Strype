@@ -9,8 +9,8 @@ import { defineComponent } from "vue";
 import ModalDlg from "@/components/ModalDlg.vue";
 import { useStore } from "@/store/store";
 import { mapStores } from "pinia";
-import { BvModalEvent } from "bootstrap-vue";
 import { eventBus } from "@/main";
+import { BvTriggerableEvent } from "bootstrap-vue-next";
 
 export default defineComponent({
     name: "SimpleMsgModalDlg",
@@ -44,8 +44,8 @@ export default defineComponent({
     },
 
     methods:{
-        onHideModalDlg(event: BvModalEvent, id: string){
-            if(id == this.dlgId && this.hideActionListener != undefined){
+        onHideModalDlg(event: BvTriggerableEvent){
+            if(event.componentId == this.dlgId && this.hideActionListener != undefined){
                 this.hideActionListener();
             }
         },

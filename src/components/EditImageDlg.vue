@@ -56,10 +56,10 @@ import "vue-advanced-cropper/dist/style.css";
 import pica from "pica";
 import { useStore } from "@/store/store";
 import { mapStores } from "pinia";
-import { BvModalEvent } from "bootstrap-vue";
 import {debounce} from "lodash";
 import {isMacOSPlatform} from "@/helpers/common";
 import { eventBus } from "@/main";
+import { BvTriggerableEvent } from "bootstrap-vue-next";
 
 const picaInstance = pica();
 
@@ -126,7 +126,7 @@ export default defineComponent({
 
     methods:{
         isMacOSPlatform,
-        onHideModalDlg(event: BvModalEvent, id: string){
+        onHideModalDlg(event: BvTriggerableEvent){
             this.showImgPreview(null);
         },
         updatePreview() {

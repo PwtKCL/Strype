@@ -61,6 +61,12 @@ export enum CustomEventTypes {
     cutFrameSelection = "cutFrameSelection",
     copyFrameSelection = "copyFrameSelection",
     updateParamPrompts = "updateParamPrompts",
+    // The following events are used for our modal dialogs, a wrapping mechanism around Boostrap modals
+    showStrypeModal = "bv::show::modal",
+    strypeModalShown = "bv::modal::shown",
+    hideStrypeModal = "bv::hide::modal",
+    strypeModalHidden = "bv::modal::hidden",
+    // end events for modal dialogs
     // #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE
     pythonExecAreaMounted = "peaMounted",
     pythonExecAreaExpandCollapseChanged = "peaExpandCollapsChanged",

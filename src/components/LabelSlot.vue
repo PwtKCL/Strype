@@ -44,9 +44,9 @@
             :data-code="code"
             :data-mediaType="getMediaType()">
                
-        <b-popover
+        <BPopover
             v-if="erroneous()"
-            ref="errorPopover"
+            :id="errorPopoverUID"
             :target="UID"
             :title="errorHeader"
             triggers="hover"
@@ -54,7 +54,7 @@
             custom-class="error-popover modified-title-popover"
             placement="bottom"
         >
-        </b-popover>
+        </BPopover>
 
         <AutoCompletion
             v-show="focused && showAC"
@@ -82,7 +82,7 @@ import { mapStores } from "pinia";
 import {evaluateSlotType, getFlatNeighbourFieldSlotInfos, getOutmostDisabledAncestorFrameId, getSlotDefFromInfos, getSlotIdFromParentIdAndIndexSplit, getSlotParentIdAndIndexSplit, isFrameLabelSlotStructWithCodeContent, retrieveParentSlotFromSlotInfos, retrieveSlotFromSlotInfos} from "@/helpers/storeMethods";
 import Parser from "@/parser/parser";
 import { cloneDeep } from "lodash";
-import { BPopover } from "bootstrap-vue";
+import { BPopover, useToggle } from "bootstrap-vue-next";
 import scssVars from "@/assets/style/_export.module.scss";
 import {drawSoundOnCanvas} from "@/helpers/media";
 import { isMacOSPlatform } from "@/helpers/common";
@@ -116,6 +116,7 @@ export default defineComponent({
 
     components: {
         AutoCompletion,
+        BPopover,
     },
 
     props: {
@@ -189,6 +190,10 @@ export default defineComponent({
 
         initCode(): string {
             return this.appStore.currentInitCodeValue;
+        },
+
+        errorPopoverUID(): string {
+            return `errorPopover_labelSlot_${this.frameId}_${this.labelSlotsIndex}_${this.slotId}`;
         },
 
         stringQuote(): string {
@@ -558,7 +563,7 @@ export default defineComponent({
 
                 // As we receive focus, we show the error popover if required. Note that we do it programmatically as it seems the focus trigger on popover isn't working in our configuration
                 if(this.erroneous()){
-                    (this.$refs.errorPopover as InstanceType<typeof BPopover>).$emit("open");
+                    useToggle(this.errorPopoverUID).show();
                 }
             }, waitFor);           
         },
@@ -680,8 +685,7 @@ export default defineComponent({
                 }
 
                 // And we hide the error popover. Note that we do it programmatically as it seems the focus trigger on popover isn't working in our configuration
-                (this.$refs.errorPopover as InstanceType<typeof BPopover>)?.$emit("close");
-            
+                useToggle(this.errorPopoverUID).hide();            
             }
         },
         

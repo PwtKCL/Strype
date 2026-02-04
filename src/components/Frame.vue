@@ -47,9 +47,9 @@
                 :wasLastRuntimeError="wasLastRuntimeError"
                 :onFocus="showFrameParseErrorPopupOnHeaderFocus"
             />
-            <b-popover
+            <BPopover
                 v-if="hasRuntimeError || wasLastRuntimeError || hasParsingError"
-                ref="errorPopover"
+                :id="errorPopoverUID"
                 :target="frameHeaderId"
                 :title="errorPopupTitle"
                 triggers="hover"
@@ -57,7 +57,7 @@
                 :custom-class="(hasRuntimeError || hasParsingError) ? 'error-popover modified-title-popover': 'error-popover'"
                 placement="left"
             >
-            </b-popover>
+            </BPopover>
             <FrameBody
                 v-if="allowChildren && bodyVisible"
                 :ref="getFrameBodyRef"
@@ -102,7 +102,7 @@ import VueContext, {VueContextConstructor}  from "vue-context";
 import { getAboveFrameCaretPosition, getAllChildrenAndJointFramesIds, getLastSibling, getNextSibling, getOutmostDisabledAncestorFrameId, getParentId, getParentOrJointParent, isFramePartOfJointStructure, isLastInParent, frameOrChildHasErrors, calculateNextCollapseState } from "@/helpers/storeMethods";
 import { CustomEventTypes, getFrameBodyUID, getFrameContextMenuUID, getFrameHeaderUID, getFrameUID, isIdAFrameId, getFrameBodyRef, getJointFramesRef, getCaretContainerRef, setContextMenuEventClientXY, adjustContextMenuPosition, getActiveContextMenu, notifyDragStarted, getHTML2CanvasFramesSelectionCropOptions, parseFrameUID, getFrameLabelSlotsStructureUID, getCaretUID } from "@/helpers/editor";
 import { mapStores } from "pinia";
-import { BPopover } from "bootstrap-vue";
+import { BPopover, useToggle } from "bootstrap-vue-next";
 import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
 import scssVars from "@/assets/style/_export.module.scss";
@@ -140,6 +140,7 @@ export default defineComponent({
         FrameHeader,
         VueContext,
         CaretContainer,
+        BPopover,
         // Loaded like that because of circular references of components
         FrameBody: () => import("@/components/FrameBody.vue"),
         JointFrames: () => import("@/components/JointFrames.vue"),
@@ -183,6 +184,10 @@ export default defineComponent({
 
         frameHeaderId(): string {
             return getFrameHeaderUID(this.frameId);
+        },
+
+        errorPopoverUID(): string {
+            return "errorPopover_frame_" + this.frameId;
         },
 
         allowsJointChildren(): boolean {
@@ -358,12 +363,12 @@ export default defineComponent({
         isInFrameWithKeyboard(isInFrame: boolean, wasInFrame: boolean) {
             // If we just got the text cursor, and there is/was a runtime error in the frame, we show the popup
             if(!wasInFrame && isInFrame && (this.hasRuntimeError || this.wasLastRuntimeError)){
-                (this.$refs.errorPopover as InstanceType<typeof BPopover>).$emit("open");
+                useToggle(this.errorPopoverUID).show();
             }
 
             // If we lost the text cursor, and there is/was a runtime error in the frame, we hide the popup
             if(wasInFrame && !isInFrame){
-                (this.$refs.errorPopover as InstanceType<typeof BPopover>)?.$emit("close");
+                useToggle(this.errorPopoverUID).hide();
             }
         },
     },
@@ -1445,7 +1450,12 @@ export default defineComponent({
             // We need to be able to show the frame error popup programmatically
             // (if applies) when we navigate to the error - we make sure the frame still exists.
             if(this.appStore.frameObjects[this.frameId] && this.hasParsingError){
-                (this.$refs.errorPopover as InstanceType<typeof BPopover>).$emit((isFocusing) ? "open" : "close");
+                if(isFocusing){
+                    useToggle(this.errorPopoverUID).show();
+                }
+                else{
+                    useToggle(this.errorPopoverUID).hide();
+                }
             }
         },
     },

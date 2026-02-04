@@ -379,7 +379,7 @@ export default defineComponent({
                     // Something happened, we let the user know
                     const erroMsg = (typeof _ == "string") ? _ : JSON.stringify(_);
                     this.appStore.simpleModalDlgMsg = this.$t("errorMessage.clouldFileRestoreSharingStatus", {drivename: cloudDriveComponent.driveName, errordetails: erroMsg}) as string;
-                    eventBus.emit("bv::show::modal", getAppSimpleMsgDlgId());
+                    eventBus.emit(CustomEventTypes.showStrypeModal, getAppSimpleMsgDlgId());
                 })
                 .finally(() => {
                     // Reset the flag we kept during the sharing action
