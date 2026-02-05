@@ -5,7 +5,6 @@ import i18n from "@/i18n";
 import { createBootstrap } from "bootstrap-vue-next";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue-next/dist/bootstrap-vue-next.css";
-import mitt from "mitt";
 //import vBlur from "v-blur";
 import { StrypePlatform } from "./types/types";
 import scssVars  from "@/assets/style/_export.module.scss";
@@ -83,9 +82,6 @@ export function getLocaleBuildDate(): string {
     getPEATabContentContainerDivId: getPEATabContentContainerDivId,
     // #v-endif
 };
-
-// As Vue 3 doesn't support $on, $off and $once anymore, we use the mitt package instead for the application event bus
-export const eventBus = mitt<Record<string, any>>();
 
 // New way of creating the App in Vue 3: using createApp()
 const app = createApp(App);
