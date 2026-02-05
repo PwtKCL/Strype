@@ -36,9 +36,9 @@ import type { BaseItem, DriveItem, Permission, UploadSession } from "@microsoft/
 import CloudDriveItemPicker from "@/components/CloudDriveItemPicker.vue";
 import ModalDlg from "@/components/ModalDlg.vue";
 import { CustomEventTypes } from "@/helpers/editor";
-import { eventBus } from "@/main";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
+import { eventBus } from "@/helpers/appContext";
 
 //////////////////////
 //     Component    //

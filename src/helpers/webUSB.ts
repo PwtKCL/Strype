@@ -8,7 +8,7 @@ import { parseCodeAndGetParseElements } from "@/parser/parser";
 import { getAppSimpleMsgDlgId } from "./editor";
 import i18n from "@/i18n";
 import { cloneDeep } from "lodash";
-import { eventBus } from "@/main";
+import { eventBus } from "./appContext";
 
 export function flash(callerData: Record<string, any>) : void {
     let proceed = true;

@@ -9,8 +9,8 @@ import { defineComponent } from "vue";
 import ModalDlg from "@/components/ModalDlg.vue";
 import { useStore } from "@/store/store";
 import { mapStores } from "pinia";
-import { eventBus } from "@/main";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
+import { eventBus } from "@/helpers/appContext";
 
 export default defineComponent({
     name: "SimpleMsgModalDlg",

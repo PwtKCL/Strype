@@ -58,8 +58,8 @@ import { mapStores } from "pinia";
 import {drawSoundOnCanvas, getRMS, audioBufferToDataURL} from "@/helpers/media";
 import {TranslateResult} from "vue-i18n";
 import {isMacOSPlatform} from "@/helpers/common";
-import { eventBus } from "@/main";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
+import { eventBus } from "@/helpers/appContext";
 
 const previewImageWidth = 300;
 const previewImageHeight = 100;

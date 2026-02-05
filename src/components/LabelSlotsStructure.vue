@@ -53,8 +53,8 @@ import { detectBrowser } from "@/helpers/browser";
 import { handleVerticalCaretMove } from "@/helpers/spans";
 import { preparePasteMediaData } from "@/helpers/media";
 import { useAsyncComputed } from "@/helpers/vue3composables";
-import { eventBus } from "@/main";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
+import { eventBus } from "@/helpers/appContext";
 
 export default defineComponent({
     name: "LabelSlotsStructure",

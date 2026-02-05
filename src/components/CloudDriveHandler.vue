@@ -30,9 +30,9 @@ import { CloudDriveAPIState, CloudDriveComponent, CloudDriveFile, CloudFileShari
 import GoogleDriveComponent from "@/components/GoogleDriveComponent.vue";
 import OneDriveComponent from "@/components/OneDriveComponent.vue";
 import { generateSPYFileContent } from "@/helpers/load-save";
-import { AppSPYFullPrefix, eventBus } from "@/main";
 import { AppComponentAPI } from "@/types/vue-component-api-types";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
+import { AppSPYFullPrefix, eventBus } from "@/helpers/appContext";
 
 // This enum is used for flaging the action taken when a request to save a file on a Cloud Drive
 // has been done, and a file of the same name already exists on the Drive

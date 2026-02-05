@@ -5,7 +5,7 @@ import { useStore } from "@/store/store";
 import { MessageDefinitions } from "@/types/types";
 import { getAppSimpleMsgDlgId } from "./editor";
 import i18n from "@/i18n";
-import { eventBus } from "@/main";
+import { eventBus } from "./appContext";
 
 export function downloadHex(showImagePopup?: boolean): void {
     const parserElements = parseCodeAndGetParseElements(true, "py");

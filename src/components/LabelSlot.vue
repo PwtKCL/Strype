@@ -86,8 +86,8 @@ import { BPopover, useToggle } from "bootstrap-vue-next";
 import scssVars from "@/assets/style/_export.module.scss";
 import {drawSoundOnCanvas} from "@/helpers/media";
 import { isMacOSPlatform } from "@/helpers/common";
-import { eventBus, projectDocumentationFrameId } from "@/main";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
+import { eventBus, projectDocumentationFrameId } from "@/helpers/appContext";
 
 // Default time to keep in cache: 5 minutes.
 const soundPreviewImages = new Cache<LoadedMedia>({ defaultTtl: 5 * 60 * 1000 });

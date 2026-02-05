@@ -57,10 +57,10 @@ import Vue, { defineComponent } from "vue";
 import ModalDlg from "@/components/ModalDlg.vue";
 import {Demo, DemoGroup, getBuiltinDemos, getThirdPartyLibraryDemos} from "@/helpers/demos";
 import Parser from "@/parser/parser";
-import {AppSPYPrefix, eventBus} from "@/main";
 import {escapeRegExp} from "lodash";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
+import { AppSPYPrefix, eventBus } from "@/helpers/appContext";
 
 export default defineComponent({
     components: {ModalDlg},

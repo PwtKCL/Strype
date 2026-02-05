@@ -145,7 +145,7 @@ import axios from "axios";
 import scssVars from "@/assets/style/_export.module.scss";
 import {loadDivider} from "@/helpers/load-save";
 import FrameHeader from "@/components/FrameHeader.vue";
-import { eventBus, projectDocumentationFrameId } from "./main";
+import { eventBus, projectDocumentationFrameId } from "@/helpers/appContext";
 import {inflateRaw} from "pako";
 import { Base64 } from "js-base64";
 import { BvTriggerableEvent } from "bootstrap-vue-next";

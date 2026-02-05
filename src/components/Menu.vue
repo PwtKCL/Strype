@@ -237,7 +237,6 @@ import ModalDlg from "@/components/ModalDlg.vue";
 import { cloneDeep } from "lodash";
 import appPackageJson from "@/../package.json";
 import { getAboveFrameCaretPosition, getFrameSectionIdFromFrameId } from "@/helpers/storeMethods";
-import { eventBus, getLocaleBuildDate } from "@/main";
 import scssVars from "@/assets/style/_export.module.scss";
 import OpenDemoDlg from "@/components/OpenDemoDlg.vue";
 import { CloudFileSharingStatus, isSyncTargetCloudDrive } from "@/types/cloud-drive-types";
@@ -250,6 +249,7 @@ import redoImgPath from "@/assets/images/redo.svg";
 import { useI18n } from "vue-i18n";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
+import { eventBus, getLocaleBuildDate } from "@/helpers/appContext";
 
 //////////////////////
 //     Component    //

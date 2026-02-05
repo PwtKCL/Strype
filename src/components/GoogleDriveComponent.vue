@@ -19,9 +19,9 @@ import { defineComponent, PropType } from "vue";
 import { MessageDefinitions, StrypeSyncTarget } from "@/types/types";
 import GoogleDriveFilePicker from "@/components/GoogleDriveFilePicker.vue";
 import { pythonFileExtension, strypeFileExtension } from "@/helpers/common";
-import { AppSPYFullPrefix, eventBus } from "@/main";
 import { getCloudLoginErrorModalDlgId } from "@/helpers/editor";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
+import { AppSPYFullPrefix, eventBus } from "@/helpers/appContext";
 
 //////////////////////
 //     Component    //

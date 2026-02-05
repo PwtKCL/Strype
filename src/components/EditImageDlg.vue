@@ -58,8 +58,8 @@ import { useStore } from "@/store/store";
 import { mapStores } from "pinia";
 import {debounce} from "lodash";
 import {isMacOSPlatform} from "@/helpers/common";
-import { eventBus } from "@/main";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
+import { eventBus } from "@/helpers/appContext";
 
 const picaInstance = pica();
 

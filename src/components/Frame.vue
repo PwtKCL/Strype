@@ -107,8 +107,8 @@ import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
 import scssVars from "@/assets/style/_export.module.scss";
 import {getDateTimeFormatted, isMacOSPlatform, removeIf} from "@/helpers/common";
-import { eventBus } from "@/main";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
+import { eventBus } from "@/helpers/appContext";
 
 //////////////////////
 //     Component    //

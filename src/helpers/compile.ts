@@ -1,8 +1,8 @@
 import Compiler from "@/compiler/compiler";
 import { getAppSimpleMsgDlgId } from "./editor";
-import { eventBus } from "@/main";
 import i18n from "@/i18n";
 import { useStore } from "@/store/store"; 
+import { eventBus } from "./appContext";
 
 export function compileBlob(compiler: Compiler): Blob | undefined {
     try {

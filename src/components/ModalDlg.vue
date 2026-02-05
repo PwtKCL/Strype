@@ -24,10 +24,10 @@ import { defineComponent, PropType } from "vue";
 import { mapStores } from "pinia";
 import { useStore } from "@/store/store";
 import { BootstrapDlgAutoFocusButton, BootstrapDlgSize } from "@/types/types";
-import { eventBus } from "@/main";
 import { CustomEventTypes } from "@/helpers/editor";
 import { BModal } from "bootstrap-vue-next";
 import { useToggle } from "bootstrap-vue-next";
+import { eventBus } from "@/helpers/appContext";
 
 export default defineComponent({
     name: "ModalDlg",
