@@ -552,7 +552,7 @@ export default defineComponent({
             let nextWouldBe;
             // Important to do this before next step as we might then remove some:
             if (combinedCollapse.states.size === 1) {
-                const commonState : CollapsedState = combinedCollapse.states.keys().next().value;
+                const commonState = combinedCollapse.states.keys().next().value as CollapsedState;
                 this.frameContextMenuItems[commonState as number].disabled = true;
                 nextWouldBe = calculateNextCollapseState(collapseFrames, parentIsFrozen, "dryrun").overall;
             }
