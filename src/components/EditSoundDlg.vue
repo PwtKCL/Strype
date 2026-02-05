@@ -59,6 +59,7 @@ import {drawSoundOnCanvas, getRMS, audioBufferToDataURL} from "@/helpers/media";
 import {TranslateResult} from "vue-i18n";
 import {isMacOSPlatform} from "@/helpers/common";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 import { eventBus } from "@/helpers/appContext";
 
 const previewImageWidth = 300;
@@ -98,7 +99,7 @@ export default defineComponent({
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
-        this.appStore.editSoundDlgComponentAPI = {
+        vueComponentsAPIHandler.editSoundDlgComponentAPI = {
             getUpdatedMedia: this.getUpdatedMedia,
         };
 
