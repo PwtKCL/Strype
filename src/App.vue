@@ -149,7 +149,7 @@ import { eventBus, projectDocumentationFrameId } from "@/helpers/appContext";
 import {inflateRaw} from "pako";
 import { Base64 } from "js-base64";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
-import { vueComponentsAPIHandler } from "./helpers/vueComponentAPI";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 let autoSaveTimerId = -1;
 let projectSaveFunctionsState : ProjectSaveFunction[] = [];
