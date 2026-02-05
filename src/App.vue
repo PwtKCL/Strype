@@ -2,7 +2,7 @@
     <!-- With the new package for Boostrap (for Vue 3), BOrchestrator must be added inside the app component-->
     <BOrchestrator />
 
-    <div id="app" class="container-fluid print-full-height">
+    <div>
         <div v-if="showAppProgress || setAppNotOnTop" :class="{'app-overlay-pane': true, 'app-progress-pane': showAppProgress}" @contextmenu="handleOverlayRightClick">
             <div v-if="showAppProgress" class="app-progress-container">
                 <div class="progress">
