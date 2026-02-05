@@ -1,4 +1,4 @@
-import { createApp, h} from "vue";
+import { createApp } from "vue";
 import App from "@/App.vue";
 import  {createPinia } from "pinia";
 import i18n from "@/i18n";
@@ -88,9 +88,7 @@ export function getLocaleBuildDate(): string {
 export const eventBus = mitt<Record<string, any>>();
 
 // New way of creating the App in Vue 3: using createApp()
-const app = createApp({
-    render: () => h(App),
-});
+const app = createApp(App);
 
 // Localisation package
 app.use(i18n);
