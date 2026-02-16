@@ -7,6 +7,7 @@ import {useStore, settingsStore} from "@/store/store";
 import { mapStores } from "pinia";
 import { pythonFileExtension, strypeFileExtension } from "@/helpers/common";
 import { CustomEventTypes } from "@/helpers/editor";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 
 // Derived from https://medium.com/timeless/google-picker-with-vue-2a39de7f36e
 
@@ -17,7 +18,7 @@ export default defineComponent({
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
-        this.appStore.googleDriveFilePickerComponentAPI = {
+        vueComponentsAPIHandler.googleDriveFilePickerComponentAPI = {
             startPicking: this.startPicking,            
         };
     },

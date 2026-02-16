@@ -86,6 +86,7 @@ import { CustomEventTypes, parseLabelSlotUID } from "@/helpers/editor";
 import {Completion, Signature, SignatureArg, TPyParser} from "tigerpython-parser";
 import scssVars from "@/assets/style/_export.module.scss";
 import { findCurrentStrypeLocation, STRYPE_LOCATION } from "@/helpers/pythonToFrames";
+import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 // #v-ifdef MODE == VITE_MICROBIT_MODE
 import microbitDescriptions from "@/autocompletion/microbit.json";
 import microbitAPI from "@/autocompletion/microbit-api.json";
@@ -109,15 +110,15 @@ export default defineComponent({
             updateAC: this.updateAC,
         };
         
-        if(this.appStore.autoCompletionComponentAPI == null){    
-            this.appStore.autoCompletionComponentAPI = {
+        if(vueComponentsAPIHandler.autoCompletionComponentAPI == null){    
+            vueComponentsAPIHandler.autoCompletionComponentAPI = {
                 forInstance: {
                     [this.AC_UID]: apiMethods,
                 },
             };
         }
         else{
-            this.appStore.autoCompletionComponentAPI.forInstance[this.AC_UID] = apiMethods;
+            vueComponentsAPIHandler.autoCompletionComponentAPI.forInstance[this.AC_UID] = apiMethods;
         }
     },
 
