@@ -67,7 +67,7 @@ export default defineComponent({
         window.addEventListener("message", this.onPickerMsg);
 
         // The events from Bootstrap modal are registered to the root app element.
-        eventBus.on("bv::modal::hide", this.onFolderPickerForWSAccountHideModalDlg as any); 
+        eventBus.on(CustomEventTypes.strypeModalHidden, this.onFolderPickerForWSAccountHideModalDlg); 
     },
 
 
@@ -400,7 +400,7 @@ export default defineComponent({
                 const itemsForPicker = this.transformOneDriveItemsToCloudDriveItemPickerItems(rootLevelDriveItems as DriveItem[]);
                 this.folderPickerForWSAccountRawData = itemsForPicker;
                 if(!doNotOpenPickerModalDlg){              
-                    eventBus.emit("bv::show::modal", this.folderPickerForWSAccountDlgId);
+                    eventBus.emit(CustomEventTypes.showStrypeModal, this.folderPickerForWSAccountDlgId);
                 }
             }
             else{

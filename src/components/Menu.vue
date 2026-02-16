@@ -17,7 +17,7 @@
             <a :id="newProjectLinkId" v-if="showMenu" :class="'strype-menu-link '+ scssVars.strypeMenuItemClassName" @click="resetProject();showMenu=false;" v-t="'appMenu.resetProject'" :title="$t('appMenu.resetProjectTooltip')"/>
             <!-- open project -->
             <a :id="loadProjectLinkId" v-show="showMenu" :class="'strype-menu-link ' + scssVars.strypeMenuItemClassName" @click="openLoadProjectModal">{{$t('appMenu.loadProject')}}<span class="strype-menu-kb-shortcut">{{loadProjectKBShortcut}}</span></a>
-            <ModalDlg :dlgId="loadProjectModalDlgId" showCloseBtn hideDlgBtns >
+            <ModalDlg :dlgId="loadProjectModalDlgId" showCloseBtn hideDlgBtns>
                 <div class="project-target-popup-content-container">
                     <span v-t="'appMessage.loadToTarget'" class="load-save-label"/>
                     <div :ref="loadProjectTargetButtonGpId" class="project-target-button-container">
@@ -41,8 +41,8 @@
             </ModalDlg>
             <!-- save project -->
             <a :id="saveProjectLinkId" v-show="showMenu" :class="'strype-menu-link ' + scssVars.strypeMenuItemClassName" @click="handleSaveMenuClick">{{$t('appMenu.saveProject')}}<span class="strype-menu-kb-shortcut">{{saveProjectKBShortcut}}</span></a>
-            <a v-if="showMenu" :class="{['strype-menu-link ' + scssVars.strypeMenuItemClassName]: true, disabled: !isSynced }" @click="handleSaveAsMenuClick" v-b-modal.save-strype-project-modal-dlg v-t="'appMenu.saveAsProject'"/>
-            <ModalDlg :dlgId="saveProjectModalDlgId" size="lg" :autoFocusButton="'ok'">
+            <a v-if="showMenu" :class="{['strype-menu-link ' + scssVars.strypeMenuItemClassName]: true, disabled: !isSynced }" @click="handleSaveAsMenuClick" v-t="'appMenu.saveAsProject'"/>
+            <ModalDlg :dlgId="saveProjectModalDlgId" size="lg">
                 <div class="save-project-modal-dlg-container">
                     <div class="row">
                         <label v-t="'appMessage.fileName'" class="load-save-label cell"/>
@@ -79,7 +79,7 @@
                     </div>
                 </div>
             </ModalDlg>
-            <ModalDlg :dlgId="saveOnLoadModalDlgId" :autoFocusButton="'ok'" :okCustomTitle="$t('buttonLabel.saveChanges')" :cancelCustomTitle="$t('buttonLabel.discardChanges')">
+            <ModalDlg :dlgId="saveOnLoadModalDlgId" :okCustomTitle="$t('buttonLabel.saveChanges')" :cancelCustomTitle="$t('buttonLabel.discardChanges')">
                 <div>
                     <span  v-t="'appMessage.editorAskSaveChangedCode'" class="load-project-lost-span"/>
                     <br/>
@@ -247,7 +247,7 @@ import disabledRedoImgPath from "@/assets/images/disabledRedo.svg";
 import undoImgPath from "@/assets/images/undo.svg";
 import redoImgPath from "@/assets/images/redo.svg";
 import { useI18n } from "vue-i18n";
-import { BvTriggerableEvent } from "bootstrap-vue-next";
+import { BButton, BvTriggerableEvent } from "bootstrap-vue-next";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 import { eventBus, getLocaleBuildDate } from "@/helpers/appContext";
 
@@ -282,6 +282,7 @@ export default defineComponent({
         Slide,
         CloudDriveHandler,
         ModalDlg,
+        BButton,
     },
 
     created() {
@@ -393,9 +394,9 @@ export default defineComponent({
             }
         );
 
-        // The events from Bootstrap modal are registered to the root app element.
-        eventBus.on("bv::modal::show", this.onStrypeMenuShownModalDlg as any);
-        eventBus.on("bv::modal::hide", this.onStrypeMenuHideModalDlg as any);      
+        // The events from Bootstrap modal are registered on eventBus.
+        eventBus.on(CustomEventTypes.strypeModalShown, this.onStrypeMenuShownModalDlg);
+        eventBus.on(CustomEventTypes.strypeModalHidden, this.onStrypeMenuHideModalDlg);      
         
         // Event listener for saving project action completion
         eventBus.on(CustomEventTypes.saveStrypeProjectDoneForLoad, this.openLoadProjectDlgAfterSaved);
@@ -408,9 +409,9 @@ export default defineComponent({
     },
 
     beforeDestroy(){
-        // Just in case, we remove the Bootstrap modal event handler from the root app 
-        eventBus.off("bv::modal::show", this.onStrypeMenuShownModalDlg as any);
-        eventBus.off("bv::modal::hide", this.onStrypeMenuHideModalDlg as any);
+        // Just in case, we remove the Bootstrap modal event handler from eventBus
+        eventBus.off(CustomEventTypes.strypeModalShown, this.onStrypeMenuShownModalDlg);
+        eventBus.off(CustomEventTypes.strypeModalHidden, this.onStrypeMenuHideModalDlg);
 
         // And for the saving project action completion too
         eventBus.off(CustomEventTypes.saveStrypeProjectDoneForLoad, this.openLoadProjectDlgAfterSaved);
@@ -714,11 +715,11 @@ export default defineComponent({
                 // Show a modal dialog to let user save/discard their changes. Saving loop is handled with saving methods.
                 // Note that for the File System project we cannot make Strype save the file: that will require the user explicit action.
                 this.showDialogAfterSave = this.loadProjectModalDlgId;
-                eventBus.emit("bv::show::modal", this.saveOnLoadModalDlgId);
+                eventBus.emit(CustomEventTypes.showStrypeModal, this.saveOnLoadModalDlgId);
             }
             else if(this.openSharedProjectId.length == 0) {
                 // The normal "open target" dialog
-                eventBus.emit("bv::show::modal", this.loadProjectModalDlgId);
+                eventBus.emit(CustomEventTypes.showStrypeModal, this.loadProjectModalDlgId);
             }
             else {
                 // The case of opening a shared project: we don't need a target selection, we just try to open the project
@@ -736,10 +737,10 @@ export default defineComponent({
                 // Show a modal dialog to let user save/discard their changes. Saving loop is handled with saving methods.
                 // Note that for the File System project we cannot make Strype save the file: that will require the user explicit action.
                 this.showDialogAfterSave = this.loadDemoProjectModalDlgId;
-                eventBus.emit("bv::show::modal", this.saveOnLoadModalDlgId);
+                eventBus.emit(CustomEventTypes.showStrypeModal, this.saveOnLoadModalDlgId);
             }
             else {
-                eventBus.emit("bv::show::modal", this.loadDemoProjectModalDlgId);
+                eventBus.emit(CustomEventTypes.showStrypeModal, this.loadDemoProjectModalDlgId);
             }
         },
 
@@ -752,21 +753,23 @@ export default defineComponent({
                 this.saveCurrentProject();
             }
             else{
-                eventBus.emit("bv::show::modal", this.saveProjectModalDlgId);
+                eventBus.emit(CustomEventTypes.showStrypeModal, this.saveProjectModalDlgId);
                 // When we are saving a "browser" project (that is, not from FS or GD) we need to be able to trigger the "Open" later, so we set a flag
                 this.requestOpenProjectLater = (saveReason == SaveRequestReason.loadProject);
             }
         },
 
         handleSaveAsMenuClick(){
-            // This is only used to set the "save as" flag, saving mechanism is handled via the modal.
+            // This is used to set the "save as" flag, and open the modal; the saving mechanism is handled via the modal.
             this.requestSaveAs = true;
+            eventBus.emit(CustomEventTypes.showStrypeModal, this.saveProjectModalDlgId);
+
         },
 
         openLoadProjectDlgAfterSaved(): void {
             // Reset the flag to request opening the project later (see flag definition)
             this.requestOpenProjectLater = false;
-            eventBus.emit("bv::show::modal", (this.showDialogAfterSave.length > 0) ? this.showDialogAfterSave : this.loadProjectModalDlgId);            
+            eventBus.emit(CustomEventTypes.showStrypeModal, (this.showDialogAfterSave.length > 0) ? this.showDialogAfterSave : this.loadProjectModalDlgId);            
         },
 
         changeTargetFocusOnMouseOver(event: MouseEvent) {
@@ -786,8 +789,7 @@ export default defineComponent({
             else {
                 // There is no intermediate steps when the target is selected for opening a project
                 // (we first close the target selector modal, then validate)
-                eventBus.emit("bv::hide::modal", this.loadProjectModalDlgId);
-                this.onStrypeMenuHideModalDlg({trigger: "ok", componentId: this.loadProjectModalDlgId} as BvTriggerableEvent);
+                eventBus.emit(CustomEventTypes.hideStrypeModal, {trigger: "ok", componentId: this.loadProjectModalDlgId});                
             }
         },
 
@@ -840,15 +842,14 @@ export default defineComponent({
             // so we have to replace them (with - and _ respectively).
             // That is specified by the true boolean parameter to the Base64 call:
             this.shareContentZippedBase64 = Base64.fromUint8Array(deflateRaw(generateSPYFileContent()), true);
-            eventBus.emit("bv::show::modal", this.shareProjectChooseMethodDlgId);
+            eventBus.emit(CustomEventTypes.showStrypeModal, this.shareProjectChooseMethodDlgId);
         },
         
         copySnapshotLink() {
             // Since we made the link content when showing the dialog, all we need to do is format it and copy it to the clipboard:
             navigator.clipboard.writeText(`${window.location}?${sharedStrypeProjectIdKey}=spy:${this.shareContentZippedBase64}`);
 
-            eventBus.emit("bv::hide::modal", this.shareProjectChooseMethodDlgId);
-            this.onStrypeMenuHideModalDlg({trigger: "ok", componentId: this.shareProjectChooseMethodDlgId} as BvTriggerableEvent);
+            eventBus.emit(CustomEventTypes.hideStrypeModal, {trigger: "ok", componentId: this.shareProjectChooseMethodDlgId});
         },
 
         copyCloudLink() {
@@ -862,18 +863,17 @@ export default defineComponent({
                     .then((prevCloudFileSharingStatus) => {
                         // Save the status and then open the dialog.
                         cloudDriveHandlerComponentAPI?.backupPreviousCloudFileSharingStatus(this.appStore.syncTarget, prevCloudFileSharingStatus).then(() => {
-                            eventBus.emit("bv::show::modal", this.shareProjectModalDlgId);                             
+                            eventBus.emit(CustomEventTypes.showStrypeModal, this.shareProjectModalDlgId);                             
                         });                       
                     })
                     .catch((_: any) => {
                         // Something happened, we let the user know
                         const erroMsg = (typeof _ == "string") ? _ : JSON.stringify(_);
                         this.appStore.simpleModalDlgMsg = this.$t("errorMessage.clouldFileRestoreSharingStatus", {drivename: vueComponentsAPIHandler.cloudDriveHandlerComponentAPI?.getDriveName()??"", errordetails: erroMsg});
-                        eventBus.emit("bv::show::modal", getAppSimpleMsgDlgId());
+                        eventBus.emit(CustomEventTypes.showStrypeModal, getAppSimpleMsgDlgId());
                     });
 
-                eventBus.emit("bv::hide::modal", this.shareProjectChooseMethodDlgId);
-                this.onStrypeMenuHideModalDlg({trigger: "ok", componentId: this.shareProjectChooseMethodDlgId} as BvTriggerableEvent);
+                eventBus.emit(CustomEventTypes.hideStrypeModal, {trigger: "ok", componentId: this.shareProjectChooseMethodDlgId});
             }
         },
 
@@ -1016,9 +1016,9 @@ export default defineComponent({
 		
         showErrorForShareProjectLink(alertMsg: string){
             // An error occur during the creation of the sharing link: we close the sharing mode selection popup and show an alert
-            eventBus.emit("bv::hide::modal", this.shareProjectModalDlgId);        
+            eventBus.emit(CustomEventTypes.hideStrypeModal, {trigger: "cancel", componentId: this.shareProjectModalDlgId});        
             this.appStore.simpleModalDlgMsg = alertMsg;
-            eventBus.emit("bv::show::modal", getAppSimpleMsgDlgId());        
+            eventBus.emit(CustomEventTypes.showStrypeModal, getAppSimpleMsgDlgId());        
         },
 
         onStrypeMenuHideModalDlg(event: BvTriggerableEvent, forcedProjectName?: string, saveReason ?: SaveRequestReason) {
@@ -1065,7 +1065,7 @@ export default defineComponent({
                 if(dlgId == this.saveOnLoadModalDlgId){
                     // Case of request to save/discard the file currently opened, before loading a new file:
                     // user chose to discard the file saving: we can trigger the file opening.
-                    eventBus.emit("bv::show::modal", this.showDialogAfterSave);
+                    eventBus.emit(CustomEventTypes.showStrypeModal, this.showDialogAfterSave);
                     return;
                 }
 
@@ -1103,7 +1103,7 @@ export default defineComponent({
                         if(!canBrowserSaveFilePicker() && saveFileName.trim().match(fileNameRegex) == null){
                             // Show an error message and do nothing special
                             this.appStore.simpleModalDlgMsg = this.$t("errorMessage.fileNameError") as string;
-                            eventBus.emit("bv::show::modal", getAppSimpleMsgDlgId());
+                            eventBus.emit(CustomEventTypes.showStrypeModal, getAppSimpleMsgDlgId());
                             this.currentModalButtonGroupIDInAction = "";
                             return;
                         }
@@ -1172,7 +1172,7 @@ export default defineComponent({
         onSaveDiffLocationClick(){
             // When the button to save at a different location is called, we trigger the hiding of the modal dialog and and set the right flag about saving
             this.saveAtOtherLocation = true;
-            eventBus.emit("bv::hide::modal", this.saveProjectModalDlgId);
+            eventBus.emit(CustomEventTypes.hideStrypeModal, {trigger: "cancel", componentId: this.saveProjectModalDlgId});
         },
 
         loadProject(){

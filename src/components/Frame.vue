@@ -47,7 +47,7 @@
                 :wasLastRuntimeError="wasLastRuntimeError"
                 :onFocus="showFrameParseErrorPopupOnHeaderFocus"
             />
-            <BPopover
+            <b-popover
                 v-if="hasRuntimeError || wasLastRuntimeError || hasParsingError"
                 :id="errorPopoverUID"
                 :target="frameHeaderId"
@@ -57,7 +57,7 @@
                 :custom-class="(hasRuntimeError || hasParsingError) ? 'error-popover modified-title-popover': 'error-popover'"
                 placement="left"
             >
-            </BPopover>
+            </b-popover>
             <FrameBody
                 v-if="allowChildren && bodyVisible"
                 :ref="getFrameBodyRef"

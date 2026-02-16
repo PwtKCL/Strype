@@ -3,7 +3,6 @@
             :dlgId="dlgId"
             :dlg-title="$t('demos.dialogTitle')"
             showCloseBtn
-            :autoFocusButton="'ok'"
             css-class="open-demo-dlg"
             :ok-disabled="!(selectedDemoCategoryIndex >= 0 && selectedDemoCategoryIndex < availableDemos.length && selectedDemoItemIndex >= 0 && selectedDemoItemIndex < demosInCurrentCategory.length)" >
         <div class="d-flex" style="height: 400px;">
@@ -59,11 +58,12 @@ import {Demo, DemoGroup, getBuiltinDemos, getThirdPartyLibraryDemos} from "@/hel
 import Parser from "@/parser/parser";
 import {escapeRegExp} from "lodash";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
-import { BvTriggerableEvent } from "bootstrap-vue-next";
+import { BButton, BListGroup, BListGroupItem } from "bootstrap-vue-next";
 import { AppSPYPrefix, eventBus } from "@/helpers/appContext";
+import { CustomEventTypes } from "@/helpers/editor";
 
 export default defineComponent({
-    components: {ModalDlg},
+    components: {ModalDlg, BButton, BListGroup, BListGroupItem},
     
     props: {
         dlgId: {type: String, required: true},
@@ -169,8 +169,7 @@ export default defineComponent({
             // Triggers the modal's OK event to load the selected example. The click event is fired before the double-click event:
             // selectedDemoItemIndex is already set to the right value.
             // We first close the dialog, than simulate a "close with action" in the Menu (since we can't close with "OK" status.)
-            eventBus.emit("bv::hide::modal", this.dlgId);
-            vueComponentsAPIHandler.menuComponentAPI?.onStrypeMenuHideModalDlg({trigger: "ok", componentId: this.dlgId} as BvTriggerableEvent);
+            eventBus.emit(CustomEventTypes.hideStrypeModal, {trigger: "ok", componentId: this.dlgId});
         },
 
         addSpecifiedLibrary() {

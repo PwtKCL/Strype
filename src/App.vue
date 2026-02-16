@@ -101,7 +101,7 @@
         <EditSoundDlg dlgId="editSoundDlg" ref="editSoundDlg" :soundToEdit="soundToEditInDialog as AudioBuffer" />
         <div :id="getSkulptBackendTurtleDivId" class="hidden"></div>
         <canvas v-show="appStore.isDraggingFrame" :id="getCompanionDndCanvasId" class="companion-canvas-dnd"/>
-        <ModalDlg :dlgId="confirmResetLSOnShareProjectLoadDlgId" :autoFocusButton="'ok'" :okCustomTitle="$t('buttonLabel.continue')" :cancelCustomTitle="$t('buttonLabel.cancelLoadSharedProject')" >
+        <ModalDlg :dlgId="confirmResetLSOnShareProjectLoadDlgId" :okCustomTitle="$t('buttonLabel.continue')" :cancelCustomTitle="$t('buttonLabel.cancelLoadSharedProject')" >
             <div>
                 <span v-html="$t('appMessage.LSOnShareProjectLoad')"/>
                 <br/>
@@ -630,8 +630,8 @@ export default defineComponent({
             this.setAppNotOnTop = (event as CustomEvent).detail;
         });
 
-        // The events from Bootstrap modal are registered to the root app element.
-        eventBus.on(CustomEventTypes.hideStrypeModal, this.onHideModalDlg);  
+        // The events from Bootstrap modal are registered on the eventBus
+        eventBus.on(CustomEventTypes.strypeModalHidden, this.onHideModalDlg);  
     },
 
     destroyed() {
@@ -639,7 +639,7 @@ export default defineComponent({
         document.removeEventListener("selectionchange", this.handleDocumentSelectionChange);
         document.removeEventListener("mouseup", this.checkMouseSelection);
         document.removeEventListener("wheel", this.blockScrollOnContextMenu);
-        eventBus.off(CustomEventTypes.hideStrypeModal, this.onHideModalDlg);  
+        eventBus.off(CustomEventTypes.strypeModalHidden, this.onHideModalDlg);  
     },
 
     mounted() {
@@ -1022,7 +1022,7 @@ export default defineComponent({
                                 if(event.trigger == "ok" || event.trigger=="event"){
                                     // Initiate a connection to the Cloud Drive (for updating the Cloud Drive with local changes)
                                     cloudHandlerComponentAPI?.signInFn();                                
-                                    eventBus.off("bv::modal::hide", execGetCloudDriveFileFunction as any); 
+                                    eventBus.off(CustomEventTypes.strypeModalHidden, execGetCloudDriveFileFunction); 
                                 }
                                 else{
                                     // We make sure we do not keep a wrong sync target!
@@ -1030,7 +1030,7 @@ export default defineComponent({
                                 }
                             }
                         };
-                        eventBus.on(CustomEventTypes.hideStrypeModal, execGetCloudDriveFileFunction);   
+                        eventBus.on(CustomEventTypes.strypeModalHidden, execGetCloudDriveFileFunction);   
                         eventBus.emit(CustomEventTypes.showStrypeModal, this.resyncToCloudDriveAtStartupModalDlgId);
                     }
                     // When a file has been reloaded and it was previously saved the File System, we want to clear off any references to that file
@@ -1078,7 +1078,7 @@ export default defineComponent({
             // Show a message to the user that the project has (not) been loaded, if requested
             if(message){
                 this.appStore.simpleModalDlgMsg = this.$t(message.key, {param1: message.param}) as string;
-                eventBus.emit("bv::show::modal", getAppSimpleMsgDlgId());
+                eventBus.emit(CustomEventTypes.showStrypeModal, getAppSimpleMsgDlgId());
             }
             // And also remove the query parameters in the URL
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -1565,10 +1565,10 @@ export default defineComponent({
                     //Call the callback:
                     editImageDlgComponentAPI?.getUpdatedMedia().then(callback);
 
-                    eventBus.off("bv::modal::hide", editedImage as any);
+                    eventBus.off(CustomEventTypes.strypeModalHidden, editedImage);
                 }
             };
-            eventBus.on(CustomEventTypes.hideStrypeModal, editedImage);
+            eventBus.on(CustomEventTypes.strypeModalHidden, editedImage);
 
             eventBus.emit(CustomEventTypes.showStrypeModal, "editImageDlg");
         },
@@ -1582,10 +1582,10 @@ export default defineComponent({
                     //Call the callback:
                     editSoundDlgComponentAPI?.getUpdatedMedia().then(callback);
 
-                    eventBus.off("bv::modal::hide", editedSound as any);
+                    eventBus.off(CustomEventTypes.strypeModalHidden, editedSound);
                 }
             };
-            eventBus.on(CustomEventTypes.hideStrypeModal, editedSound);
+            eventBus.on(CustomEventTypes.strypeModalHidden, editedSound);
 
             eventBus.emit(CustomEventTypes.showStrypeModal, "editSoundDlg");
         },

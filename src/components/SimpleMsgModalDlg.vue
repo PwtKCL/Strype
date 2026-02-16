@@ -11,6 +11,7 @@ import { useStore } from "@/store/store";
 import { mapStores } from "pinia";
 import { BvTriggerableEvent } from "bootstrap-vue-next";
 import { eventBus } from "@/helpers/appContext";
+import { CustomEventTypes } from "@/helpers/editor";
 
 export default defineComponent({
     name: "SimpleMsgModalDlg",
@@ -27,12 +28,12 @@ export default defineComponent({
 
     created() {        
         // Register the event listener for the dialog here
-        eventBus.on("bv::modal::hide", this.onHideModalDlg as any);  
+        eventBus.on(CustomEventTypes.strypeModalHidden, this.onHideModalDlg);  
     },
 
     beforeDestroy(){
         // Remove the event listener for the dialog here, just in case...
-        eventBus.off("bv::modal::hide", this.onHideModalDlg as any);
+        eventBus.off(CustomEventTypes.strypeModalHidden, this.onHideModalDlg);
     },
 
     computed:{

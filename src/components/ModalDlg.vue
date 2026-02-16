@@ -1,31 +1,31 @@
 <!-- this acts as a wrapper around the bootstrap modals, to have centralised control and customisation -->
 <template>
-    <BModal no-close-on-backdrop :hide-header-close="!showCloseBtn" :id="dlgId" :title="dlgTitle" :ok-only="okOnly" 
-        :ok-title="okTitle" :ok-disabled="okDisabled" :cancel-title="cancelTitle" :size="size" :auto-focus-button="autoFocusButton" :modal-class="cssClass">
+    <b-modal no-close-on-backdrop :no-header-close="!showCloseBtn" :id="dlgId" :title="dlgTitle" @shown="onShown" @hidden="onHidden"
+        :ok-title="okTitle" :cancel-title="cancelTitle" :size="size" :modal-class="cssClass">
         <slot/>
-        <!-- if we use a loading OK, we assume ONLY the OK button is customised and use the default cancel/hide buttons of the modal -->
-        <template v-if="useLoadingOK" #modal-ok>
-            <b-spinner label="Spinning" small></b-spinner>
-            <span class="modal-spin-ok-btn-span">{{ okTitle }}</span>
+        <!-- When no footer should be shown, we still use an empty div content (but a content nonetheless) to have the right visual rendering:
+             the BModal property "no-footer" can be used, but it also removes the divider below the dialog content, making the style weird.
+             Moreover, if the template is TOTALLY empty, Vue Boostrap Next will assign default OK/Cancel buttons. -->
+        <template #footer>
+            <div class="strype-modal-footer-content-div">
+                <button v-if="!hideDlgBtns && !okOnly" class="btn btn-secondary" @click="onCancel">{{ cancelTitle }}</button>
+                <!-- distinction between normal OK button and a "useLoadingOK" button -->
+                <button v-if="!hideDlgBtns && !useLoadingOK" class="btn btn-primary" @click="onOK">{{ okTitle }}</button>
+                <button v-else-if="!hideDlgBtns" :class="{'btn btn-primary': true, disabled: okDisabled}" @click="onOK">
+                    <b-spinner label="Spinning" small></b-spinner>
+                    <span class="modal-spin-ok-btn-span">{{ okTitle }}</span>
+                </button>
+            </div>
         </template>
-        <!-- if we are not using a loading OK, we entirely customise the modal footer -->
-        <!-- the footer part is entirely optional if other buttons than the default OK/Cancel or Yes/No are required -->
-        <template v-else-if="!hideDlgBtns" #modal-footer="{ok, cancel, hide}">
-            <slot name="modal-footer-content" :ok="ok" :cancel="cancel" :hide="hide"/>
-        </template>
-        <template v-else #modal-footer>
-            <!-- just to have a way to hide all buttons from the native modal -->
-            <div/>
-        </template>
-    </BModal>
+    </b-modal>
 </template>
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 import { mapStores } from "pinia";
 import { useStore } from "@/store/store";
-import { BootstrapDlgAutoFocusButton, BootstrapDlgSize } from "@/types/types";
+import { BootstrapDlgSize } from "@/types/types";
 import { CustomEventTypes } from "@/helpers/editor";
-import { BModal } from "bootstrap-vue-next";
+import { BModal, BSpinner, BvTriggerableEvent} from "bootstrap-vue-next";
 import { useToggle } from "bootstrap-vue-next";
 import { eventBus } from "@/helpers/appContext";
 
@@ -34,6 +34,7 @@ export default defineComponent({
 
     components: {
         BModal,
+        BSpinner,
     },
 
     props:{
@@ -49,11 +50,7 @@ export default defineComponent({
         size:  {
             type: String as PropType<BootstrapDlgSize>,
             required: false,
-        },
-        autoFocusButton:{
-            type: String as PropType<BootstrapDlgAutoFocusButton>,
-            required: false,
-        },
+        },       
         elementToFocusId: String,
         useYesNo: Boolean, // by default, the values of the buttons are OK and Cancel, this flag allows using Yes/No (in combination with okOnly) if needed
         cssClass: String,
@@ -65,14 +62,12 @@ export default defineComponent({
         // For a given dialog we need to register a generic listener for the shown even
         eventBus.on(CustomEventTypes.showStrypeModal, this.showModal);
         eventBus.on(CustomEventTypes.hideStrypeModal, this.hideModal);
-        eventBus.on(CustomEventTypes.strypeModalShown, this.onModalDlgShown);
-        eventBus.on(CustomEventTypes.strypeModalHidden, this.onModalDlgHidden);
         window.addEventListener("keydown", this.validateOnEnterKeyDown);
 
         // Access the show/hide methods exposed by Boostrap
         const {show, hide} = useToggle(this.dlgId);
         this.modalShowFunction = show;
-        this.modalHideFunction = hide;
+        this.modalHideFunction = hide;     
     },
 
     computed: {
@@ -92,60 +87,71 @@ export default defineComponent({
             modalShowFunction: () => {
                 return new Promise<string | boolean | null>(() => {});
             },
-            modalHideFunction: () => {
+            modalHideFunction: (trigger?: string) => {
                 return new Promise<string | boolean | null>(() => {});
-            },
+            },    
         };
     },
 
     methods: {
         showModal(dlgId: string){
             if(dlgId == this.dlgId){
-                this.modalShowFunction().then(() => eventBus.emit(CustomEventTypes.strypeModalShown, this.dlgId));
+                this.modalShowFunction();
             }            
         },
 
-        hideModal(dlgId: string){
-            if(dlgId == this.dlgId){
-                this.modalHideFunction().then(() => eventBus.emit(CustomEventTypes.strypeModalHidden, this.dlgId));
-            };
-        },
-
-        onModalDlgShown(modalDlgId: string){
+        onShown(event: BvTriggerableEvent){
+            eventBus.emit(CustomEventTypes.strypeModalShown, event);
             // For any modal window, notify the editor that a modal is displayed
             this.appStore.isModalDlgShown = true;
-            this.appStore.currentModalDlgId = modalDlgId;
+            this.appStore.currentModalDlgId = event.componentId as string;
             // If an element is request to show focus we try to set it here
             if(this.elementToFocusId){
                 document.getElementById(this.elementToFocusId)?.focus();
             }
         },
 
-        onModalDlgHidden(modalDlgId: string){
+        hideModal(event: BvTriggerableEvent){
+            if(event.componentId == this.dlgId){
+                this.modalHideFunction(event.trigger??undefined);
+            }            
+        },
+
+        onHidden(event: BvTriggerableEvent){
+            eventBus.emit(CustomEventTypes.strypeModalHidden, event);
             // For any modal window, notify the editor that a modal is hidden
             this.appStore.isModalDlgShown = false;
             this.appStore.currentModalDlgId = "";
+        },
+
+        onCancel(){
+            this.modalHideFunction("cancel");
+        },
+
+        onOK(){
+            this.modalHideFunction("ok");
         },
 
         validateOnEnterKeyDown(event: KeyboardEvent){
             // Hitting "enter" on the dialog triggers its validation.
             // Only if there is not focus on a button already (then it show leave the action on that button to be performed)
             if((document.activeElement?.tagName.toLocaleLowerCase()??"") != "button" && event.code.toLowerCase() == "enter" && this.appStore.isModalDlgShown && this.dlgId == this.appStore.currentModalDlgId){
-                eventBus.emit("bv::hide::modal", this.dlgId);
+                eventBus.emit(CustomEventTypes.hideStrypeModal, {trigger: "ok", componentId: this.dlgId });
             }
         },
     },
 
     beforeDestroy(){
         // Just in case, we remove event listeners 
-        eventBus.off(CustomEventTypes.strypeModalShown, this.onModalDlgShown as any);
-        eventBus.off(CustomEventTypes.strypeModalHidden, this.onModalDlgHidden as any);
         window.removeEventListener("keydown", this.validateOnEnterKeyDown);
     },
 });
 </script>
 
 <style lang="scss">
+.strype-modal-footer-content-div button {
+    margin-left: 8px;
+}
 .modal-spin-ok-btn-span {
     margin-left: 5px;
 }

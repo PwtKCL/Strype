@@ -31,6 +31,7 @@ import {PersistentImageManager} from "@/stryperuntime/image_and_collisions";
 import {getDateTimeFormatted} from "@/helpers/common";
 import {saveAs} from "file-saver";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
+import { BButton } from "bootstrap-vue-next";
 
 // These bits of text are not translated because they are class names:
 const HTMLImageClass = "<a href='https://strype.org/doc/library/#strype.graphics.Image' target='_blank'>Image</a>";
@@ -47,6 +48,10 @@ export default defineComponent({
             showPopup: this.showPopup,
             startHidePopup: this.startHidePopup,
         };    
+    },
+
+    components: {
+        BButton,
     },
 
     data() {

@@ -58,9 +58,10 @@ import { mapStores } from "pinia";
 import {drawSoundOnCanvas, getRMS, audioBufferToDataURL} from "@/helpers/media";
 import {TranslateResult} from "vue-i18n";
 import {isMacOSPlatform} from "@/helpers/common";
-import { BvTriggerableEvent } from "bootstrap-vue-next";
+import { BButton, BvTriggerableEvent } from "bootstrap-vue-next";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 import { eventBus } from "@/helpers/appContext";
+import { CustomEventTypes } from "@/helpers/editor";
 
 const previewImageWidth = 300;
 const previewImageHeight = 100;
@@ -71,6 +72,7 @@ export default defineComponent({
     components:{
         Cropper,
         ModalDlg,
+        BButton,
     },
 
     props:{
@@ -104,12 +106,12 @@ export default defineComponent({
         };
 
         // Register the event listener for the dialog here
-        eventBus.on("bv::modal::hide", this.onHideModalDlg as any);
+        eventBus.on(CustomEventTypes.strypeModalHidden, this.onHideModalDlg);
     },
 
     beforeDestroy(){
         // Remove the event listener for the dialog here, just in case...
-        eventBus.off("bv::modal::hide", this.onHideModalDlg as any);
+        eventBus.off(CustomEventTypes.strypeModalHidden, this.onHideModalDlg);
     },
 
     mounted() {

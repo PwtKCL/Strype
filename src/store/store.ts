@@ -2572,7 +2572,7 @@ export const useStore = defineStore("app", {
                                 const execSetStateFunction = (event: BvTriggerableEvent) => {
                                     if((event.trigger == "ok" || event.trigger=="event") && event.componentId == getImportDiffVersionModalDlgId()){
                                         this.doSetStateFromJSONStr(newStateStr).then(() => {
-                                            eventBus.off("bv::modal::hide", execSetStateFunction as any); 
+                                            eventBus.off(CustomEventTypes.strypeModalHidden, execSetStateFunction); 
                                             resolve();          
                                         });                          
                                     }
@@ -2581,8 +2581,8 @@ export const useStore = defineStore("app", {
                                         reject(errorDetailMessage);
                                     }
                                 };
-                                eventBus.on("bv::modal::hide", execSetStateFunction as any); 
-                                eventBus.emit("bv::show::modal", getImportDiffVersionModalDlgId());
+                                eventBus.on(CustomEventTypes.strypeModalHidden, execSetStateFunction); 
+                                eventBus.emit(CustomEventTypes.showStrypeModal, getImportDiffVersionModalDlgId());
                             //
                             }
                             else{

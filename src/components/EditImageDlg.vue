@@ -58,9 +58,10 @@ import { useStore } from "@/store/store";
 import { mapStores } from "pinia";
 import {debounce} from "lodash";
 import {isMacOSPlatform} from "@/helpers/common";
-import { BvTriggerableEvent } from "bootstrap-vue-next";
+import { BButton, BvTriggerableEvent } from "bootstrap-vue-next";
 import { eventBus } from "@/helpers/appContext";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
+import { CustomEventTypes } from "@/helpers/editor";
 
 const picaInstance = pica();
 
@@ -70,6 +71,7 @@ export default defineComponent({
     components:{
         Cropper,
         ModalDlg,
+        BButton,
     },
 
     props:{
@@ -100,13 +102,13 @@ export default defineComponent({
         };
 
         // Register the event listener for the dialog here
-        eventBus.on("bv::modal::hide", this.onHideModalDlg as any);
+        eventBus.on(CustomEventTypes.strypeModalHidden, this.onHideModalDlg);
         this.updatePreview = debounce(this.updatePreview, 500);
     },
 
     beforeDestroy(){
         // Remove the event listener for the dialog here, just in case...
-        eventBus.off("bv::modal::hide", this.onHideModalDlg as any);
+        eventBus.off(CustomEventTypes.strypeModalHidden, this.onHideModalDlg);
     },
     
     mounted() {

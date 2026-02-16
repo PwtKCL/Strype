@@ -78,9 +78,14 @@ import { mapStores } from "pinia";
 import { getAPIItemTextualDescriptions } from "@/helpers/microbitAPIDiscovery";
 import { cloneDeep } from "lodash";
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
+import { BCard, BCardText, BPopover } from "bootstrap-vue-next";
 
 export default defineComponent({
     name: "APIDiscovery",
+
+    components:{
+        BCard, BCardText, BPopover,
+    },
 
     data: function () {
         return {

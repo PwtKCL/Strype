@@ -80,6 +80,7 @@ import {bufferToBase64} from "@/helpers/media";
 import turtleImgURL from "@/assets/images/turtle.png" ;
 import { vueComponentsAPIHandler } from "@/helpers/vueComponentAPI";
 import { eventBus } from "@/helpers/appContext";
+import { BTab, BTabs } from "bootstrap-vue-next";
 
 // Helper to keep indexed tabs (for maintenance if we add some tabs etc)
 const enum PEATabIndexes {graphics, console}
@@ -122,6 +123,7 @@ export default defineComponent({
         Pane,
         SVGIcon,
         VueContext,
+        BTabs, BTab,
     },
 
     props:{
