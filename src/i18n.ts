@@ -28,5 +28,6 @@ export default createI18n({
     legacy: false, // We make this plugin using the CompositionAPI with the migration to Vue 3 in Strype
     locale: import.meta.env?.VITE_APP_I18N_LOCALE ?? "en",
     fallbackLocale: import.meta.env?.VITE_APP_I18N_FALLBACK_LOCALE ?? "en",
+    warnHtmlMessage: false, // This is only used to avoid the warning messages about unsafe HTML in messages
     messages: loadLocaleMessages() as any,
 });
