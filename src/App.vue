@@ -31,6 +31,7 @@
         </div>
         <!-- #v-endif-->
         <!-- Keep the style position of the row div to get proper z order layout of the app -->
+        <div class="row g-0" style="position: relative;">
             <!-- the container div is only here because the new version of Splitpanes doesn't get the classes -->
             <div class="strype-split-theme">
                 <Splitpanes @resize=onStrypeCommandsSplitPaneResize>
