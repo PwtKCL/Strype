@@ -21,35 +21,38 @@
                                     :id="apiDescItem.name+'_info'"  
                                     class="fas fa-info-circle api-item-info" 
                                 />
-                                <b-popover
-                                    triggers="hover" 
-                                    :target="apiDescItem.name+'_info'" 
-                                    variant="info" 
-                                    placement="bottomright" 
-                                    custom-class="api-popover"
-                                    @show="onShowAPIInfo" 
-                                    @shown="onShownAPIInfo(apiDescItem.extradoc.length > 0)"
-                                >
-                                    <span v-html="apiDescItem.doc"/>
-                                    <div :style="getCodeExampleDivStyle(apiDescItem.doc.length > 0)" v-if="apiDescItem.isFinal" v-html="getCodeExample(apiDescItem)"/>
-                                    <div v-if="apiDescItem.extradoc.length > 0">
-                                        <a 
-                                            @click="showExtraDoc=!showExtraDoc;" 
-                                            size="sm" 
-                                            class="show-more-link popover-body" 
-                                        >
-                                            {{getShowExtraCodeLinkLabel()}}
-                                        </a>
-                                        <i 
-                                            :class="{'show-more-chevron fas': true, 'fa-chevron-up': showExtraDoc, 'fa-chevron-down': !showExtraDoc}"
-                                            @click="showExtraDoc=!showExtraDoc;" 
-                                        />
-                                        <div v-show="showExtraDoc">                                   
-                                            <span v-html="apiDescItem.extradoc"/>
-                                            <div :style="getCodeExampleDivStyle(true)" v-if="apiDescItem.extraCodePortion" v-html="getCodeExample(apiDescItem, true)"/>
+                                <teleport to="body">
+                                    <b-popover
+                                        hover
+                                        :target="apiDescItem.name+'_info'" 
+                                        placement="bottom-end" 
+                                        body-class="api-popover"
+                                        no-size
+                                        no-flip
+                                        container="body"
+                                        @show="onShowAPIInfo"
+                                    >
+                                        <span v-html="apiDescItem.doc"/>
+                                        <div :style="getCodeExampleDivStyle(apiDescItem.doc.length > 0)" v-if="apiDescItem.isFinal" v-html="getCodeExample(apiDescItem)"/>
+                                        <div v-if="apiDescItem.extradoc.length > 0">
+                                            <a 
+                                                @click="onShowExtraDocClick" 
+                                                size="sm" 
+                                                class="show-more-link popover-body" 
+                                            >
+                                                {{getShowExtraCodeLinkLabel()}}
+                                            </a>
+                                            <i 
+                                                :class="{'show-more-chevron fas': true, 'fa-chevron-up': showExtraDoc, 'fa-chevron-down': !showExtraDoc}"
+                                                @click="showExtraDoc=!showExtraDoc;" 
+                                            />
+                                            <div v-show="showExtraDoc">                                   
+                                                <span v-html="apiDescItem.extradoc"/>
+                                                <div :style="getCodeExampleDivStyle(true)" v-if="apiDescItem.extraCodePortion" v-html="getCodeExample(apiDescItem, true)"/>
+                                            </div>
                                         </div>
-                                    </div>
-                                </b-popover>
+                                    </b-popover>
+                                </teleport>
                             </div>
                             <span v-if="(apiDescItem.version > 1)" class="api-item-version" :title="$t('apidiscovery.v2InfoMsg')">v{{apiDescItem.version}}</span>
                         </b-card-text>
@@ -381,23 +384,15 @@ export default defineComponent({
         },
 
         onShowAPIInfo(){
-            // When the popop is opened, we first set the flag to show the extra doc to "true" in order to prepare the popup size correctly
-            this.showExtraDoc=true;
+            // When the popop is opened, we first set the flag to show the extra doc to "false" to reset the state
+            this.showExtraDoc=false;
         },
 
-        onShownAPIInfo(needMinWidth: boolean){
-            // When the popup is shown, we assign the right min width if the popup contains extra doc,
-            // so that when the extra doc is show, the popup doesn't resize and make the popup disappear.
-            // Moreover, we make the popup explicitely visible here - we need to keep it hidden to avoid the flicker
-            // when resetting the flag to false (as initially, the extra doc isn't shown)
-            const infoPopupElement = document.getElementsByClassName("api-popover")[0];
-            if(infoPopupElement){
-                if(needMinWidth){
-                    (infoPopupElement as HTMLDivElement).style.minWidth=  (infoPopupElement as HTMLDivElement).offsetWidth+"px";
-                }
-                this.showExtraDoc = false;
-                (infoPopupElement as HTMLDivElement).style.visibility = "visible";
-            }            
+        onShowExtraDocClick(event: MouseEvent){
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            event.preventDefault();
+            this.showExtraDoc = !this.showExtraDoc;
         },
 
         getShowExtraCodeLinkLabel(): string{
@@ -498,10 +493,16 @@ export default defineComponent({
 }
 
 //the following overwrites the bootstrap tooltip class
-.api-popover {
-    max-width: 500px !important;
-    visibility: hidden; //in order to avoid flickering when preparing the extra doc popups
+.popover:has(.api-popover){
+    max-width: 500px !important;   
+    //Some styling properties are used to "recreate" the "info" variant of Boostrap 4 (change in Boostrap 5 isn't nice)
+    --bs-popover-bg: #D1ECF1;
 }
 
-
+.api-popover {
+    --bs-popover-body-padding-x: 0.75rem;
+    --bs-popover-body-padding-y: 0.5rem;
+    //Some styling properties are used to "recreate" the "info" variant of Boostrap 4 (change in Boostrap 5 isn't nice)
+    color: #195E6A !important;
+}
 </style>
