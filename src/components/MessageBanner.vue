@@ -1,5 +1,5 @@
 <template>
-    <b-modal
+    <BModal
         v-if="showModal"
         :visible="showModal"
         hide-footer
@@ -10,7 +10,7 @@
             class="w-100" 
             :src="image"
         />
-    </b-modal>
+    </BModal>
     <div
         v-else 
         :class="scssVars.messageBannerContainerClassName"

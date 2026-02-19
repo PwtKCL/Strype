@@ -18,8 +18,8 @@
                         </div>     
                         <div @mousedown.prevent.stop @mouseup.prevent.stop>
                             <!-- #v-ifdef MODE == VITE_MICROBIT_MODE -->
-                            <b-tabs id="commandsTabs" content-class="mt-2" v-model="tabIndex">
-                                <b-tab :title="$t('commandTabs.0')" active :title-link-class="getTabClasses(0)" :disabled="isEditing">
+                            <BTabs id="commandsTabs" content-class="mt-2" v-model="tabIndex">
+                                <BTab :title="$t('commandTabs.0')" active :title-link-class="getTabClasses(0)" :disabled="isEditing">
                             <!-- #v-endif-->
                                     <div :id="commandsContainerUID" class="command-tab-content" >
                                         <div id="addFramePanel">
@@ -58,11 +58,11 @@
                                         </div>
                                     </div>
                                 <!-- #v-ifdef MODE == VITE_MICROBIT_MODE -->
-                                </b-tab>
-                                    <b-tab :title="$t('commandTabs.1')" :title-link-class="getTabClasses(1)">
+                                </BTab>
+                                    <BTab :title="$t('commandTabs.1')" :title-link-class="getTabClasses(1)">
                                         <APIDiscovery  class="command-tab-content"/>
-                                    </b-tab>                       
-                            </b-tabs>
+                                    </BTab>                       
+                            </BTabs>
                             <!-- #v-endif-->
                         </div>
                         <text id="userCode"></text>

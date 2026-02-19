@@ -1,6 +1,6 @@
 <!-- this acts as a wrapper around the bootstrap modals, to have centralised control and customisation -->
 <template>
-    <b-modal no-close-on-backdrop :no-header-close="!showCloseBtn" :id="dlgId" :title="dlgTitle" @shown="onShown" @hidden="onHidden"
+    <BModal no-close-on-backdrop :no-header-close="!showCloseBtn" :id="dlgId" :title="dlgTitle" @shown="onShown" @hidden="onHidden"
         :ok-title="okTitle" :cancel-title="cancelTitle" :size="size" :modal-class="cssClass" :focus="elementToFocusId">
         <slot/>
         <!-- When no footer should be shown, we still use an empty div content (but a content nonetheless) to have the right visual rendering:
@@ -14,13 +14,13 @@
                     <!-- distinction between normal OK button and a "useLoadingOK" button -->
                     <button v-if="!hideDlgBtns && !useLoadingOK" class="btn btn-primary" @click="onOK">{{ okTitle }}</button>
                     <button v-else-if="!hideDlgBtns" :class="{'btn btn-primary': true, disabled: okDisabled}" @click="onOK">
-                        <b-spinner label="Spinning" small></b-spinner>
+                        <BSpinner label="Spinning" small></BSpinner>
                         <span class="modal-spin-ok-btn-span">{{ okTitle }}</span>
                     </button>
                 </div>
             </slot>            
         </template>
-    </b-modal>
+    </BModal>
 </template>
 <script lang="ts">
 import { defineComponent, PropType } from "vue";

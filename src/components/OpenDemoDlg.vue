@@ -7,8 +7,8 @@
             :ok-disabled="!(selectedDemoCategoryIndex >= 0 && selectedDemoCategoryIndex < availableDemos.length && selectedDemoItemIndex >= 0 && selectedDemoItemIndex < demosInCurrentCategory.length)" >
         <div class="d-flex" style="height: 400px;">
             <!-- Left Pane: List Group -->
-            <b-list-group class="flex-column" style="width: 30% !important;">
-                <b-list-group-item
+            <BListGroup class="flex-column" style="width: 30% !important;">
+                <BListGroupItem
                     v-for="(item, index) in availableDemos"
                     :key="index"
                     :active="selectedDemoCategoryIndex === index && availableDemos.length > 1"
@@ -17,14 +17,14 @@
                 >
                     <span class="open-demo-dlg-demo-group-type" v-if="item.type">{{item.type}}</span>
                     {{ item.name }}
-                </b-list-group-item>
+                </BListGroupItem>
                 
                 <div class="open-demo-dlg-add-library-panel">
                     <span>{{$t('demos.addLibrary')}}</span>
                     <input ref="newLibraryAddress" :placeholder="$t('demos.libraryAddrPlaceholder')" type="text" autocomplete="off" class="cell" />
-                    <b-button @click="addSpecifiedLibrary">{{ $t('demos.add') }}</b-button>
+                    <BButton @click="addSpecifiedLibrary">{{ $t('demos.add') }}</BButton>
                 </div>
-            </b-list-group>
+            </BListGroup>
 
             <!-- Right Pane: Dynamic Grid -->
             <div class="flex-grow-1 p-3 overflow-auto">

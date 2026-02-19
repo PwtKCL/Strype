@@ -13,8 +13,8 @@
                         v-html="getItemBullet(apiDescItem)" 
                         :class="{'api-item-bullet-icon': true, 'api-item-bullet-invisible-icon': apiDescItem.isFinal}"
                     />
-                    <b-card :style="getCardStyle(apiDescItem)">
-                        <b-card-text>
+                    <BCard :style="getCardStyle(apiDescItem)">
+                        <BCardText>
                             <span>{{apiDescItem.label}}</span>
                             <div v-if="apiDescItem.doc.length > 0 || apiDescItem.codePortion.length > 0" style="display: inline">
                                 <i 
@@ -22,7 +22,7 @@
                                     class="fas fa-info-circle api-item-info" 
                                 />
                                 <teleport to="body">
-                                    <b-popover
+                                    <BPopover
                                         hover
                                         :target="apiDescItem.name+'_info'" 
                                         placement="bottom-end" 
@@ -51,11 +51,11 @@
                                                 <div :style="getCodeExampleDivStyle(true)" v-if="apiDescItem.extraCodePortion" v-html="getCodeExample(apiDescItem, true)"/>
                                             </div>
                                         </div>
-                                    </b-popover>
+                                    </BPopover>
                                 </teleport>
                             </div>
                             <span v-if="(apiDescItem.version > 1)" class="api-item-version" :title="$t('apidiscovery.v2InfoMsg')">v{{apiDescItem.version}}</span>
-                        </b-card-text>
+                        </BCardText>
                         <div class="api-code-container" v-if="apiDescItem.name===selectedAPIItemName  && !isSelectedIntermediateItem()">
                             <!-- FF disabled button still get listeners that mess with focus/blur of inputs, so use div instead -->
                             <div
@@ -65,7 +65,7 @@
                                 :class="{'api-code-button btn btn-secondary': true, 'api-code-button-disabled': disabledAPI()}"
                             />
                         </div>
-                    </b-card>
+                    </BCard>
                 </div> 
             </div>
         </div>

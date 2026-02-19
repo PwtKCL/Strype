@@ -74,7 +74,7 @@
                         <label v-show="showCloudSaveLocation" v-t="'appMessage.cloudLocation'" class="load-save-label cell"/>
                         <div v-show="showCloudSaveLocation" class="cell">                        
                             <span class="load-save-label">{{currentDriveLocation}}</span>
-                            <b-button v-t="'buttonLabel.saveDiffLocation'" variant="outline-primary" @click="onSaveDiffLocationClick" size="sm" />
+                            <BButton v-t="'buttonLabel.saveDiffLocation'" variant="outline-primary" @click="onSaveDiffLocationClick" size="sm" />
                         </div>
                     </div>
                 </div>

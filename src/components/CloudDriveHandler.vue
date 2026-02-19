@@ -6,9 +6,9 @@
             <span style="white-space:pre-wrap">{{$t((checkIsFileLockedProp())?'appMessage.cloudLockedFileAlreadyExists':'appMessage.cloudFileAlreadyExists', {drivename: getDriveName()})}}</span>
             <!-- in order to allow 3 (customed) buttons, we use the slot "modal-footer" made available by Boostrap for the modal; to simply things, we handle both locked/unlocked files there -->
             <template #modal-footer-content="{ok, cancel}">
-                <b-button variant="secondary" @click="onSaveCloudExistingFileAction(Actions.cancel);cancel()">{{$t('buttonLabel.cancel')}}</b-button>
-                <b-button :id="saveExistingFileCopyButtonId" variant="primary" @click="onSaveCloudExistingFileAction(Actions.copy);ok()">{{$t('buttonLabel.saveProjectCopy')}}</b-button>
-                <b-button :id="saveExistingFileOverwriteButtonId" v-if="!checkIsFileLockedProp()" variant="primary" @click="onSaveCloudExistingFileAction(Actions.overwrite);ok()">{{$t('buttonLabel.overwriteProject')}}</b-button>
+                <BButton variant="secondary" @click="onSaveCloudExistingFileAction(Actions.cancel);cancel()">{{$t('buttonLabel.cancel')}}</BButton>
+                <BButton :id="saveExistingFileCopyButtonId" variant="primary" @click="onSaveCloudExistingFileAction(Actions.copy);ok()">{{$t('buttonLabel.saveProjectCopy')}}</BButton>
+                <BButton :id="saveExistingFileOverwriteButtonId" v-if="!checkIsFileLockedProp()" variant="primary" @click="onSaveCloudExistingFileAction(Actions.overwrite);ok()">{{$t('buttonLabel.overwriteProject')}}</BButton>
             </template>
         </ModalDlg>
         <!-- Each specific drive is created here, but typing inference is done in getSpecificCloudDriveComponent() -->

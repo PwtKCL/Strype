@@ -44,7 +44,7 @@
             :data-code="code"
             :data-mediaType="getMediaType()">
                
-        <b-popover
+        <BPopover
             v-if="erroneous()"
             :id="errorPopoverUID"
             :target="UID"
@@ -54,7 +54,7 @@
             custom-class="error-popover modified-title-popover"
             placement="bottom"
         >
-        </b-popover>
+        </BPopover>
 
         <AutoCompletion
             v-show="focused && showAC"

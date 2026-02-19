@@ -10,9 +10,9 @@
             <span class="MediaPreviewPopup-header-text" v-html="mediaInfo"></span>
         </div>
         <div class="MediaPreviewPopup-controls">
-            <b-button size="sm" variant="outline-success" class="MediaPreviewPopup-header-preview-button" @click="doPreview">{{$t("media.preview")}}</b-button>
-            <b-button size="sm" variant="outline-success" class="MediaPreviewPopup-header-download-button" @click="doDownload"><i class="fa fa-download"></i></b-button>
-            <b-button size="sm" variant="outline-danger" class="MediaPreviewPopup-header-edit-button" @click="doEdit">{{$t("media.edit")}}</b-button>
+            <BButton size="sm" variant="outline-success" class="MediaPreviewPopup-header-preview-button" @click="doPreview">{{$t("media.preview")}}</BButton>
+            <BButton size="sm" variant="outline-success" class="MediaPreviewPopup-header-download-button" @click="doDownload"><i class="fa fa-download"></i></BButton>
+            <BButton size="sm" variant="outline-danger" class="MediaPreviewPopup-header-edit-button" @click="doEdit">{{$t("media.edit")}}</BButton>
         </div>
         <div class="MediaPreviewPopup-img-container-wrapper">
             <div class="MediaPreviewPopup-img-container">
