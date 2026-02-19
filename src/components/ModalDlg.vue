@@ -1,21 +1,24 @@
 <!-- this acts as a wrapper around the bootstrap modals, to have centralised control and customisation -->
 <template>
     <b-modal no-close-on-backdrop :no-header-close="!showCloseBtn" :id="dlgId" :title="dlgTitle" @shown="onShown" @hidden="onHidden"
-        :ok-title="okTitle" :cancel-title="cancelTitle" :size="size" :modal-class="cssClass">
+        :ok-title="okTitle" :cancel-title="cancelTitle" :size="size" :modal-class="cssClass" :focus="elementToFocusId">
         <slot/>
         <!-- When no footer should be shown, we still use an empty div content (but a content nonetheless) to have the right visual rendering:
              the BModal property "no-footer" can be used, but it also removes the divider below the dialog content, making the style weird.
              Moreover, if the template is TOTALLY empty, Vue Boostrap Next will assign default OK/Cancel buttons. -->
         <template #footer>
-            <div class="strype-modal-footer-content-div">
-                <button v-if="!hideDlgBtns && !okOnly" class="btn btn-secondary" @click="onCancel">{{ cancelTitle }}</button>
-                <!-- distinction between normal OK button and a "useLoadingOK" button -->
-                <button v-if="!hideDlgBtns && !useLoadingOK" class="btn btn-primary" @click="onOK">{{ okTitle }}</button>
-                <button v-else-if="!hideDlgBtns" :class="{'btn btn-primary': true, disabled: okDisabled}" @click="onOK">
-                    <b-spinner label="Spinning" small></b-spinner>
-                    <span class="modal-spin-ok-btn-span">{{ okTitle }}</span>
-                </button>
-            </div>
+            <slot name="modal-footer-content" :ok="onOK" :cancel="onCancel">
+                <!-- default content if the slot isn't provided -->
+                <div class="strype-modal-footer-content-div">
+                    <button v-if="!hideDlgBtns && !okOnly" class="btn btn-secondary" @click="onCancel">{{ cancelTitle }}</button>
+                    <!-- distinction between normal OK button and a "useLoadingOK" button -->
+                    <button v-if="!hideDlgBtns && !useLoadingOK" class="btn btn-primary" @click="onOK">{{ okTitle }}</button>
+                    <button v-else-if="!hideDlgBtns" :class="{'btn btn-primary': true, disabled: okDisabled}" @click="onOK">
+                        <b-spinner label="Spinning" small></b-spinner>
+                        <span class="modal-spin-ok-btn-span">{{ okTitle }}</span>
+                    </button>
+                </div>
+            </slot>            
         </template>
     </b-modal>
 </template>
@@ -67,7 +70,13 @@ export default defineComponent({
         // Access the show/hide methods exposed by Boostrap
         const {show, hide} = useToggle(this.dlgId);
         this.modalShowFunction = show;
-        this.modalHideFunction = hide;     
+        this.modalHideFunction = hide;
+
+        // Bootstrap 5 doesn't visually show the focused button anymore (unless using tabbing).
+        // So we use styling to simular "focus-visible" to achieve the same.
+        if(this.elementToFocusId){
+            document.getElementById(this.elementToFocusId)?.classList.add("strype-modal-dlg-focused-btn");
+        }
     },
 
     computed: {
@@ -104,11 +113,7 @@ export default defineComponent({
             eventBus.emit(CustomEventTypes.strypeModalShown, event);
             // For any modal window, notify the editor that a modal is displayed
             this.appStore.isModalDlgShown = true;
-            this.appStore.currentModalDlgId = event.componentId as string;
-            // If an element is request to show focus we try to set it here
-            if(this.elementToFocusId){
-                document.getElementById(this.elementToFocusId)?.focus();
-            }
+            this.appStore.currentModalDlgId = event.componentId as string;            
         },
 
         hideModal(event: BvTriggerableEvent){
@@ -152,7 +157,18 @@ export default defineComponent({
 .strype-modal-footer-content-div button {
     margin-left: 8px;
 }
+
 .modal-spin-ok-btn-span {
     margin-left: 5px;
+}
+
+.strype-modal-dlg-focused-btn:focus {
+    // We only use this for showing the right focus "visual" indicator
+    // when a button is programmatically focused, Bootstrap 5 doesn't
+    // do it anymore just by focusing it...
+    border-color: var(--bs-btn-hover-border-color);
+    outline: 0;
+    // Avoid using mixin so we can pass custom focus shadow properly
+    box-shadow: var(--bs-btn-focus-box-shadow);   
 }
 </style>
