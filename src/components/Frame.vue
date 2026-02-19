@@ -97,6 +97,8 @@ import Vue, { defineComponent } from "vue";
 import FrameHeader from "@/components/FrameHeader.vue";
 import CaretContainer from "@/components/CaretContainer.vue";
 import { useStore } from "@/store/store";
+import FrameBody from "@/components/FrameBody.vue";
+import JointFrames from "@/components/JointFrames.vue";
 import { DefaultFramesDefinition, CaretPosition, CollapsedState, CurrentFrame, FrozenState, NavigationPosition, AllFrameTypesIdentifier, Position, PythonExecRunningState, FrameContextMenuActionName, ContainerTypesIdentifiers } from "@/types/types";
 import VueContext, {VueContextConstructor}  from "vue-context";
 import { getAboveFrameCaretPosition, getAllChildrenAndJointFramesIds, getLastSibling, getNextSibling, getOutmostDisabledAncestorFrameId, getParentId, getParentOrJointParent, isFramePartOfJointStructure, isLastInParent, frameOrChildHasErrors, calculateNextCollapseState } from "@/helpers/storeMethods";
@@ -115,6 +117,15 @@ import { eventBus } from "@/helpers/appContext";
 //////////////////////
 export default defineComponent({
     name: "Frame",
+
+    setup(componentInstance){
+        // Move the Composition API style computed properties here if we need them setup:
+        const errorPopoverUID = "errorPopover_frame_" + componentInstance.frameId;
+
+        // Expose useToogle() of Bootstrap Vue Next inside setup (otherwise we get an error, even if it works)
+        const toggleErrorPopover = useToggle(errorPopoverUID);
+        return { errorPopoverUID, toggleErrorPopover };
+    },
 
     created() {
         // Expose this component that other components might need.
@@ -142,9 +153,8 @@ export default defineComponent({
         VueContext,
         CaretContainer,
         BPopover,
-        // Loaded like that because of circular references of components
-        FrameBody: () => import("@/components/FrameBody.vue"),
-        JointFrames: () => import("@/components/JointFrames.vue"),
+        FrameBody,
+        JointFrames,
     },
 
     props: {
@@ -185,10 +195,6 @@ export default defineComponent({
 
         frameHeaderId(): string {
             return getFrameHeaderUID(this.frameId);
-        },
-
-        errorPopoverUID(): string {
-            return "errorPopover_frame_" + this.frameId;
         },
 
         allowsJointChildren(): boolean {
@@ -364,12 +370,12 @@ export default defineComponent({
         isInFrameWithKeyboard(isInFrame: boolean, wasInFrame: boolean) {
             // If we just got the text cursor, and there is/was a runtime error in the frame, we show the popup
             if(!wasInFrame && isInFrame && (this.hasRuntimeError || this.wasLastRuntimeError)){
-                useToggle(this.errorPopoverUID).show();
+                this.toggleErrorPopover.show();
             }
 
-            // If we lost the text cursor, and there is/was a runtime error in the frame, we hide the popup
-            if(wasInFrame && !isInFrame){
-                useToggle(this.errorPopoverUID).hide();
+            // If we lost the text cursor, and there is/was a runtime error in the frame, we hide the popup (if it existed)
+            if(wasInFrame && !isInFrame && document.getElementById(this.errorPopoverUID)?.classList.contains("show")){
+                this.toggleErrorPopover.hide();
             }
         },
     },
@@ -1452,10 +1458,10 @@ export default defineComponent({
             // (if applies) when we navigate to the error - we make sure the frame still exists.
             if(this.appStore.frameObjects[this.frameId] && this.hasParsingError){
                 if(isFocusing){
-                    useToggle(this.errorPopoverUID).show();
+                    this.toggleErrorPopover.show();
                 }
                 else{
-                    useToggle(this.errorPopoverUID).hide();
+                    this.toggleErrorPopover.hide();
                 }
             }
         },

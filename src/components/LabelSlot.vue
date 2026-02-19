@@ -95,6 +95,15 @@ const soundPreviewImages = new Cache<LoadedMedia>({ defaultTtl: 5 * 60 * 1000 })
 export default defineComponent({
     name: "LabelSlot",
 
+    setup(componentInstance){
+        // Move the Composition API style computed properties here if we need them setup:
+        const errorPopoverUID = `errorPopover_labelSlot_${componentInstance.frameId}_${componentInstance.labelSlotsIndex}_${componentInstance.slotId}`;
+
+        // Expose useToogle() of Bootstrap Vue Next inside setup (otherwise we get an error, even if it works)
+        const toggleErrorPopover = useToggle(errorPopoverUID);
+        return { errorPopoverUID, toggleErrorPopover };
+    },
+
     created() {
         // Expose this component that other components might need.
         // Vue 3 has deprecated direct access to components.
@@ -191,10 +200,6 @@ export default defineComponent({
 
         initCode(): string {
             return this.appStore.currentInitCodeValue;
-        },
-
-        errorPopoverUID(): string {
-            return `errorPopover_labelSlot_${this.frameId}_${this.labelSlotsIndex}_${this.slotId}`;
         },
 
         stringQuote(): string {
@@ -564,7 +569,7 @@ export default defineComponent({
 
                 // As we receive focus, we show the error popover if required. Note that we do it programmatically as it seems the focus trigger on popover isn't working in our configuration
                 if(this.erroneous()){
-                    useToggle(this.errorPopoverUID).show();
+                    this.toggleErrorPopover.show();
                 }
             }, waitFor);           
         },
@@ -685,8 +690,10 @@ export default defineComponent({
                     this.appStore.ignoreKeyEvent = false;
                 }
 
-                // And we hide the error popover. Note that we do it programmatically as it seems the focus trigger on popover isn't working in our configuration
-                useToggle(this.errorPopoverUID).hide();            
+                // And we hide the error popover (if still showing). Note that we do it programmatically as it seems the focus trigger on popover isn't working in our configuration
+                if(document.getElementById(this.errorPopoverUID)?.classList.contains("show")){
+                    this.toggleErrorPopover.hide();
+                }
             }
         },
         

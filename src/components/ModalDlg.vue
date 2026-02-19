@@ -5,7 +5,7 @@
         <slot/>
         <!-- When no footer should be shown, we still use an empty div content (but a content nonetheless) to have the right visual rendering:
              the BModal property "no-footer" can be used, but it also removes the divider below the dialog content, making the style weird.
-             Moreover, if the template is TOTALLY empty, Vue Boostrap Next will assign default OK/Cancel buttons. -->
+             Moreover, if the template is TOTALLY empty, Vue Bootstrap Next will assign default OK/Cancel buttons. -->
         <template #footer>
             <slot name="modal-footer-content" :ok="onOK" :cancel="onCancel">
                 <!-- default content if the slot isn't provided -->
@@ -61,13 +61,13 @@ export default defineComponent({
 
     mounted(){
         // The events related to the modal visibility are sent on the eventBus.
-        // This component then works out the interaction with the Boostrap modal mechanism.
+        // This component then works out the interaction with the Bootstrap modal mechanism.
         // For a given dialog we need to register a generic listener for the shown even
         eventBus.on(CustomEventTypes.showStrypeModal, this.showModal);
         eventBus.on(CustomEventTypes.hideStrypeModal, this.hideModal);
         window.addEventListener("keydown", this.validateOnEnterKeyDown);
 
-        // Access the show/hide methods exposed by Boostrap
+        // Access the show/hide methods exposed by Bootstrap
         const {show, hide} = useToggle(this.dlgId);
         this.modalShowFunction = show;
         this.modalHideFunction = hide;

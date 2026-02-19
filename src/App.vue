@@ -1,117 +1,117 @@
 <template>
-    <!-- With the new package for Boostrap (for Vue 3), BOrchestrator must be added inside the app component-->
-    <BOrchestrator />
-
-    <div>
-        <div v-if="showAppProgress || setAppNotOnTop" :class="{'app-overlay-pane': true, 'app-progress-pane': showAppProgress}" @contextmenu="handleOverlayRightClick">
-            <div v-if="showAppProgress" class="app-progress-container">
-                <div class="progress">
-                    <div 
-                        class="progress-bar progress-bar-striped bg-info progress-bar-animated" 
-                        role="progressbar"
-                        style="width: 100%"
-                        aria-valuenow="100"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                        >
-                        <span class="progress-bar-text">{{progressbarMessage}}</span>
+    <!-- With the new package for Bootstrap (for Vue 3), BApp must wrap the application content -->
+    <BApp>
+        <div>
+            <div v-if="showAppProgress || setAppNotOnTop" :class="{'app-overlay-pane': true, 'app-progress-pane': showAppProgress}" @contextmenu="handleOverlayRightClick">
+                <div v-if="showAppProgress" class="app-progress-container">
+                    <div class="progress">
+                        <div 
+                            class="progress-bar progress-bar-striped bg-info progress-bar-animated" 
+                            role="progressbar"
+                            style="width: 100%"
+                            aria-valuenow="100"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            >
+                            <span class="progress-bar-text">{{progressbarMessage}}</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE -->
-        <!-- the container div is only here because the new version of Splitpanes doesn't get the classes -->
-        <div class="expanded-PEA-splitter-overlay strype-split-theme">
-            <Splitpanes v-show="isExpandedPythonExecArea" horizontal @resize=onExpandedPythonExecAreaSplitPaneResize>
-                <pane key="1" :size="100 - expandedPEAOverlaySplitterPane2Size">
-                </pane>
-                <pane id="overlayExpandedPEASplitterPane2" key="2" :size="expandedPEAOverlaySplitterPane2Size" :min-size="peaOverlayPane2MinSize" :max-size="peaOverlayPane2MaxSize">
-                </pane>
-            </Splitpanes>
-        </div>
-        <!-- #v-endif-->
-        <!-- Keep the style position of the row div to get proper z order layout of the app -->
-        <div class="row g-0" style="position: relative;">
+            <!-- #v-ifdef MODE == VITE_STANDARD_PYTHON_MODE -->
             <!-- the container div is only here because the new version of Splitpanes doesn't get the classes -->
-            <div class="strype-split-theme">
-                <Splitpanes @resize=onStrypeCommandsSplitPaneResize>
-                    <Pane key="1" :size="100 - editorCommandsSplitterPane2Size" min-size="33" max-size="90">
-                        <!-- These data items are to enable testing: -->
-                        <div :id="editorId" :data-slot-focus-id="slotFocusId" :data-slot-cursor="slotCursorPos" class="print-full-height">
-                            <div class="top no-print">
-                                <MessageBanner 
-                                    v-if="showMessage"
-                                />
-                            </div>
-                            <div class="row g-0" >
-                                <Menu 
-                                    :id="menuUID" 
-                                    :ref="menuUID"
-                                    v-on:[CustomEventTypes.appShowProgressOverlay]="applyShowAppProgress"
-                                    v-on:[CustomEventTypes.appResetProject]="resetStrypeProject"
-                                    class="noselect no-print col flex-grow-0"
-                                />
-                                <div class="col">
-                                    <div 
-                                        :id="editorUID" 
-                                        :class="{'editor-code-div noselect print-full-height':true, ...layoutClassesForStandardVersion}"
-                                        @mousedown="handleWholeEditorMouseDown"
-                                    >
-                                        <FrameHeader
-                                            :id="getFrameHeaderUID(-10)"
-                                            :labels="projectDocLabels"
-                                            :frameId="-10"
-                                            :frameType="projectDocFrameType"
-                                            :isDisabled="false"
-                                            :frameAllowChildren="false"
-                                            :erroneous="false"
-                                            :wasLastRuntimeError="false"
-                                            :frameAllowedCollapsedStates="[]"
-                                            :frameAllowedFrozenStates="[]"
-                                            :onFocus="() => {}"/>
-                                        <FrameContainer
-                                            v-for="container in containerFrames"
-                                            :key="container.frameType.type + '-id:' + container.id"
-                                            :id="getFrameContainerUID(container.id)"
-                                            :ref="getFrameContainerUID(container.id)"
-                                            :frameId="container.id"
-                                            :containerLabel="container.frameType.labels[0].label"
-                                            :caretVisibility="container.caretVisibility"
-                                            :frameType="container.frameType"
-                                        />
+            <div class="expanded-PEA-splitter-overlay strype-split-theme">
+                <Splitpanes v-show="isExpandedPythonExecArea" horizontal @resize=onExpandedPythonExecAreaSplitPaneResize>
+                    <pane key="1" :size="100 - expandedPEAOverlaySplitterPane2Size">
+                    </pane>
+                    <pane id="overlayExpandedPEASplitterPane2" key="2" :size="expandedPEAOverlaySplitterPane2Size" :min-size="peaOverlayPane2MinSize" :max-size="peaOverlayPane2MaxSize">
+                    </pane>
+                </Splitpanes>
+            </div>
+            <!-- #v-endif-->
+            <!-- Keep the style position of the row div to get proper z order layout of the app -->
+            <div class="row g-0" style="position: relative;">
+                <!-- the container div is only here because the new version of Splitpanes doesn't get the classes -->
+                <div class="strype-split-theme">
+                    <Splitpanes @resize=onStrypeCommandsSplitPaneResize>
+                        <Pane key="1" :size="100 - editorCommandsSplitterPane2Size" min-size="33" max-size="90">
+                            <!-- These data items are to enable testing: -->
+                            <div :id="editorId" :data-slot-focus-id="slotFocusId" :data-slot-cursor="slotCursorPos" class="print-full-height">
+                                <div class="top no-print">
+                                    <MessageBanner 
+                                        v-if="showMessage"
+                                    />
+                                </div>
+                                <div class="row g-0" >
+                                    <Menu 
+                                        :id="menuUID" 
+                                        :ref="menuUID"
+                                        v-on:[CustomEventTypes.appShowProgressOverlay]="applyShowAppProgress"
+                                        v-on:[CustomEventTypes.appResetProject]="resetStrypeProject"
+                                        class="noselect no-print col flex-grow-0"
+                                    />
+                                    <div class="col">
+                                        <div 
+                                            :id="editorUID" 
+                                            :class="{'editor-code-div noselect print-full-height':true, ...layoutClassesForStandardVersion}"
+                                            @mousedown="handleWholeEditorMouseDown"
+                                        >
+                                            <FrameHeader
+                                                :id="getFrameHeaderUID(-10)"
+                                                :labels="projectDocLabels"
+                                                :frameId="-10"
+                                                :frameType="projectDocFrameType"
+                                                :isDisabled="false"
+                                                :frameAllowChildren="false"
+                                                :erroneous="false"
+                                                :wasLastRuntimeError="false"
+                                                :frameAllowedCollapsedStates="[]"
+                                                :frameAllowedFrozenStates="[]"
+                                                :onFocus="() => {}"/>
+                                            <FrameContainer
+                                                v-for="container in containerFrames"
+                                                :key="container.frameType.type + '-id:' + container.id"
+                                                :id="getFrameContainerUID(container.id)"
+                                                :ref="getFrameContainerUID(container.id)"
+                                                :frameId="container.id"
+                                                :containerLabel="container.frameType.labels[0].label"
+                                                :caretVisibility="container.caretVisibility"
+                                                :frameType="container.frameType"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </Pane>
-                    <Pane id="strypeEditorCommandsSplitPane2" key="2" :size="editorCommandsSplitterPane2Size" class="no-print">
-                        <Commands :id="commandsContainerId" class="noselect" :ref="strypeCommandsRefId" />
-                    </Pane>
-                </SplitPanes>
+                        </Pane>
+                        <Pane id="strypeEditorCommandsSplitPane2" key="2" :size="editorCommandsSplitterPane2Size" class="no-print">
+                            <Commands :id="commandsContainerId" class="noselect" :ref="strypeCommandsRefId" />
+                        </Pane>
+                    </SplitPanes>
+                </div>
             </div>
+            <SimpleMsgModalDlg :dlgId="simpleMsgModalDlgId"/>
+            <ModalDlg :dlgId="importDiffVersionModalDlgId" :useYesNo="true">
+                <span v-t="'appMessage.editorFileUploadWrongVersion'" />                
+            </ModalDlg>
+            <ModalDlg :dlgId="resyncToCloudDriveAtStartupModalDlgId" :useYesNo="true" :okCustomTitle="$t('buttonLabel.yesSign')" :cancelCustomTitle="$t('buttonLabel.noContinueWithout')">
+                <span style="white-space:pre-wrap" v-html="resyncToCloudDriveAtStartupDetailsMessage"></span>
+            </ModalDlg>
+            <MediaPreviewPopup ref="mediaPreviewPopup" />
+            <EditImageDlg dlgId="editImageDlg" ref="editImageDlg" :imgToEdit="imgToEditInDialog" :showImgPreview="showImgPreview" />
+            <EditSoundDlg dlgId="editSoundDlg" ref="editSoundDlg" :soundToEdit="soundToEditInDialog as AudioBuffer" />
+            <div :id="getSkulptBackendTurtleDivId" class="hidden"></div>
+            <canvas v-show="appStore.isDraggingFrame" :id="getCompanionDndCanvasId" class="companion-canvas-dnd"/>
+            <ModalDlg :dlgId="confirmResetLSOnShareProjectLoadDlgId" :okCustomTitle="$t('buttonLabel.continue')" :cancelCustomTitle="$t('buttonLabel.cancelLoadSharedProject')" >
+                <div>
+                    <span v-html="$t('appMessage.LSOnShareProjectLoad')"/>
+                    <br/>
+                </div>
+            </ModalDlg>
+            <ModalDlg :dlgId="confirmNewProjectModalDlgId" :useYesNo="true">
+                <span style="white-space:pre-wrap" v-html="$t('appMessage.newProjectConfirmation')"></span>
+            </ModalDlg>
         </div>
-        <SimpleMsgModalDlg :dlgId="simpleMsgModalDlgId"/>
-        <ModalDlg :dlgId="importDiffVersionModalDlgId" :useYesNo="true">
-            <span v-t="'appMessage.editorFileUploadWrongVersion'" />                
-        </ModalDlg>
-        <ModalDlg :dlgId="resyncToCloudDriveAtStartupModalDlgId" :useYesNo="true" :okCustomTitle="$t('buttonLabel.yesSign')" :cancelCustomTitle="$t('buttonLabel.noContinueWithout')">
-            <span style="white-space:pre-wrap" v-html="resyncToCloudDriveAtStartupDetailsMessage"></span>
-        </ModalDlg>
-        <MediaPreviewPopup ref="mediaPreviewPopup" />
-        <EditImageDlg dlgId="editImageDlg" ref="editImageDlg" :imgToEdit="imgToEditInDialog" :showImgPreview="showImgPreview" />
-        <EditSoundDlg dlgId="editSoundDlg" ref="editSoundDlg" :soundToEdit="soundToEditInDialog as AudioBuffer" />
-        <div :id="getSkulptBackendTurtleDivId" class="hidden"></div>
-        <canvas v-show="appStore.isDraggingFrame" :id="getCompanionDndCanvasId" class="companion-canvas-dnd"/>
-        <ModalDlg :dlgId="confirmResetLSOnShareProjectLoadDlgId" :okCustomTitle="$t('buttonLabel.continue')" :cancelCustomTitle="$t('buttonLabel.cancelLoadSharedProject')" >
-            <div>
-                <span v-html="$t('appMessage.LSOnShareProjectLoad')"/>
-                <br/>
-            </div>
-        </ModalDlg>
-        <ModalDlg :dlgId="confirmNewProjectModalDlgId" :useYesNo="true">
-            <span style="white-space:pre-wrap" v-html="$t('appMessage.newProjectConfirmation')"></span>
-        </ModalDlg>
-    </div>
+    </BApp>
 </template>
 
 <script lang="ts">
@@ -120,7 +120,7 @@
 //////////////////////
 import Vue, { defineComponent } from "vue";
 import { useI18n } from "vue-i18n";
-import { BOrchestrator } from "bootstrap-vue-next";
+import { BApp } from "bootstrap-vue-next";
 import MessageBanner from "@/components/MessageBanner.vue";
 import FrameContainer from "@/components/FrameContainer.vue";
 import Commands from "@/components/Commands.vue";
@@ -173,7 +173,7 @@ export default defineComponent({
     },
     
     components: {
-        BOrchestrator,
+        BApp,
         FrameHeader,
         MessageBanner,
         FrameContainer,

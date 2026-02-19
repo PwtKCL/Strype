@@ -62,7 +62,7 @@ export enum CustomEventTypes {
     cutFrameSelection = "cutFrameSelection",
     copyFrameSelection = "copyFrameSelection",
     updateParamPrompts = "updateParamPrompts",
-    // The following events are used for our modal dialogs, a wrapping mechanism around Boostrap modals
+    // The following events are used for our modal dialogs, a wrapping mechanism around Bootstrap modals
     showStrypeModal = "bv::show::modal", // request a modal opening, param is a dialog ID
     strypeModalShown = "bv::modal::shown", // event after a modal is opened: param is a BvTriggerableEvent event
     hideStrypeModal = "bv::hide::modal", // request a modal closing, param is a BvTriggerableEvent event

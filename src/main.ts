@@ -2,7 +2,6 @@ import { createApp } from "vue";
 import App from "@/App.vue";
 import  {createPinia } from "pinia";
 import i18n from "@/i18n";
-import { createBootstrap } from "bootstrap-vue-next";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue-next/dist/bootstrap-vue-next.css";
 //import vBlur from "v-blur";
@@ -44,9 +43,6 @@ const app = createApp(App);
 
 // Localisation package
 app.use(i18n);
-
-// Bootstrap
-app.use(createBootstrap());
 
 // Store package (Pinia is the default store management library for Vue 3)
 app.use(createPinia());
