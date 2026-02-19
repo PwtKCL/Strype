@@ -17,15 +17,13 @@
             @change="change"
             @mousemove.native="handleMouseMove"            
         ></cropper>
-        <div class="d-flex justify-content-center mt" style="margin-top: 10px;">
+        <div class="d-flex justify-content-center" style="margin-top: 10px;">
             <div class="d-flex position-relative" style="font-size: 80%;">
-                <div class="d-flex flex-column text-right me-4" style="min-width: 250px; padding-right: 5px;">
+                <div class="d-flex flex-column text-end" style="min-width: 250px; padding-right: 5px;">
                     <div>{{$t(isMacOSPlatform() ? "media.cursorPosMac" : "media.cursorPosWin")}}</div>
                     <div>{{$t(isMacOSPlatform() ? "media.cursorColorMac" : "media.cursorColorWin")}}</div>
-                </div>
-                <!-- Divider -->
-                <div class="position-absolute top-0 bottom-0 start-50 translate-middle-x bg-secondary" style="width: 1px;"></div>
-                <div class="d-flex flex-column text-left ms-4" style="min-width: 250px; padding-left: 5px;">
+                </div>              
+                <div class="d-flex flex-column text-start" style="min-width: 250px; padding-left: 5px;">
                     <div>{{cursorPos || "-"}}</div>
                     <div>{{cursorColor || "-"}}</div>
                 </div>
@@ -33,9 +31,9 @@
             </div>
         </div>
         <div class="d-flex justify-content-center align-items-center" style="font-size: 90%; gap: 20px;margin-top: 15px;">
-            <b-button class="EditImageDlg-flip-horizontal-button" variant="info" @click="doFlipHorizontal"><i class="fa fa-arrows-h"></i> {{$t("media.imageFlipHorizontal")}}</b-button>
-            <b-button class="EditImageDlg-flip-vertical-button" variant="info" @click="doFlipVertical"><i class="fa fa-arrows-v"></i> {{$t("media.imageFlipVertical")}}</b-button>
-            <b-button class="EditImageDlg-rotate-button" variant="info" @click="doRotate90"><i class="fa fa-undo fa-flip-horizontal"></i> {{$t("media.imageRotate")}}</b-button>
+            <BButton class="EditImageDlg-flip-horizontal-button EditSoundImageDlg-info-btn" @click="doFlipHorizontal"><i class="fa fa-arrows-h"></i> {{$t("media.imageFlipHorizontal")}}</BButton>
+            <BButton class="EditImageDlg-flip-vertical-button EditSoundImageDlg-info-btn" @click="doFlipVertical"><i class="fa fa-arrows-v"></i> {{$t("media.imageFlipVertical")}}</BButton>
+            <BButton class="EditImageDlg-rotate-button EditSoundImageDlg-info-btn" @click="doRotate90"><i class="fa fa-undo fa-flip-horizontal"></i> {{$t("media.imageRotate")}}</BButton>
         </div>
         <span class="EditImageDlg-header">{{$t("media.imageScale")}}</span>
         <div class="EditImageDlg-scale">
@@ -318,5 +316,10 @@ export default defineComponent({
     font-size: 80%;
     display: block;
     text-align: center;
+}
+// Shared styling with EditSoundDlg buttons
+.EditSoundImageDlg-info-btn {
+    background-color: #17a2b8 !important;
+    border-color: #17a2b8;
 }
 </style>

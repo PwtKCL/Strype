@@ -17,17 +17,15 @@
             @mousemove.native="handleMouseMove"
         ></cropper>
         <div class="EditSoundDlg-button-wrapper">
-            <b-button class="EditSoundDlg-play-button" :variant="playStopVariant" @click="doPlayStopPreview">{{playStopLabel}}</b-button>
+            <BButton class="EditSoundDlg-play-button" :variant="playStopVariant" @click="doPlayStopPreview">{{playStopLabel}}</BButton>
         </div>
-        <div class="d-flex justify-content-center mt" style="margin-top: 10px;">
+        <div class="d-flex justify-content-center" style="margin-top: 10px;">
             <div class="d-flex position-relative" style="font-size: 80%;">
-                <div class="d-flex flex-column text-right me-4" style="min-width: 250px; padding-right: 5px;">
+                <div class="d-flex flex-column text-end" style="min-width: 250px; padding-right: 5px;">
                     <div>{{$t(isMacOSPlatform() ? "media.cursorTimeMac" : "media.cursorTimeWin")}}</div>
                     <div>{{$t(isMacOSPlatform() ? "media.cursorHeightMac" : "media.cursorHeightWin")}}</div>
                 </div>
-                <!-- Divider -->
-                <div class="position-absolute top-0 bottom-0 start-50 translate-middle-x bg-secondary" style="width: 1px;"></div>
-                <div class="d-flex flex-column text-left ms-4" style="min-width: 250px; padding-left: 5px;">
+                <div class="d-flex flex-column text-start" style="min-width: 250px; padding-left: 5px;">
                     <div>{{cursorTime || "-"}}</div>
                     <div>{{cursorHeight || "-"}}</div>
                 </div>
@@ -43,7 +41,7 @@
         <span class="EditSoundDlg-sizeInfo">{{$t("media.soundChangedLength")}} {{currentSoundLength}} {{$t("media.soundSeconds")}}</span>
         <span class="EditSoundDlg-sizeInfo">{{$t("media.soundAverageVolume")}} {{Math.round(volumeRMS * 10 * 100)}}%</span>
         <div class="EditSoundDlg-button-wrapper">
-            <b-button class="EditSoundDlg-normalise-button" variant="info" @click="doNormaliseVolume">{{$t("media.soundNormaliseVolume")}}</b-button>
+            <BButton class="EditSoundDlg-normalise-button EditSoundImageDlg-info-btn" @click="doNormaliseVolume">{{$t("media.soundNormaliseVolume")}}</BButton>
         </div>
     </ModalDlg>
 </template>
@@ -313,7 +311,7 @@ export default defineComponent({
                 this.volumeScaleLogPercent = 0;
                 this.crop = {firstSampleIncl: 0, lastSampleExcl: this.soundToEdit.length, leftPixel: 0, widthPixels: previewImageWidth};
                 this.currentSoundLength = this.soundToEdit.duration.toFixed(3); 
-            }
+            }           
         },
     },
 });
