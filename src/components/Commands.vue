@@ -18,7 +18,7 @@
                         </div>     
                         <div @mousedown.prevent.stop @mouseup.prevent.stop>
                             <!-- #v-ifdef MODE == VITE_MICROBIT_MODE -->
-                            <BTabs id="commandsTabs" content-class="mt-2" v-model="tabIndex">
+                            <BTabs id="commandsTabs" content-class="mt-2" v-model:index="tabIndex">
                                 <BTab :title="$t('commandTabs.0')" active :title-link-class="getTabClasses(0)" :disabled="isEditing">
                             <!-- #v-endif-->
                                     <div :id="commandsContainerUID" class="command-tab-content" >
