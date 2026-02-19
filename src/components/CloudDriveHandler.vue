@@ -4,7 +4,7 @@
         <SimpleMsgModalDlg :dlgId="unsupportedByStrypeFilePickedModalDlgId" :hideActionListener="loadFile" />
         <ModalDlg :dlgId="saveExistingCloudProjectModalDlgId" :size="saveExistingFileDlgSize" :elementToFocusId="(checkIsFileLockedProp()) ? saveExistingFileCopyButtonId : saveExistingFileOverwriteButtonId">
             <span style="white-space:pre-wrap">{{$t((checkIsFileLockedProp())?'appMessage.cloudLockedFileAlreadyExists':'appMessage.cloudFileAlreadyExists', {drivename: getDriveName()})}}</span>
-            <!-- in order to allow 3 (customed) buttons, we use the slot "modal-footer" made available by Boostrap for the modal; to simply things, we handle both locked/unlocked files there -->
+            <!-- in order to allow 3 (customed) buttons, we use the slot "modal-footer-content" made available in the underlying BModal; to simply things, we handle both locked/unlocked files there -->
             <template #modal-footer-content="{ok, cancel}">
                 <BButton variant="secondary" @click="onSaveCloudExistingFileAction(Actions.cancel);cancel()">{{$t('buttonLabel.cancel')}}</BButton>
                 <BButton :id="saveExistingFileCopyButtonId" variant="primary" @click="onSaveCloudExistingFileAction(Actions.copy);ok()">{{$t('buttonLabel.saveProjectCopy')}}</BButton>
