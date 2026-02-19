@@ -52,10 +52,11 @@
                 :id="errorPopoverUID"
                 :target="frameHeaderId"
                 :title="errorPopupTitle"
-                triggers="hover"
+                hover
                 :content="errorPopupContent"
-                :custom-class="(hasRuntimeError || hasParsingError) ? 'error-popover modified-title-popover': 'error-popover'"
-                placement="left"
+                :title-class="{'title-popover': true, 'modified-title-popover': (hasRuntimeError || hasParsingError)}"
+                body-class="error-popover"
+                placement="right"
             >
             </BPopover>
             <FrameBody
@@ -1489,8 +1490,16 @@ export default defineComponent({
 }
 
 // modification of default bootstrap popover classes
-.modified-title-popover .popover-header {
-    color: #d66;
+.title-popover {
+    font-weight: 500;
+    background-color: #F7F7F7 !important;
+    line-height: 1.2;
+    --bs-popover-header-padding-x: 0.75rem;
+    --bs-popover-header-padding-y: 0.5rem;
+}
+
+.modified-title-popover {
+    color: #d66 !important;
 }
 
 .blockFrameDiv {

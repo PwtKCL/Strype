@@ -1821,6 +1821,8 @@ export default defineComponent({
     // Nedded for the code to understand the formated errors which split multiple
     // errors with \n
     white-space: pre-line !important;
+    --bs-popover-body-padding-x: 0.75rem;
+    --bs-popover-body-padding-y: 0.5rem;
 }
 
 .ac {
