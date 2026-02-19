@@ -5,7 +5,7 @@
  *  is used in CloudDriveHandler)
  */
 <template>
-    <GoogleDriveFilePicker :ref="googleDriveFilePickerComponentId" @picked-file="onLoadPickedFile" @picked-folder="savePickedFolder"
+    <GoogleDriveFilePicker @picked-file="onLoadPickedFile" @picked-folder="savePickedFolder"
         :pick-folder-cancelled="onPickFolderCancelled" @unsupportedByStrypeFilePicked="onUnsupportedByStrypeFilePicked" :dev-key="devKey" :oauth-token="oauthToken??''"/>
 </template>
 <script lang="ts">
@@ -83,11 +83,6 @@ export default defineComponent({
         googleDriveScope(): string {
             return "https://www.googleapis.com/auth/drive";
         },
-
-        googleDriveFilePickerComponentId(): string {
-            return "googleDriveFilePickerComponent";
-        },
-
 
         loginErrorModalDlgId(): string {
             return getCloudLoginErrorModalDlgId();
