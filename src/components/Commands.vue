@@ -987,8 +987,7 @@ export default defineComponent({
 
 .#{$strype-classname-commands-pea-splitter-theme} > .splitpanes--horizontal>.splitpanes__splitter {
     height: 1px !important;
-    background-color: black;
-    position: relative;
+    background-color: black !important;
 }
 
 .#{$strype-classname-commands-pea-splitter-theme}.#{$strype-classname-expanded-pea} > .splitpanes--horizontal>.splitpanes__splitter {
@@ -1007,7 +1006,7 @@ export default defineComponent({
 }
 
 .collapsed-pea-splitter-pane {
-    background-color: $pea-outer-background-color;
+    background-color: $pea-outer-background-color !important;
 }
 // #v-endif
 /** End splitter classes */
