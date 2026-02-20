@@ -1082,7 +1082,6 @@ export default defineComponent({
                 }
                 // Case of request to save/discard the file currently opened, before loading a new file.
                 else if(dlgId == this.saveOnLoadModalDlgId){
-                    //TODO: check behaviour here, what event to use?!
                     eventBus.emit(CustomEventTypes.requestEditorProjectSaveNow, SaveRequestReason.loadProject);
                 }
                 // Case of standard "save file"

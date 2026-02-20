@@ -43,18 +43,21 @@
             @mouseleave="startHideMediaPreviewPopup"
             :data-code="code"
             :data-mediaType="getMediaType()">
-               
-        <BPopover
-            v-if="erroneous()"
-            :id="errorPopoverUID"
-            :target="UID"
-            :title="errorHeader"
-            triggers="hover"
-            :content="errorMessage"
-            custom-class="error-popover modified-title-popover"
-            placement="bottom"
-        >
-        </BPopover>
+        
+        <teleport to="body">    
+            <BPopover
+                v-if="erroneous()"
+                :id="errorPopoverUID"
+                :target="UID"
+                :title="errorHeader"
+                hover
+                :content="errorMessage"
+                title-class="title-popover modified-title-popover"
+                body-class="error-popover"
+                placement="bottom"
+            >
+            </BPopover>
+        </teleport>
 
         <AutoCompletion
             v-show="focused && showAC"
