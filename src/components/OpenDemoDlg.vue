@@ -14,6 +14,7 @@
                     :active="selectedDemoCategoryIndex === index && availableDemos.length > 1"
                     @click="changeDemoDialogCategory(index, item.demos)"
                     button
+                    class="open-demo-dlg-demo-group-item"
                 >
                     <span class="open-demo-dlg-demo-group-type" v-if="item.type">{{item.type}}</span>
                     {{ item.name }}
@@ -213,7 +214,7 @@ export default defineComponent({
 });
 </script>
 <style>
-.open-demo-dlg > .modal-md {
+.open-demo-dlg > .modal-dialog {
   width: auto; /* important to let content control size */
   min-width: min(800px, 80vw);
 }
@@ -266,6 +267,11 @@ span.open-demo-dlg-description {
 
 .open-demo-dlg-selected-demo-item span.open-demo-dlg-description a {
     color: white;
+}
+
+.open-demo-dlg-demo-group-item {
+    --bs-list-group-item-padding-x:1.25rem;
+    --bs-list-group-item-padding-y:0.75rem;
 }
 
 .open-demo-dlg-demo-group-type {
