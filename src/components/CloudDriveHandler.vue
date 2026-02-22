@@ -59,12 +59,16 @@ export default defineComponent({
         // Vue 3 has deprecated direct access to components.
         // (we don't set it in setup() because we want to have this accessible, and the component created!)
         vueComponentsAPIHandler.cloudDriveHandlerComponentAPI =  {
-            getDriveName: this.getDriveName,
+            getDriveName: () => {
+                return this.getDriveName();
+            },
             getSpecificCloudDriveComponent: this.getSpecificCloudDriveComponent,
             getCloudAPIStatusWhenLoadedOrFailed: this.getCloudAPIStatusWhenLoadedOrFailed,
             setGenericSignInCallBack: this.setGenericSignInCallBack,
             updateSignInStatus: this.updateSignInStatus,
-            signInFn: this.signInFn,
+            signInFn: () => {
+                return this.signInFn();
+            },
             shareCloudDriveFile: this.shareCloudDriveFile,
             getCurrentCloudFileCurrentSharingStatus: this.getCurrentCloudFileCurrentSharingStatus,
             backupPreviousCloudFileSharingStatus: this.backupPreviousCloudFileSharingStatus,
