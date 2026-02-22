@@ -1171,7 +1171,7 @@ export default defineComponent({
         onSaveDiffLocationClick(){
             // When the button to save at a different location is called, we trigger the hiding of the modal dialog and and set the right flag about saving
             this.saveAtOtherLocation = true;
-            eventBus.emit(CustomEventTypes.hideStrypeModal, {trigger: "cancel", componentId: this.saveProjectModalDlgId});
+            eventBus.emit(CustomEventTypes.hideStrypeModal, {trigger: "ok", componentId: this.saveProjectModalDlgId});
         },
 
         loadProject(){
