@@ -12,7 +12,7 @@
                 <div class="strype-modal-footer-content-div">
                     <button v-if="!hideDlgBtns && !okOnly" class="btn btn-secondary" @click="onCancel">{{ cancelTitle }}</button>
                     <!-- distinction between normal OK button and a "useLoadingOK" button -->
-                    <button v-if="!hideDlgBtns && !useLoadingOK" class="btn btn-primary" @click="onOK">{{ okTitle }}</button>
+                    <button v-if="!hideDlgBtns && !useLoadingOK" :class="{'btn btn-primary': true, disabled: okDisabled}" @click="onOK">{{ okTitle }}</button>
                     <button v-else-if="!hideDlgBtns" :class="{'btn btn-primary': true, disabled: okDisabled}" @click="onOK">
                         <BSpinner label="Spinning" small></BSpinner>
                         <span class="modal-spin-ok-btn-span">{{ okTitle }}</span>
