@@ -1,6 +1,6 @@
 import { AllFrameTypesIdentifier, BaseSlot, CaretPosition, CollapsedState, ContainerTypesIdentifiers, EditorFrameObjects, FrameObject, getFrameDefType, isFieldBaseSlot, isFieldBracketedSlot, isFieldStringSlot, LabelSlotsContent, SlotsStructure, StringSlot, MessageDefinitions, FormattedMessage, FormattedMessageArgKeyValuePlaceholders, FrozenState } from "@/types/types";
 import {useStore} from "@/store/store";
-import {getCaretContainerIdForFrame, operators, trimmedKeywordOperators} from "@/helpers/editor";
+import {getCaretContainerUID, operators, trimmedKeywordOperators} from "@/helpers/editor";
 import i18n from "@/i18n";
 import {cloneDeep, escapeRegExp} from "lodash";
 import {AppName, AppSPYFullPrefix, projectDocumentationFrameId} from "@/helpers/appContext";
@@ -1500,21 +1500,27 @@ export function pasteMixedPython(completeSource: string, clearExisting: boolean)
             isCurLocationInMainCodeSection = curLocation == STRYPE_LOCATION.MAIN_CODE_SECTION, isCurLocationInAFuncDefFrame = curLocation == STRYPE_LOCATION.IN_FUNCDEF;
 
         copyFramesFromParsedPython(s.projectDoc, STRYPE_LOCATION.PROJECT_DOC_SECTION, s.format);
-        copyFramesFromParsedPython(s.imports, STRYPE_LOCATION.IMPORTS_SECTION, s.format);
+        copyFramesFromParsedPython(s.imports, STRYPE_LOCATION.IMPORTS_SECTION, s.format);        
         if (useStore().copiedSelectionFrameIds.length > 0) {
-            const caretContainerComponentId = getCaretContainerIdForFrame((isCurLocationInImportsSection) ? useStore().currentFrame.id : useStore().getImportsFrameContainerId);
-            vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[caretContainerComponentId].doPaste(isCurLocationInImportsSection ? "caret" : "end");
+            const currentCaretContainerPosition = (isCurLocationInImportsSection) 
+                ? {...useStore().currentFrame}
+                : {id: useStore().getImportsFrameContainerId, caretPosition: CaretPosition.body};
+            vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretContainerUID(currentCaretContainerPosition.caretPosition, currentCaretContainerPosition.id)].doPaste(isCurLocationInImportsSection ? "caret" : "end");
         }
         copyFramesFromParsedPython(s.defs, STRYPE_LOCATION.DEFS_SECTION, s.format);
         if (useStore().copiedSelectionFrameIds.length > 0) {
-            const caretContainerComponentId = getCaretContainerIdForFrame((isCurLocationInDefsSection) ? useStore().currentFrame.id : useStore().getDefsFrameContainerId);
-            vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[caretContainerComponentId].doPaste(isCurLocationInDefsSection ? "caret" : "end");
+            const currentCaretContainerPosition = (isCurLocationInDefsSection) 
+                ? {...useStore().currentFrame} 
+                : {id: useStore().getDefsFrameContainerId, caretPosition: CaretPosition.body};
+            vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretContainerUID(currentCaretContainerPosition.caretPosition, currentCaretContainerPosition.id)].doPaste(isCurLocationInDefsSection ? "caret" : "end");
         }
         if (s.main.length > 0) {
             copyFramesFromParsedPython(s.main, (isCurLocationInAFuncDefFrame) ? STRYPE_LOCATION.IN_FUNCDEF : STRYPE_LOCATION.MAIN_CODE_SECTION, s.format);
             if (useStore().copiedSelectionFrameIds.length > 0) {
-                const caretContainerComponentId = getCaretContainerIdForFrame((isCurLocationInAFuncDefFrame || isCurLocationInMainCodeSection) ? useStore().currentFrame.id : useStore().getMainCodeFrameContainerId);
-                vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[caretContainerComponentId].doPaste((isCurLocationInAFuncDefFrame || isCurLocationInMainCodeSection) ? "caret" : "start");
+                const currentCaretContainerPosition = (isCurLocationInAFuncDefFrame || isCurLocationInMainCodeSection) 
+                    ? {...useStore().currentFrame} 
+                    : {id: useStore().getMainCodeFrameContainerId, caretPosition: CaretPosition.body};
+                vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[getCaretContainerUID(currentCaretContainerPosition.caretPosition, currentCaretContainerPosition.id)].doPaste((isCurLocationInAFuncDefFrame || isCurLocationInMainCodeSection) ? "caret" : "start");
             }
         }
         return s;
