@@ -44,13 +44,13 @@
             <a v-if="showMenu" :class="{['strype-menu-link ' + scssVars.strypeMenuItemClassName]: true, disabled: !isSynced }" @click="handleSaveAsMenuClick" v-t="'appMenu.saveAsProject'"/>
             <ModalDlg :dlgId="saveProjectModalDlgId" size="lg">
                 <div class="save-project-modal-dlg-container">
-                    <div class="row">
-                        <label v-t="'appMessage.fileName'" class="load-save-label cell"/>
-                        <input :id="saveFileNameInputId" :placeholder="$t('defaultProjName')" type="text" ref="toFocus" autocomplete="off" class="cell" />
+                    <div class="modal-row">
+                        <label v-t="'appMessage.fileName'" class="load-save-label modal-cell"/>
+                        <input :id="saveFileNameInputId" :placeholder="$t('defaultProjName')" type="text" ref="toFocus" autocomplete="off" class="modal-cell" />
                     </div>
-                    <div class="row">
-                        <span v-t="'appMessage.saveToTarget'" class="load-save-label cell" />
-                        <div class="cell">
+                    <div class="modal-row">
+                        <span v-t="'appMessage.saveToTarget'" class="load-save-label modal-cell" />
+                        <div class="modal-cell">
                             <div :ref="saveProjectTargetButtonGpId" class="project-target-button-container">
                                 <div id="saveToGDStrypeButton" tabindex="0"  @click="changeTempSyncTarget(syncGDValue, true)" @keydown.self="onTargetButtonKeyDown($event, saveProjectModalDlgId)"
                                     :class="{[scssVars.projectTargetButtonClassName + ' save-dlg']: true, saveTargetSelected: tempSyncTarget == syncGDValue || tempSyncTarget == noSyncTargetValue}">
@@ -70,9 +70,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <label v-show="showCloudSaveLocation" v-t="'appMessage.cloudLocation'" class="load-save-label cell"/>
-                        <div v-show="showCloudSaveLocation" class="cell">                        
+                    <div class="modal-row">
+                        <label v-show="showCloudSaveLocation" v-t="'appMessage.cloudLocation'" class="load-save-label modal-cell"/>
+                        <div v-show="showCloudSaveLocation" class="modal-cell">                        
                             <span class="load-save-label">{{currentDriveLocation}}</span>
                             <BButton v-t="'buttonLabel.saveDiffLocation'" variant="outline-primary" @click="onSaveDiffLocationClick" size="sm" />
                         </div>
@@ -1592,11 +1592,11 @@ export default defineComponent({
     border-spacing: 10px 10px;
 }
 
-.save-project-modal-dlg-container .row {
+.save-project-modal-dlg-container .modal-row {
     display: table-row;
 }
 
-.save-project-modal-dlg-container .cell {
+.save-project-modal-dlg-container .modal-cell {
     display: table-cell;
 }
 
