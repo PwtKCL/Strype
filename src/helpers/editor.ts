@@ -512,13 +512,6 @@ export function getStrypeCommandComponentRefId(): string {
     return "strypeCommands";
 }
 
-export function getCaretContainerIdForFrame(frameId: number): string {
-    const caretContainerId = (useStore().currentFrame.id < 0 || useStore().currentFrame.caretPosition == CaretPosition.below)
-        ? getCaretContainerUID(CaretPosition.below, frameId)
-        : getCaretContainerUID(CaretPosition.body, frameId); 
-    return caretContainerId;                              
-}
-
 export function getSaveAsProjectModalDlg(): string {
     return "save-strype-project-modal-dlg";
 }

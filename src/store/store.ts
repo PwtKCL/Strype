@@ -294,15 +294,15 @@ export const useStore = defineStore("app", {
             return Object.values(state.frameObjects).filter((frame: FrameObject) => frame.frameType.type === RootContainerFrameDefinition.type)[0].id;
         },
         
-        getMainCodeFrameContainerId: (state) => {
+        getMainCodeFrameContainerId: (state): number => {
             return Object.values(state.frameObjects).filter((frame: FrameObject) => frame.frameType.type === MainFramesContainerDefinition.type)[0].id;
         },
 
-        getImportsFrameContainerId:(state) => {
+        getImportsFrameContainerId:(state): number => {
             return Object.values(state.frameObjects).filter((frame: FrameObject) => frame.frameType.type === ImportsContainerDefinition.type)[0].id;
         },
 
-        getDefsFrameContainerId:(state) => {
+        getDefsFrameContainerId:(state): number => {
             return Object.values(state.frameObjects).filter((frame: FrameObject) => frame.frameType.type === DefsContainerDefinition.type)[0].id;
         },
 
