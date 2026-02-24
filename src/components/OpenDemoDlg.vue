@@ -12,7 +12,6 @@
                     v-for="(item, index) in availableDemos"
                     :key="index"
                     :active="selectedDemoCategoryIndex === index && availableDemos.length > 1"
-                    @click="changeDemoDialogCategory(index, item.demos)"
                     button
                     class="open-demo-dlg-demo-group-item"
                 >
@@ -119,6 +118,12 @@ export default defineComponent({
             for (const library of [...new Set([...extraLibraries, ...p.getLibraries()])]) {
                 this.availableDemos.push(getThirdPartyLibraryDemos(library));
             }
+
+            // It seems that Vue Bootstrap Next do not exposes @click on BListGroupItem therefore we cannot register anything on our items' click event, it will be ignored.
+            // Instead, once this component is mounted we manually register the click events here.
+            this.$nextTick(() => document.querySelectorAll(".open-demo-dlg-demo-group-item").forEach((el, index) => {
+                el.addEventListener("click", () => this.changeDemoDialogCategory(index, this.availableDemos[index].demos));
+            }));
         },
 
         async changeDemoDialogCategory(index: number, itemPromise: Promise<Demo[]>) {
@@ -208,6 +213,11 @@ export default defineComponent({
                     address = protocol + address;
                 }
                 this.availableDemos.push(getThirdPartyLibraryDemos(address));
+                // Also add the click event listener (see updateAvailableDemos() why we do so)
+                this.$nextTick(() => {
+                    const indexOfLastGroupItem = this.availableDemos.length - 1;
+                    document.querySelectorAll(".open-demo-dlg-demo-group-item")[this.availableDemos.length - 1]?.addEventListener("click", () => this.changeDemoDialogCategory(indexOfLastGroupItem, this.availableDemos[indexOfLastGroupItem].demos));                    
+                });
             }
         },
     },
