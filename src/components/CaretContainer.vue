@@ -208,6 +208,10 @@ export default defineComponent({
         window.removeEventListener("paste", this.pasteIfFocused);
         window.removeEventListener("keydown", this.keydownForSafariPaste);
         document.removeEventListener(CustomEventTypes.scrollCaretIntoView, this.putCaretContainerInView);
+        // Remove the component's API instance
+        if(vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[this.UID]){
+            delete vueComponentsAPIHandler.caretContainerComponentAPI?.forInstance[this.UID];
+        }
     },
 
     updated() {
