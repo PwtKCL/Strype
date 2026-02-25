@@ -68,7 +68,7 @@ export default defineComponent({
         };
     },
 
-    inject: ["peaComponent", "editImageInDialog", "editSoundInDialog"],
+    inject: ["editImageInDialog", "editSoundInDialog"],
     
     methods: {
         showPopup(event : MouseEvent, media: LoadedMedia, replaceMedia: (replacement: {code: string, mediaType: string}) => void) {
