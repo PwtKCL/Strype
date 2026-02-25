@@ -1515,10 +1515,7 @@ export default defineComponent({
         
         setStateFromPythonFile(completeSource: string, fileName: string, lastSaveDate: number, requestFSFileLoadedNotification: boolean, fileLocation?: FileSystemFileHandle) : Promise<void> {
             return new Promise((resolve) => {
-                console.log(completeSource);
                 const s = pasteMixedPython(completeSource, true);
-                console.log("\nthen...");
-                console.log(s);
                 if (s != null) {
 
                     // Now we can clear other non-frame related elements
