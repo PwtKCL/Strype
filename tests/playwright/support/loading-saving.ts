@@ -20,10 +20,12 @@ export async function load(page: Page, filepath: string) : Promise<void> {
             await discardChangesButton.click();
         }
     }
-    // The "button" for the target selection is now a div element.
-    await page.click("#" + await strypeElIds(page).getLoadFromFSStrypeButtonId());
-    // Must force because the <input> is hidden:
-    await page.setInputFiles("#" + await strypeElIds(page).getImportFileInputId(), filepath);
+    const [fileChooser] = await Promise.all([
+        page.waitForEvent("filechooser"),
+        // The "button" for the target selection is now a div element.
+        page.click("#" + await strypeElIds(page).getLoadFromFSStrypeButtonId()),
+    ]);
+    await fileChooser.setFiles(filepath);
     await page.waitForTimeout(2000);
 }
 
