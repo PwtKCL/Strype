@@ -22,7 +22,7 @@ test.beforeEach(async ({ page, browserName }, testInfo) => {
     });
 });
 
-test.describe("Project description selection", () => {
+test.describe.only("Project description selection", () => {
     test("Starts valid", async ({page}) => {
         await checkFrameXorTextCursor(page);
     });
