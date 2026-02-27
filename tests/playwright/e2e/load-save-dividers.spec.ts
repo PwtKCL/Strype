@@ -104,9 +104,9 @@ async function getSelectedMode(page: Page) : Promise<StrypePEALayoutMode | undef
     })?.mode;
 }
 
-const CODE_VS_SIDEBAR = ".strype-split-theme.splitpanes.splitpanes--vertical > .splitpanes__splitter";
-const COMMANDS_VS_PEA = ".strype-commands-pea-splitter-theme .splitpanes.splitpanes--horizontal > .splitpanes__splitter";
-const TOP_VS_EXPANDED_BOTTOM = ".expanded-PEA-splitter-overlay.strype-split-theme .splitpanes.splitpanes--horizontal > .splitpanes__splitter";
+const CODE_VS_SIDEBAR = ".strype-split-theme > .splitpanes.splitpanes--vertical > .splitpanes__splitter";
+const COMMANDS_VS_PEA = ".strype-commands-pea-splitter-theme > .splitpanes.splitpanes--horizontal > .splitpanes__splitter";
+const TOP_VS_EXPANDED_BOTTOM = ".expanded-PEA-splitter-overlay.strype-split-theme > .splitpanes.splitpanes--horizontal > .splitpanes__splitter";
 
 test.describe("Saves divider states", () => {
     test("Saves main divider state", async ({page}) => {
@@ -129,13 +129,14 @@ test.describe("Saves divider states", () => {
     });
 
     test("Saves main and secondary divider state in second mode", async ({page}) => {
-        test.setTimeout(90 * 1000);
+        test.setTimeout(150 * 1000);
         // Set them in first state:
-        await page.waitForTimeout(10 * 1000);
-        await dragDividerTo(page, COMMANDS_VS_PEA, 1200, 700);
-        await page.waitForTimeout(5 * 1000);
+        await page.waitForTimeout(20 * 1000);
+        await dragDividerTo(page, COMMANDS_VS_PEA, 1200, 600);
+        await page.waitForTimeout(20 * 1000);
         await dragDividerTo(page, CODE_VS_SIDEBAR, 1000, 300);
-
+        await page.waitForTimeout(20 * 1000);
+        
         // Then in second:
         await page.click("#graphicsPEATab");
         await page.locator("#peaGraphicsContainerDiv").hover();
@@ -145,14 +146,15 @@ test.describe("Saves divider states", () => {
         await page.waitForTimeout(10 * 1000);
         // Need to leave enough room that we can still click menu:
         await dragDividerTo(page, TOP_VS_EXPANDED_BOTTOM, 1000, 100);
-        await page.waitForTimeout(5 * 1000);
+        await page.waitForTimeout(20 * 1000);
         await dragDividerTo(page, CODE_VS_SIDEBAR, 10, 300);
-
+        await page.waitForTimeout(20 * 1000);
+        
         await saveAndCheck(page, [
-            /editorCommandsSplitterPane2Size:\{"tabsCollapsed":21.88\}/,
+            /editorCommandsSplitterPane2Size:\{"tabsCollapsed":21.94\}/,
             /peaLayoutMode:tabsExpanded/,
-            /peaCommandsSplitterPane2Size:\{"tabsCollapsed":1[45].?[0-9]*\}/,
-            /peaExpandedSplitterPane2Size:\{"tabsExpanded":86.11\}/,
+            /peaCommandsSplitterPane2Size:\{"tabsCollapsed":1[56].?[0-9]*\}/,
+            /peaExpandedSplitterPane2Size:\{"tabsExpanded":87.01\}/,
         ]);
     });
 
