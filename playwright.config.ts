@@ -15,7 +15,7 @@ const specFilter = process.env.SPEC;
  */
 export default defineConfig({
     testDir: "./tests/playwright/e2e",
-    testMatch: specFilter ? [specFilter] : ["**/graphics.spec.ts"], // default fallback    
+    testMatch: specFilter ? [specFilter] : ["**/structured-expressions-navigation.spec.ts"], // default fallback    
     // Folder for test artifacts such as screenshots, videos, traces, etc.
     outputDir: "./tests/playwright/test-results",
     /* Fail the build on CI if you accidentally left test.only in the source code. */
