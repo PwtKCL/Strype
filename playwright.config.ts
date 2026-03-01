@@ -15,11 +15,11 @@ const specFilter = process.env.SPEC;
  */
 export default defineConfig({
     testDir: "./tests/playwright/e2e",
-    testMatch: specFilter ? [specFilter] : ["**/structured-expressions.spec.ts"], // default fallback    
+    testMatch: specFilter ? [specFilter] : ["**/*.spec.ts"], // default fallback    
     // Folder for test artifacts such as screenshots, videos, traces, etc.
     outputDir: "./tests/playwright/test-results",
     /* Fail the build on CI if you accidentally left test.only in the source code. */
-    forbidOnly: false,//!!process.env.CI,
+    forbidOnly: !!process.env.CI,
     /* Retry twice on CI, as some of the random tests are slightly flaky */
     retries: process.env.CI ? 2 : 0,
     fullyParallel: true,
