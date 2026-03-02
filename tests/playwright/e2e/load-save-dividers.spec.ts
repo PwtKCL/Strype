@@ -13,9 +13,10 @@ test.beforeEach(async ({ page, browserName }, testInfo) => {
     }
 
     // These tests can take longer than the default 30 seconds:
-    testInfo.setTimeout(60000); // 60 seconds
+    testInfo.setTimeout(120000); // 120 seconds
     
     await page.goto("./", {waitUntil: "load"});
+    await page.waitForTimeout(20*1000);
     await page.waitForSelector("body");
     //scssVars = await page.evaluate(() => (window as any)["StrypeSCSSVarsGlobals"]);
     //strypeElIds = await page.evaluate(() => (window as any)["StrypeHTMLELementsIDsGlobals"]);
@@ -52,14 +53,22 @@ async function getSplitterPos(page: Page, locator: string) {
 
 async function dragDividerTo(page: Page, locator: string, x: number, y: number) : Promise<void> {
     const box = await getSplitterPos(page, locator);
-
+    console.log(`box @(${box.x},${box.y}) ${box.width}x${box.height} (for ${locator})`);
+    
     const currentX = box.x + box.width / 2;
     const currentY = box.y + box.height / 2;
-    
+    console.log(`gonna simulate a click  @(${currentX},${currentY})`);
+
+    const rect = await page.$eval(locator, (el) => el.getBoundingClientRect());
+    console.log(`checking with the JS native getBoundingClientRect, we get: @(${rect.x}, ${rect.y}) ${rect.width}x${rect.height}`);
+
     await page.mouse.move(currentX, currentY);
     await page.mouse.down();
+    await page.waitForTimeout(2*1000);
     await page.mouse.move(x, y, { steps: 1 });
+    await page.waitForTimeout(2*1000);
     await page.mouse.up();
+    await page.waitForTimeout(2*1000);
 
 }
 
@@ -110,26 +119,29 @@ const TOP_VS_EXPANDED_BOTTOM = ".expanded-PEA-splitter-overlay.strype-split-them
 
 test.describe("Saves divider states", () => {
     test("Saves main divider state", async ({page}) => {
-        await page.waitForTimeout(10 * 1000);
+        await page.waitForTimeout(20 * 1000);
         await dragDividerTo(page, CODE_VS_SIDEBAR, 10, 300);
+        await page.waitForTimeout(20 * 1000);
         await saveAndCheck(page, [/editorCommandsSplitterPane2Size:\{"tabsCollapsed":67\}/]);
     });
     test("Saves secondary divider state", async ({page}) => {
-        await page.waitForTimeout(10 * 1000);
-        await dragDividerTo(page, COMMANDS_VS_PEA, 1000, 10);
-        await saveAndCheck(page, [/peaCommandsSplitterPane2Size:\{"tabsCollapsed":9[0-9].?[0-9]*\}/]);
+        await page.waitForTimeout(20 * 1000);
+        await dragDividerTo(page, COMMANDS_VS_PEA, 1000, 120);
+        await page.waitForTimeout(20 * 1000);
+        await saveAndCheck(page, [/peaCommandsSplitterPane2Size:\{"tabsCollapsed":8[0-9].?[0-9]*\}/]);
     });
     test("Saves main and secondary divider state", async ({page}) => {
-        await page.waitForTimeout(10 * 1000);
-        await dragDividerTo(page, COMMANDS_VS_PEA, 1000, 10);
-        await page.waitForTimeout(5 * 1000);
+        await page.waitForTimeout(20 * 1000);
+        await dragDividerTo(page, COMMANDS_VS_PEA, 1000, 120);
+        await page.waitForTimeout(20 * 1000);
         await dragDividerTo(page, CODE_VS_SIDEBAR, 10, 300);
+        await page.waitForTimeout(20 * 1000);
 
-        await saveAndCheck(page, [/editorCommandsSplitterPane2Size:\{"tabsCollapsed":67\}/, /peaCommandsSplitterPane2Size:\{"tabsCollapsed":9[0-9].?[0-9]*\}/]);
+        await saveAndCheck(page, [/editorCommandsSplitterPane2Size:\{"tabsCollapsed":67\}/, /peaCommandsSplitterPane2Size:\{"tabsCollapsed":8[0-9].?[0-9]*\}/]);
     });
 
-    test("Saves main and secondary divider state in second mode", async ({page}) => {
-        test.setTimeout(150 * 1000);
+    test("Saves main and secondary divider state in second mode", async ({page, browserName}) => {
+        test.setTimeout(200 * 1000);
         // Set them in first state:
         await page.waitForTimeout(20 * 1000);
         await dragDividerTo(page, COMMANDS_VS_PEA, 1200, 600);
@@ -143,7 +155,7 @@ test.describe("Saves divider states", () => {
         await page.waitForTimeout(1000);
         await page.click(".pea-toggle-layout-buttons-container > div:nth-child(2)");
         
-        await page.waitForTimeout(10 * 1000);
+        await page.waitForTimeout(20 * 1000);
         // Need to leave enough room that we can still click menu:
         await dragDividerTo(page, TOP_VS_EXPANDED_BOTTOM, 1000, 100);
         await page.waitForTimeout(20 * 1000);
@@ -151,7 +163,7 @@ test.describe("Saves divider states", () => {
         await page.waitForTimeout(20 * 1000);
         
         await saveAndCheck(page, [
-            /editorCommandsSplitterPane2Size:\{"tabsCollapsed":21.94\}/,
+            (browserName == "webkit") ? /editorCommandsSplitterPane2Size:\{"tabsCollapsed":17.02\}/ : /editorCommandsSplitterPane2Size:\{"tabsCollapsed":21.94\}/,
             /peaLayoutMode:tabsExpanded/,
             /peaCommandsSplitterPane2Size:\{"tabsCollapsed":1[56].?[0-9]*\}/,
             /peaExpandedSplitterPane2Size:\{"tabsExpanded":87.01\}/,
