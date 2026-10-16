@@ -1,0 +1,10 @@
+#(=> Strype:1:std
+'''This is the default Strype starter project'''
+#(=> Section:Imports
+from strype.graphics import * 
+from strype.sound import * 
+#(=> Section:Definitions
+#(=> Section:Main
+myString  = "Hello from Strype" 
+print(myString) 
+#(=> Section:End
