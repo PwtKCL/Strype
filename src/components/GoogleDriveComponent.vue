@@ -181,9 +181,8 @@ export default defineComponent({
 
         testCloudConnection(onSuccessCallback: () => void, onFailureCallBack: () => void){
             const xhr = new XMLHttpRequest();
-            xhr.open("GET",
-                "https://www.googleapis.com/drive/v3/about?fields=user&" +
-                "access_token=" + this.oauthToken);
+            xhr.open("GET", "https://www.googleapis.com/drive/v3/about?fields=user");
+            xhr.setRequestHeader("Authorization", "Bearer " + this.oauthToken);
             xhr.onreadystatechange = function (e) {                
                 if(xhr.readyState == xhr.DONE) {
                     if(JSON.parse(xhr.response)["user"]){
