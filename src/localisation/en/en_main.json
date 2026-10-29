@@ -160,6 +160,7 @@
     "clearAllRecent": "Clear all",
     "saveToTarget": "Save to:",
     "targetFS": "This device",
+    "targetNotAvailableYet": "This feature isn't available yet.",
     "gitLabConnectTitle": "Connect to GitLab",
     "gitLabInstanceLabel": "Which GitLab do you use?",
     "gitLabComDetails": "The public GitLab service.",
