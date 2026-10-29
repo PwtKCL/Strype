@@ -714,9 +714,8 @@ export default defineComponent({
                         this.oauthToken = null;
                         this.appStore.simpleModalDlgMsg = this.$t("errorMessage.gdrivePermissionsNotMet");
                         eventBus.emit(CustomEventTypes.showStrypeModal, this.loginErrorModalDlgId);
-                    }                   
-                             
-                    if (response && response.error == undefined) {
+                    }
+                    else if (response && response.error == undefined) {
                         this.oauthToken = response.access_token;
                         vueComponentsAPIHandler.cloudDriveHandlerComponentAPI?.updateSignInStatus(StrypeSyncTarget.gd, true);
                         // We also set a basic Google Drive related activity "keep alive" mechanism to avoid GIS disconnecting after,
