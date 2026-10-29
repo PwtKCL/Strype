@@ -179,16 +179,28 @@ export default defineComponent({
             return this.oauthToken == null;
         },
 
-        testCloudConnection(onSuccessCallback: () => void, onFailureCallBack: () => void){
+        testCloudConnection(onSuccessCallback: () => void, onFailureCallBack: () => void, onNetworkErrorCallBack?: () => void){
             const xhr = new XMLHttpRequest();
             xhr.open("GET", "https://www.googleapis.com/drive/v3/about?fields=user");
             xhr.setRequestHeader("Authorization", "Bearer " + this.oauthToken);
-            xhr.onreadystatechange = function (e) {                
+            xhr.onreadystatechange = function (e) {
                 if(xhr.readyState == xhr.DONE) {
-                    if(JSON.parse(xhr.response)["user"]){
+                    let response = null;
+                    try {
+                        response = JSON.parse(xhr.response);
+                    }
+                    catch {
+                        // Not a JSON answer from Google (e.g. a captive portal page): handled below like a network error.
+                    }
+                    if(xhr.status == 0 || response == null){
+                        // The request didn't reach Google (no network, TLS failure...) so we know nothing about the token:
+                        // this isn't a failure of the connection test, which would reset the token and request signing in again.
+                        onNetworkErrorCallBack?.();
+                    }
+                    else if(response["user"]){
                         onSuccessCallback();
                     }
-                    else if(JSON.parse(xhr.response)["error"]){
+                    else if(response["error"]){
                         onFailureCallBack();
                     }
                 }
